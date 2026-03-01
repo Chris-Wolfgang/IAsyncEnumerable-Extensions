@@ -19,42 +19,42 @@ This is a .NET library project that provides extension methods for `IAsyncEnumer
 ### Build Process
 
 1. **Restore Dependencies** (always run first):
-   ```bash
+   ```powershell
    dotnet restore
    ```
 
 2. **Build Solution**:
-   ```bash
+   ```powershell
    dotnet build --no-restore --configuration Release
    ```
 
 3. **Run Tests with Coverage**:
-   ```bash
+   ```powershell
    # Find and test all test projects
-   find ./tests -type f -name '*Test*.csproj' | while read proj; do
-     dotnet test "$proj" --no-build --configuration Release --collect:"XPlat Code Coverage" --results-directory "./TestResults"
-   done
+   Get-ChildItem -Path ./tests -Filter '*Test*.csproj' -Recurse | ForEach-Object {
+     dotnet test $_.FullName --no-build --configuration Release --collect:"XPlat Code Coverage" --results-directory "./TestResults"
+   }
    ```
 
 4. **Generate Coverage Reports**:
-   ```bash
+   ```powershell
    reportgenerator -reports:"TestResults/**/coverage.cobertura.xml" -targetdir:"CoverageReport" -reporttypes:"Html;TextSummary;MarkdownSummaryGithub;CsvSummary"
    ```
 
 5. **Security Scanning**:
-   ```bash
+   ```powershell
    devskim analyze --source-code . -f text --output-file devskim-results.txt -E
    ```
 
 ### Critical Build Requirements
-- **Code Coverage**: Minimum 80% line coverage required for all projects
+- **Code Coverage**: Minimum 90% line coverage required for all projects
 - **Security Scanning**: DevSkim must pass with no errors
 - **Build Configuration**: Always use Release configuration for CI
 - **Test Pattern**: Test projects must match `*Test*.csproj` pattern in `/tests` folder
 
 ### Common Issues and Workarounds
 - **Timeout Issues**: Coverage and security scans can take 5-10 minutes for larger projects
-- **Coverage Threshold Failures**: If below 80%, the build will fail - this is by design
+- **Coverage Threshold Failures**: If below 90%, the build will fail - this is by design
 - **Missing Test Projects**: The workflow expects at least one test project in `/tests` folder
 - **DevSkim False Positives**: Review `devskim-results.txt` for any security findings
 
@@ -99,12 +99,31 @@ The workflow runs on pull requests to `main` branch and includes:
 4. **Branch Protection**: Configured to require this workflow to pass before merging
 
 ### Branch Protection Configuration
-The repository has branch protection rules configured:
+Branch protection rules are configured by running the local PowerShell script `scripts/Setup-BranchRuleset.ps1`. The script prompts you to choose repository settings during setup.
+
+**Single-Developer Configuration (Default):**
+- No PR approvals required (you can merge your own PRs)
+- Allows solo developers to merge their own PRs while still enforcing CI/CD checks
+
+**Multi-Developer Configuration:**
+- Requires 1+ approval before merging
+- Requires code owner review
+
+**All Configurations Include:**
 - Require status checks to pass before merging
 - Require branches to be up to date
-- Require pull request reviews (including Copilot reviews)
+- Require conversation resolution before merging
 - Restrict deletions and block force pushes
-- Require code scanning
+- Require code scanning (CodeQL High+ severity)
+
+**Branch Protection Setup Instructions:**
+1. Install GitHub CLI (gh) from https://cli.github.com/
+2. Authenticate: `gh auth login`
+3. From PowerShell 7+ (for example, using `pwsh`), run the branch protection setup script:
+   ```powershell
+   pwsh -File ./scripts/Setup-BranchRuleset.ps1
+   ```
+4. When prompted by the script, choose single-developer or multi-developer settings
 
 ## Key Files and Locations
 
@@ -138,7 +157,7 @@ This information has been validated against the project structure and GitHub wor
 2. **Adding Dependencies**: Use `dotnet add package` commands
 3. **Code Style**: Follow `.editorconfig` rules (file-scoped namespaces, explicit typing)
 4. **Testing**: Ensure test projects follow `*Test*.csproj` naming convention
-5. **Coverage**: Aim for >80% code coverage to pass CI
+5. **Coverage**: Aim for >90% code coverage to pass CI
 6. **Security**: Review DevSkim findings and address security concerns
 7. **Multi-targeting**: The library targets .NET Framework 4.6.2, .NET Standard 2.0, .NET 8.0, and .NET 10.0
 
@@ -146,7 +165,7 @@ This information has been validated against the project structure and GitHub wor
 Before submitting changes:
 1. Run `dotnet restore && dotnet build --configuration Release`
 2. Run tests with coverage collection
-3. Verify coverage meets 80% threshold
+3. Verify coverage meets 90% threshold
 4. Run DevSkim security scan
 5. Ensure all GitHub Actions checks pass
 
