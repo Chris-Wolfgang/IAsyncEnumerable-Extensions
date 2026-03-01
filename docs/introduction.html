@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+      <title>Introduction | Wolfgang.Extensions.IAsyncEnumerable Documentation </title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="title" content="Introduction | Wolfgang.Extensions.IAsyncEnumerable Documentation ">
+      
+      
+      <link rel="icon" href="../favicon.ico">
+      <link rel="stylesheet" href="../public/docfx.min.css">
+      <link rel="stylesheet" href="../public/main.css">
+      <meta name="docfx:navrel" content="../toc.html">
+      <meta name="docfx:tocrel" content="../toc.html">
+      
+      <meta name="docfx:rel" content="../">
+      
+      
+      <meta name="docfx:docurl" content="https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/blob/main/docfx_project/docs/introduction.md/#L1">
+      <meta name="loc:inThisArticle" content="In this article">
+      <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
+      <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
+      <meta name="loc:tocFilter" content="Filter by title">
+      <meta name="loc:nextArticle" content="Next">
+      <meta name="loc:prevArticle" content="Previous">
+      <meta name="loc:themeLight" content="Light">
+      <meta name="loc:themeDark" content="Dark">
+      <meta name="loc:themeAuto" content="Auto">
+      <meta name="loc:changeTheme" content="Change theme">
+      <meta name="loc:copy" content="Copy">
+      <meta name="loc:downloadPdf" content="Download PDF">
+
+      <script type="module" src="./../public/docfx.min.js"></script>
+
+      <script>
+        const theme = localStorage.getItem('theme') || 'auto'
+        document.documentElement.setAttribute('data-bs-theme', theme === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme)
+      </script>
+
+  </head>
+
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
+    <header class="bg-body border-bottom">
+      <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
+        <div class="container-xxl flex-nowrap">
+          <a class="navbar-brand" href="../index.html">
+            <img id="logo" class="svg" src="../logo.svg" alt="IAsyncEnumerable Extensions">
+            IAsyncEnumerable Extensions
+          </a>
+          <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
+            <i class="bi bi-three-dots"></i>
+          </button>
+          <div class="collapse navbar-collapse" id="navpanel">
+            <div id="navbar">
+              <form class="search" role="search" id="search">
+                <i class="bi bi-search"></i>
+                <input class="form-control" id="search-query" type="search" disabled placeholder="Search" autocomplete="off" aria-label="Search">
+              </form>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="container-xxl">
+
+      <div class="content">
+        <div class="actionbar">
+
+          <nav id="breadcrumb"></nav>
+        </div>
+
+        <article data-uid="">
+<h1 id="introduction">Introduction</h1>
+
+<h2 id="what-is-wolfgangextensionsiasyncenumerable">What is Wolfgang.Extensions.IAsyncEnumerable?</h2>
+<p>Wolfgang.Extensions.IAsyncEnumerable is a high-performance .NET library that provides extension methods for working with <code>IAsyncEnumerable&lt;T&gt;</code>. It's designed to make asynchronous stream processing easier, more efficient, and more maintainable.</p>
+<h2 id="why-use-this-library">Why Use This Library?</h2>
+<p>Working with asynchronous streams in .NET can be challenging. While <code>IAsyncEnumerable&lt;T&gt;</code> provides a powerful abstraction for asynchronous sequences, common operations like chunking, batching, and transformation often require repetitive boilerplate code.</p>
+<p>This library provides:</p>
+<ul>
+<li><strong>Production-Ready Extensions</strong>: Battle-tested extension methods for common async enumerable operations</li>
+<li><strong>High Performance</strong>: Optimized implementations with minimal allocations</li>
+<li><strong>Comprehensive Test Coverage</strong>: Extensive unit tests ensure reliability</li>
+<li><strong>Multi-Framework Support</strong>: Works with .NET Framework 4.6.2, .NET Standard 2.0, .NET 8.0, and .NET 10.0</li>
+<li><strong>Strict Code Quality</strong>: Enforced through 7 specialized analyzers and async-first patterns</li>
+</ul>
+<h2 id="key-features">Key Features</h2>
+<h3 id="chunkasync">ChunkAsync<t></t></h3>
+<p>The <code>ChunkAsync</code> extension method allows you to split an asynchronous stream into fixed-size chunks for efficient batch processing:</p>
+<pre><code class="lang-csharp">using Wolfgang.Extensions.IAsyncEnumerable;
+
+// Process a large async stream in batches of 100
+await foreach (var batch in largeAsyncStream.ChunkAsync(maxChunkSize: 100))
+{
+    // Each batch is an ICollection&lt;T&gt; with up to 100 items
+    await ProcessBatchAsync(batch);
+}
+</code></pre>
+<p><strong>Benefits:</strong></p>
+<ul>
+<li>Enables efficient batch processing of async streams</li>
+<li>Reduces memory overhead by processing data in manageable chunks</li>
+<li>Supports cancellation tokens for responsive applications</li>
+<li>Handles edge cases like incomplete final chunks automatically</li>
+</ul>
+<h2 id="async-first-design">Async-First Design</h2>
+<p>This library is built with an <strong>async-first philosophy</strong>:</p>
+<ul>
+<li>All operations are truly asynchronous and non-blocking</li>
+<li>No usage of <code>Task.Wait()</code>, <code>Task.Result</code>, or other blocking operations</li>
+<li>Enforced through banned API analyzers and code quality rules</li>
+<li>Optimized for async/await patterns throughout</li>
+</ul>
+<h2 id="code-quality-standards">Code Quality Standards</h2>
+<p>The library maintains exceptional code quality through:</p>
+<ol>
+<li><strong>7 Specialized Analyzers</strong>: Including AsyncFixer, Roslynator, and SonarAnalyzer</li>
+<li><strong>Banned API Enforcement</strong>: Prevents usage of synchronous and obsolete APIs</li>
+<li><strong>Comprehensive Testing</strong>: High test coverage with both unit and integration tests</li>
+<li><strong>Strict Formatting</strong>: Enforced through <code>.editorconfig</code> and <code>dotnet format</code></li>
+<li><strong>Continuous Integration</strong>: Automated builds, tests, and quality checks on every commit</li>
+</ol>
+<h2 id="use-cases">Use Cases</h2>
+<p>This library is ideal for:</p>
+<ul>
+<li><strong>Batch Processing</strong>: Processing large datasets in manageable chunks</li>
+<li><strong>Stream Processing</strong>: Working with continuous data streams from APIs, databases, or message queues</li>
+<li><strong>Rate Limiting</strong>: Controlling the rate of operations on async streams</li>
+<li><strong>Resource Management</strong>: Managing memory usage when processing large collections asynchronously</li>
+<li><strong>Performance Optimization</strong>: Improving throughput in async data pipelines</li>
+</ul>
+<h2 id="next-steps">Next Steps</h2>
+<p>Ready to get started? Check out the <a href="getting-started.html">Getting Started</a> guide to install and use the library in your project.</p>
+
+</article>
+
+        <div class="contribution d-print-none">
+          <a href="https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/blob/main/docfx_project/docs/introduction.md/#L1" class="edit-link">Edit this page</a>
+        </div>
+
+        <div class="next-article d-print-none border-top" id="nextArticle"></div>
+
+      </div>
+
+      <div class="affix">
+        <nav id="affix"></nav>
+      </div>
+    </main>
+
+    <div class="container-xxl search-results" id="search-results"></div>
+
+    <footer class="border-top text-secondary">
+      <div class="container-xxl">
+        <div class="flex-fill">
+          Made with DocFX
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>
