@@ -20,7 +20,7 @@ env:
   CODECOV_MINIMUM: 90
   
 on:
-  pull_request_target:  # Runs from the main branch, not from PR branch
+  pull_request:  # Runs in the context of the pull request (merge commit) with limited permissions
     branches:
       - main
 jobs:
