@@ -287,7 +287,7 @@ jobs:
           if (Test-Path '.github/version-picker-template.html') {
             $template = Get-Content '.github/version-picker-template.html' -Raw
           } else {
-            Write-Host "Warning: .github/version-picker-template.html not found; using built-in default template."
+            Write-Host "Error: .github/version-picker-template.html not found; template file is required; aborting."
             exit 1
           }
 
