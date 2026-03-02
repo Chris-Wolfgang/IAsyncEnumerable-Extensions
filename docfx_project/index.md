@@ -1,3 +1,7 @@
+---
+_layout: landing
+---
+
 # Wolfgang.Extensions.IAsyncEnumerable
 
 High-performance, production-grade extension methods for `IAsyncEnumerable<T>` with comprehensive test coverage and strict code quality enforcement.
