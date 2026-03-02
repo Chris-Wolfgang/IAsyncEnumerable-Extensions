@@ -16,7 +16,3 @@ When you run `docfx docfx_project/docfx.json` from the repository root, DocFX wi
 - Hand-authored files like `index.md` and this `README.md` are intentionally maintained by hand and will be preserved across DocFX runs
 - The actual API reference metadata files (`*.yml` files) will be generated automatically
 
-## Template Placeholders
-
-The `index.md` file uses the following template placeholder:
-- `IAsyncEnumerable-Extensions` - Will be replaced with your project name
