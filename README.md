@@ -14,7 +14,7 @@ High-performance, production-grade extension methods for `IAsyncEnumerable<T>` w
 dotnet add package Wolfgang.Extensions.IAsyncEnumerable
 ```
 
-**NuGet Package:** Coming soon to [NuGet.org](https://www.nuget.org/)
+**NuGet Package:** Available on [NuGet.org]([https://www.nuget.org/](https://www.nuget.org/packages/Wolfgang.Extensions.IAsyncEnumerable/))
 
 ---
 
