@@ -18,5 +18,5 @@ When you run `docfx docfx_project/docfx.json` from the repository root, DocFX wi
 
 ## Template Placeholders
 
-The `index.md` file uses the following template placeholder:
-- `IAsyncEnumerable-Extensions` - Will be replaced with your project name
+The `index.md` file currently uses `IAsyncEnumerable-Extensions` as the project name in its content.
+If you rename the project, update this value in `index.md` manually (it is not an automatic `{{PLACEHOLDER}}` token).
