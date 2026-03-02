@@ -20,7 +20,7 @@ env:
   CODECOV_MINIMUM: 90
   
 on:
-  pull_request:
+  pull_request:  # Runs in the context of the pull request (merge commit) with limited permissions
     branches:
       - main
 jobs:
@@ -618,7 +618,6 @@ jobs:
         run: dotnet tool install --global Microsoft.CST.DevSkim.CLI
 
       - name: Run DevSkim security scan
-        continue-on-error: false
         run: |
           devskim analyze \
             --source-code . \
