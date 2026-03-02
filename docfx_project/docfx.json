@@ -41,11 +41,12 @@
     "output": "_site",
     "template": [
       "default",
-      "modern"
+      "modern",
+      "modern-dark"
     ],
     "globalMetadata": {
-      "_appName": "IAsyncEnumerable-Extensions",
-      "_appTitle": "IAsyncEnumerable-Extensions Documentation",
+      "_appName": "Wolfgang.Extensions.IAsyncEnumerable",
+      "_appTitle": "Wolfgang.Extensions.IAsyncEnumerable Documentation",
       "_appLogoPath": "logo.svg",
       "_enableSearch": true,
       "_appFooter": "Made with DocFX",
