@@ -1,19 +1,12 @@
----
-_layout: landing
----
-
 # Wolfgang.Extensions.IAsyncEnumerable
 
 High-performance, production-grade extension methods for `IAsyncEnumerable<T>` with comprehensive test coverage and strict code quality enforcement.
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/blob/main/LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![.NET](https://img.shields.io/badge/.NET-Multi--Targeted-purple.svg)](https://dotnet.microsoft.com/)
 [![GitHub](https://img.shields.io/badge/GitHub-Repository-181717?logo=github)](https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions)
 
 ---
-
-> [!TIP]
-> **📘 API Reference:** [Browse the full API documentation](xref:Wolfgang.Extensions.IAsyncEnumerable)
 
 ## 📦 Installation
 
@@ -21,7 +14,7 @@ High-performance, production-grade extension methods for `IAsyncEnumerable<T>` w
 dotnet add package Wolfgang.Extensions.IAsyncEnumerable
 ```
 
-**NuGet Package:** Coming soon to [NuGet.org](https://www.nuget.org/packages/Wolfgang.Extensions.IAsyncEnumerable/)
+**NuGet Package:** Available on [NuGet.org]([https://www.nuget.org/](https://www.nuget.org/packages/Wolfgang.Extensions.IAsyncEnumerable/))
 
 ---
 
@@ -151,20 +144,47 @@ dotnet format
 dotnet format --verify-no-changes
 ```
 
----
+See [README-FORMATTING.md](README-FORMATTING.md) for detailed formatting guidelines.
 
-## 📚 Documentation
+### Building Documentation
 
-- **GitHub Repository:** [https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions](https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions)
-- **API Documentation:** Browse the API reference in the navigation menu
-- **Getting Started:** See the [Getting Started](docs/getting-started.md) guide
-- **Introduction:** Learn more in the [Introduction](docs/introduction.md)
+This project uses [DocFX](https://dotnet.github.io/docfx/) to generate API documentation:
+
+```bash
+# Install DocFX (one-time setup)
+dotnet tool install -g docfx
+
+# Generate API metadata and build documentation
+cd docfx_project
+docfx metadata  # Extract API metadata from source code
+docfx build     # Build HTML documentation
+
+# Documentation is generated in the docs/ folder at the repository root
+```
+
+The documentation is automatically built and deployed to GitHub Pages when changes are pushed to the `main` branch.
+
+**Local Preview:**
+```bash
+# Serve documentation locally (with live reload)
+cd docfx_project
+docfx build --serve
+
+# Open http://localhost:8080 in your browser
+```
+
+**Documentation Structure:**
+- `docfx_project/` - DocFX configuration and source files
+- `docs/` - Generated HTML documentation (published to GitHub Pages)
+- `docfx_project/index.md` - Main landing page content
+- `docfx_project/docs/` - Additional documentation articles
+- `docfx_project/api/` - Auto-generated API reference YAML files
 
 ---
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please see [CONTRIBUTING.md](https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/blob/main/CONTRIBUTING.md) for:
+Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for:
 - Code quality standards
 - Build and test instructions
 - Pull request guidelines
@@ -174,7 +194,16 @@ Contributions are welcome! Please see [CONTRIBUTING.md](https://github.com/Chris
 
 ## 📄 License
 
-This project is licensed under the **MIT License**. See the [LICENSE](https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/blob/main/LICENSE) file for details.
+This project is licensed under the **MIT License**. See the [LICENSE](LICENSE) file for details.
+
+---
+
+## 📚 Documentation
+
+- **GitHub Repository:** [https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions](https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions)
+- **API Documentation:** https://chris-wolfgang.github.io/IAsyncEnumerable-Extensions/
+- **Formatting Guide:** [README-FORMATTING.md](README-FORMATTING.md)
+- **Contributing Guide:** [CONTRIBUTING.md](CONTRIBUTING.md)
 
 ---
 
