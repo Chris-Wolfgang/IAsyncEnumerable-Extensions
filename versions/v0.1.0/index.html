@@ -39,7 +39,7 @@
 
   </head>
 
-  <body class="tex2jax_ignore" data-layout="landing" data-yaml-mime="">
+  <body class="tex2jax_ignore" data-layout="" data-yaml-mime="">
     <header class="bg-body border-bottom">
       <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
         <div class="container-xxl flex-nowrap">
@@ -74,18 +74,14 @@
 <h1 id="wolfgangextensionsiasyncenumerable">Wolfgang.Extensions.IAsyncEnumerable</h1>
 
 <p>High-performance, production-grade extension methods for <code>IAsyncEnumerable&lt;T&gt;</code> with comprehensive test coverage and strict code quality enforcement.</p>
-<p><a href="https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT"></a>
+<p><a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT"></a>
 <a href="https://dotnet.microsoft.com/"><img src="https://img.shields.io/badge/.NET-Multi--Targeted-purple.svg" alt=".NET"></a>
 <a href="https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions"><img src="https://img.shields.io/badge/GitHub-Repository-181717?logo=github" alt="GitHub"></a></p>
 <hr>
-<div class="TIP">
-<h5>Tip</h5>
-<p><strong>📘 API Reference:</strong> <a class="xref" href="api/Wolfgang.Extensions.IAsyncEnumerable.html">Browse the full API documentation</a></p>
-</div>
 <h2 id="-installation">📦 Installation</h2>
 <pre><code class="lang-bash">dotnet add package Wolfgang.Extensions.IAsyncEnumerable
 </code></pre>
-<p><strong>NuGet Package:</strong> Coming soon to <a href="https://www.nuget.org/packages/Wolfgang.Extensions.IAsyncEnumerable/">NuGet.org</a></p>
+<p><strong>NuGet Package:</strong> Available on <a href="%5Bhttps://www.nuget.org/%5D(https://www.nuget.org/packages/Wolfgang.Extensions.IAsyncEnumerable/)">NuGet.org</a></p>
 <hr>
 <h2 id="-quick-start">🚀 Quick Start</h2>
 <pre><code class="lang-csharp">using Wolfgang.Extensions.IAsyncEnumerable;
@@ -188,17 +184,38 @@ dotnet format
 # Verify formatting (as CI does)
 dotnet format --verify-no-changes
 </code></pre>
-<hr>
-<h2 id="-documentation">📚 Documentation</h2>
+<p>See <a href="README-FORMATTING.md">README-FORMATTING.md</a> for detailed formatting guidelines.</p>
+<h3 id="building-documentation">Building Documentation</h3>
+<p>This project uses <a href="https://dotnet.github.io/docfx/">DocFX</a> to generate API documentation:</p>
+<pre><code class="lang-bash"># Install DocFX (one-time setup)
+dotnet tool install -g docfx
+
+# Generate API metadata and build documentation
+cd docfx_project
+docfx metadata  # Extract API metadata from source code
+docfx build     # Build HTML documentation
+
+# Documentation is generated in the docs/ folder at the repository root
+</code></pre>
+<p>The documentation is automatically built and deployed to GitHub Pages when changes are pushed to the <code>main</code> branch.</p>
+<p><strong>Local Preview:</strong></p>
+<pre><code class="lang-bash"># Serve documentation locally (with live reload)
+cd docfx_project
+docfx build --serve
+
+# Open http://localhost:8080 in your browser
+</code></pre>
+<p><strong>Documentation Structure:</strong></p>
 <ul>
-<li><strong>GitHub Repository:</strong> <a href="https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions">https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions</a></li>
-<li><strong>API Documentation:</strong> Browse the API reference in the navigation menu</li>
-<li><strong>Getting Started:</strong> See the <a href="docs/getting-started.html">Getting Started</a> guide</li>
-<li><strong>Introduction:</strong> Learn more in the <a href="docs/introduction.html">Introduction</a></li>
+<li><code>docfx_project/</code> - DocFX configuration and source files</li>
+<li><code>docs/</code> - Generated HTML documentation (published to GitHub Pages)</li>
+<li><code>docfx_project/index.md</code> - Main landing page content</li>
+<li><code>docfx_project/docs/</code> - Additional documentation articles</li>
+<li><code>docfx_project/api/</code> - Auto-generated API reference YAML files</li>
 </ul>
 <hr>
 <h2 id="-contributing">🤝 Contributing</h2>
-<p>Contributions are welcome! Please see <a href="https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/blob/main/CONTRIBUTING.md">CONTRIBUTING.md</a> for:</p>
+<p>Contributions are welcome! Please see <a href="CONTRIBUTING.md">CONTRIBUTING.md</a> for:</p>
 <ul>
 <li>Code quality standards</li>
 <li>Build and test instructions</li>
@@ -207,7 +224,15 @@ dotnet format --verify-no-changes
 </ul>
 <hr>
 <h2 id="-license">📄 License</h2>
-<p>This project is licensed under the <strong>MIT License</strong>. See the <a href="https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/blob/main/LICENSE">LICENSE</a> file for details.</p>
+<p>This project is licensed under the <strong>MIT License</strong>. See the <a href="LICENSE">LICENSE</a> file for details.</p>
+<hr>
+<h2 id="-documentation">📚 Documentation</h2>
+<ul>
+<li><strong>GitHub Repository:</strong> <a href="https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions">https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions</a></li>
+<li><strong>API Documentation:</strong> <a href="https://chris-wolfgang.github.io/IAsyncEnumerable-Extensions/">https://chris-wolfgang.github.io/IAsyncEnumerable-Extensions/</a></li>
+<li><strong>Formatting Guide:</strong> <a href="README-FORMATTING.md">README-FORMATTING.md</a></li>
+<li><strong>Contributing Guide:</strong> <a href="CONTRIBUTING.md">CONTRIBUTING.md</a></li>
+</ul>
 <hr>
 <h2 id="-acknowledgments">🙏 Acknowledgments</h2>
 <p>Built with:</p>
