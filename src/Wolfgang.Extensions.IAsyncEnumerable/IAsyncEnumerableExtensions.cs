@@ -24,7 +24,7 @@ public static class IAsyncEnumerableExtensions
     /// <typeparam name="T">The type of elements in the IAsyncEnumerable{T}.</typeparam>
     /// <returns>An IAsyncEnumerable{ICollection{T}} representing the chunks.</returns>
     /// <exception cref="ArgumentNullException">Thrown when source is null.</exception>
-    /// <exception cref="ArgumentOutOfRangeException">Thrown when maxChunkSize is less than or equal to zero.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when maxChunkSize is less than one.</exception>
     public static async IAsyncEnumerable<ICollection<T>> ChunkAsync<T>
     (
         this IAsyncEnumerable<T> source,
@@ -32,7 +32,7 @@ public static class IAsyncEnumerableExtensions
         [EnumeratorCancellation] CancellationToken token = default
     )
     {
-        if (source == null)
+        if (source is null)
         {
             throw new ArgumentNullException(nameof(source));
         }

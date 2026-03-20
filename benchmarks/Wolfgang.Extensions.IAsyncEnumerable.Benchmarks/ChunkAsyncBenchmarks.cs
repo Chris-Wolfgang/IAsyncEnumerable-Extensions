@@ -10,7 +10,7 @@ public class ChunkAsyncBenchmarks
 {
     private IReadOnlyList<int> _data = [];
 
-    [Params(1024, 4096, 16384)]//, 10_000, 100_000, 1_000_000)]
+    [Params(1024, 4096, 16384)]
     public int ItemCount { get; set; }
 
     [Params(4, 16, 64)]
@@ -65,7 +65,7 @@ public class ChunkAsyncBenchmarks
         {
             cancellationToken.ThrowIfCancellationRequested();
             yield return value;
-            await Task.Yield();
+            await Task.CompletedTask.ConfigureAwait(false);
         }
     }
 }

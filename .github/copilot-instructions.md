@@ -12,7 +12,7 @@ This is a .NET library project that provides extension methods for `IAsyncEnumer
 ## Build and Validation Instructions
 
 ### Prerequisites
-- .NET 8.0.x SDK (always install if not present)
+- .NET 10.0.x SDK (always install if not present)
 - ReportGenerator tool (installed via `dotnet tool install -g dotnet-reportgenerator-globaltool`)
 - DevSkim CLI (installed via `dotnet tool install --global Microsoft.CST.DevSkim.CLI`)
 
