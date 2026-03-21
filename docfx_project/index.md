@@ -68,6 +68,60 @@ await foreach (var batch in numbers.ChunkAsync(50))
 }
 ```
 
+#### **`DoAsync<T>` (Synchronous action)**
+Executes a synchronous side-effect action on each element without transforming the elements. The original items are yielded unchanged.
+
+```csharp
+public static async IAsyncEnumerable<T> DoAsync<T>(
+    this IAsyncEnumerable<T> source,
+    Action<T> action,
+    CancellationToken token = default)
+```
+
+**Parameters:**
+- `source` - The source async enumerable
+- `action` - The synchronous action to execute on each element
+- `token` - Optional cancellation token
+
+**Returns:** An async enumerable that yields the original elements after executing the action.
+
+**Example:**
+```csharp
+var numbers = GetAsyncNumbers(); // IAsyncEnumerable<int>
+await foreach (var item in numbers.DoAsync(x => Console.WriteLine($"Processing: {x}")))
+{
+    // item is unchanged — DoAsync is a pass-through
+}
+```
+
+#### **`DoAsync<T>` (Asynchronous action)**
+Executes an asynchronous side-effect action on each element without transforming the elements.
+
+```csharp
+public static async IAsyncEnumerable<T> DoAsync<T>(
+    this IAsyncEnumerable<T> source,
+    Func<T, Task> action,
+    CancellationToken token = default)
+```
+
+**Parameters:**
+- `source` - The source async enumerable
+- `action` - The asynchronous action to execute on each element
+- `token` - Optional cancellation token
+
+**Returns:** An async enumerable that yields the original elements after executing the action.
+
+**Example:**
+```csharp
+// Chain DoAsync with other extensions for logging/metrics in a pipeline
+await foreach (var batch in source
+    .DoAsync(async x => await logger.LogAsync($"Processing: {x}"))
+    .ChunkAsync(100))
+{
+    await ProcessBatchAsync(batch);
+}
+```
+
 ---
 
 ## 🎯 Target Frameworks
