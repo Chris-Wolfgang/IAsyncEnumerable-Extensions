@@ -175,4 +175,256 @@ public static class IAsyncEnumerableExtensions
             token.ThrowIfCancellationRequested();
         }
     }
+
+
+
+    /// <summary>
+    /// Executes a synchronous action on each element of an IAsyncEnumerable{T},
+    /// consuming the sequence. This is a terminal operation.
+    /// </summary>
+    /// <param name="source">The source IAsyncEnumerable{T}.</param>
+    /// <param name="action">The synchronous action to execute on each element.</param>
+    /// <param name="token">A cancellation token to cancel the operation.</param>
+    /// <typeparam name="T">The type of elements in the IAsyncEnumerable{T}.</typeparam>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="source"/> or <paramref name="action"/> is null.</exception>
+    /// <example>
+    /// <code>
+    /// await source.ForEachAsync(x => Console.WriteLine($"Processing: {x}"));
+    /// </code>
+    /// </example>
+    public static async Task ForEachAsync<T>
+    (
+        this IAsyncEnumerable<T> source,
+        Action<T> action,
+        CancellationToken token = default
+    )
+    {
+        if (source is null)
+        {
+            throw new ArgumentNullException(nameof(source));
+        }
+
+        if (action is null)
+        {
+            throw new ArgumentNullException(nameof(action));
+        }
+
+        token.ThrowIfCancellationRequested();
+
+        await using var enumerator = source.GetAsyncEnumerator(token);
+
+        while (await enumerator.MoveNextAsync().ConfigureAwait(false))
+        {
+            action(enumerator.Current);
+            token.ThrowIfCancellationRequested();
+        }
+    }
+
+
+
+    /// <summary>
+    /// Executes an asynchronous action on each element of an IAsyncEnumerable{T},
+    /// consuming the sequence. This is a terminal operation.
+    /// </summary>
+    /// <param name="source">The source IAsyncEnumerable{T}.</param>
+    /// <param name="action">The asynchronous action to execute on each element.</param>
+    /// <param name="token">A cancellation token to cancel the operation.</param>
+    /// <typeparam name="T">The type of elements in the IAsyncEnumerable{T}.</typeparam>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="source"/> or <paramref name="action"/> is null.</exception>
+    /// <example>
+    /// <code>
+    /// await source.ForEachAsync(async x => await logger.LogAsync($"Processing: {x}"));
+    /// </code>
+    /// </example>
+    public static async Task ForEachAsync<T>
+    (
+        this IAsyncEnumerable<T> source,
+        Func<T, Task> action,
+        CancellationToken token = default
+    )
+    {
+        if (source is null)
+        {
+            throw new ArgumentNullException(nameof(source));
+        }
+
+        if (action is null)
+        {
+            throw new ArgumentNullException(nameof(action));
+        }
+
+        token.ThrowIfCancellationRequested();
+
+        await using var enumerator = source.GetAsyncEnumerator(token);
+
+        while (await enumerator.MoveNextAsync().ConfigureAwait(false))
+        {
+            await action(enumerator.Current).ConfigureAwait(false);
+            token.ThrowIfCancellationRequested();
+        }
+    }
+
+
+
+    /// <summary>
+    /// Asynchronously determines whether a sequence contains no elements.
+    /// </summary>
+    /// <param name="source">The IAsyncEnumerable{T} to check.</param>
+    /// <param name="token">A cancellation token to cancel the operation.</param>
+    /// <typeparam name="T">The type of elements in the IAsyncEnumerable{T}.</typeparam>
+    /// <returns>
+    /// true if the source sequence contains no elements; otherwise, false.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="source"/> is null.</exception>
+    /// <example>
+    /// <code>
+    /// if (await source.IsEmptyAsync())
+    /// {
+    ///     Console.WriteLine("No items found.");
+    /// }
+    /// </code>
+    /// </example>
+    public static async Task<bool> IsEmptyAsync<T>
+    (
+        this IAsyncEnumerable<T> source,
+        CancellationToken token = default
+    )
+    {
+        if (source is null)
+        {
+            throw new ArgumentNullException(nameof(source));
+        }
+
+        token.ThrowIfCancellationRequested();
+
+        await using var enumerator = source.GetAsyncEnumerator(token);
+
+        return !await enumerator.MoveNextAsync().ConfigureAwait(false);
+    }
+
+
+
+    /// <summary>
+    /// Asynchronously determines whether a sequence is null or contains no elements.
+    /// </summary>
+    /// <param name="source">The IAsyncEnumerable{T} to check.</param>
+    /// <param name="token">A cancellation token to cancel the operation.</param>
+    /// <typeparam name="T">The type of elements in the IAsyncEnumerable{T}.</typeparam>
+    /// <returns>
+    /// true if the source sequence is null or contains no elements; otherwise, false.
+    /// </returns>
+    /// <example>
+    /// <code>
+    /// if (await source.IsNullOrEmptyAsync())
+    /// {
+    ///     Console.WriteLine("No items found.");
+    /// }
+    /// </code>
+    /// </example>
+    public static async Task<bool> IsNullOrEmptyAsync<T>
+    (
+        this IAsyncEnumerable<T>? source,
+        CancellationToken token = default
+    )
+    {
+        if (source is null)
+        {
+            return true;
+        }
+
+        token.ThrowIfCancellationRequested();
+
+        await using var enumerator = source.GetAsyncEnumerator(token);
+
+        return !await enumerator.MoveNextAsync().ConfigureAwait(false);
+    }
+
+
+
+    /// <summary>
+    /// Asynchronously determines whether a sequence contains no elements.
+    /// </summary>
+    /// <param name="source">The IAsyncEnumerable{T} to check.</param>
+    /// <param name="token">A cancellation token to cancel the operation.</param>
+    /// <typeparam name="T">The type of elements in the IAsyncEnumerable{T}.</typeparam>
+    /// <returns>false if the source sequence contains any elements; otherwise, true.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="source"/> is null.</exception>
+    /// <example>
+    /// <code>
+    /// if (await source.NoneAsync())
+    /// {
+    ///     Console.WriteLine("No items found.");
+    /// }
+    /// </code>
+    /// </example>
+    public static async Task<bool> NoneAsync<T>
+    (
+        this IAsyncEnumerable<T> source,
+        CancellationToken token = default
+    )
+    {
+        if (source is null)
+        {
+            throw new ArgumentNullException(nameof(source));
+        }
+
+        token.ThrowIfCancellationRequested();
+
+        await using var enumerator = source.GetAsyncEnumerator(token);
+
+        return !await enumerator.MoveNextAsync().ConfigureAwait(false);
+    }
+
+
+
+    /// <summary>
+    /// Asynchronously determines whether no element of a sequence satisfies a condition.
+    /// </summary>
+    /// <param name="source">The IAsyncEnumerable{T} whose elements to apply the predicate to.</param>
+    /// <param name="predicate">A function to test each element for a condition.</param>
+    /// <param name="token">A cancellation token to cancel the operation.</param>
+    /// <typeparam name="T">The type of elements in the IAsyncEnumerable{T}.</typeparam>
+    /// <returns>true if no elements in the source sequence pass the test in the specified predicate; otherwise, false.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="source"/> or <paramref name="predicate"/> is null.</exception>
+    /// <example>
+    /// <code>
+    /// if (await source.NoneAsync(x => x > 100))
+    /// {
+    ///     Console.WriteLine("No items greater than 100.");
+    /// }
+    /// </code>
+    /// </example>
+    public static async Task<bool> NoneAsync<T>
+    (
+        this IAsyncEnumerable<T> source,
+        Func<T, bool> predicate,
+        CancellationToken token = default
+    )
+    {
+        if (source is null)
+        {
+            throw new ArgumentNullException(nameof(source));
+        }
+
+        if (predicate is null)
+        {
+            throw new ArgumentNullException(nameof(predicate));
+        }
+
+        token.ThrowIfCancellationRequested();
+
+        await using var enumerator = source.GetAsyncEnumerator(token);
+
+        while (await enumerator.MoveNextAsync().ConfigureAwait(false))
+        {
+            if (predicate(enumerator.Current))
+            {
+                return false;
+            }
+
+            token.ThrowIfCancellationRequested();
+        }
+
+        return true;
+    }
 }

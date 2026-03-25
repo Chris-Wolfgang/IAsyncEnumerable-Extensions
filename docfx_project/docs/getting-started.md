@@ -219,6 +219,62 @@ public async Task SafeProcessingAsync(IAsyncEnumerable<DataItem> items, Cancella
 
 4. **Profile Your Code**: Use BenchmarkDotNet or similar tools to measure performance in your specific scenario
 
+## ForEachAsync - Terminal Iteration
+
+Consume an async stream with an action:
+
+```csharp
+// Synchronous action
+await dataStream.ForEachAsync(item => Console.WriteLine($"Processing: {item.Id}"));
+
+// Asynchronous action
+await dataStream.ForEachAsync(async item => await SaveToDbAsync(item));
+```
+
+## DoAsync - Passthrough Side Effects
+
+Execute a side-effect without consuming the stream:
+
+```csharp
+await foreach (var batch in dataStream
+    .DoAsync(x => logger.LogDebug($"Item: {x.Id}"))
+    .ChunkAsync(100))
+{
+    await ProcessBatchAsync(batch);
+}
+```
+
+## IsEmptyAsync / IsNullOrEmptyAsync
+
+```csharp
+if (await dataStream.IsEmptyAsync(cancellationToken))
+{
+    Console.WriteLine("No data available");
+}
+
+IAsyncEnumerable<DataRecord>? maybeNull = GetData();
+if (await maybeNull.IsNullOrEmptyAsync())
+{
+    Console.WriteLine("Data is null or empty");
+}
+```
+
+## NoneAsync - Inverse of Any
+
+```csharp
+// Check if stream has no elements
+if (await dataStream.NoneAsync())
+{
+    Console.WriteLine("Empty stream");
+}
+
+// Check if no elements match a condition
+if (await dataStream.NoneAsync(x => x.IsExpired, cancellationToken))
+{
+    Console.WriteLine("No expired records found");
+}
+```
+
 ## Next Steps
 
 - Read the [Introduction](introduction.md) to learn more about the library's philosophy

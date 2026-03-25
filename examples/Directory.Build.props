@@ -1,0 +1,12 @@
+<Project>
+
+	<!-- Import the root Directory.Build.props -->
+	<Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
+
+	<PropertyGroup>
+		<!-- Example console apps are demonstrations, not library code.
+		     Relax analyzer rules that conflict with top-level statement readability. -->
+		<NoWarn>$(NoWarn);CA2007;MA0003;MA0004;MA0045;MA0048;MA0051;RCS1163;S3903;S6966</NoWarn>
+	</PropertyGroup>
+
+</Project>

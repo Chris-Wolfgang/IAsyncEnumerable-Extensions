@@ -20,24 +20,76 @@ This library provides:
 
 ### ChunkAsync<T>
 
-The `ChunkAsync` extension method allows you to split an asynchronous stream into fixed-size chunks for efficient batch processing:
+Splits an asynchronous stream into fixed-size chunks for efficient batch processing:
 
 ```csharp
 using Wolfgang.Extensions.IAsyncEnumerable;
 
-// Process a large async stream in batches of 100
 await foreach (var batch in largeAsyncStream.ChunkAsync(maxChunkSize: 100))
 {
-    // Each batch is an ICollection<T> with up to 100 items
     await ProcessBatchAsync(batch);
 }
 ```
 
-**Benefits:**
-- Enables efficient batch processing of async streams
-- Reduces memory overhead by processing data in manageable chunks
-- Supports cancellation tokens for responsive applications
-- Handles edge cases like incomplete final chunks automatically
+### DoAsync<T>
+
+Executes a side-effect action on each element without transforming them. The original items are yielded unchanged, ideal for logging or metrics within a pipeline:
+
+```csharp
+await foreach (var item in source
+    .DoAsync(x => Console.WriteLine($"Processing: {x}"))
+    .ChunkAsync(100))
+{
+    await ProcessBatchAsync(item);
+}
+```
+
+### ForEachAsync<T>
+
+Terminal operation that executes an action on each element, consuming the sequence:
+
+```csharp
+await source.ForEachAsync(x => Console.WriteLine($"Item: {x}"));
+await source.ForEachAsync(async x => await logger.LogAsync($"Item: {x}"));
+```
+
+### IsEmptyAsync<T>
+
+Asynchronously determines whether a sequence contains no elements:
+
+```csharp
+if (await source.IsEmptyAsync())
+{
+    Console.WriteLine("No items found.");
+}
+```
+
+### IsNullOrEmptyAsync<T>
+
+Asynchronously determines whether a sequence is null or contains no elements:
+
+```csharp
+if (await data.IsNullOrEmptyAsync())
+{
+    Console.WriteLine("Data is null or empty.");
+}
+```
+
+### NoneAsync<T>
+
+Determines whether a sequence contains no elements or no elements satisfy a condition (inverse of any):
+
+```csharp
+if (await source.NoneAsync())
+{
+    Console.WriteLine("Stream is empty.");
+}
+
+if (await source.NoneAsync(x => x.IsExpired))
+{
+    Console.WriteLine("No expired items.");
+}
+```
 
 ## Async-First Design
 
