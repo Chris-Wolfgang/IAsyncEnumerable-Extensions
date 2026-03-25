@@ -118,6 +118,111 @@ await foreach (var batch in source
 }
 ```
 
+#### **`ForEachAsync<T>` (Synchronous action)**
+Executes a synchronous action on each element of an `IAsyncEnumerable<T>`, consuming the sequence. This is a terminal operation.
+
+```csharp
+public static async Task ForEachAsync<T>(
+    this IAsyncEnumerable<T> source,
+    Action<T> action,
+    CancellationToken token = default)
+```
+
+**Parameters:**
+- `source` - The source async enumerable
+- `action` - The synchronous action to execute on each element
+- `token` - Optional cancellation token
+
+**Example:**
+```csharp
+await source.ForEachAsync(x => Console.WriteLine($"Item: {x}"));
+```
+
+#### **`ForEachAsync<T>` (Asynchronous action)**
+Executes an asynchronous action on each element of an `IAsyncEnumerable<T>`, consuming the sequence. This is a terminal operation.
+
+```csharp
+public static async Task ForEachAsync<T>(
+    this IAsyncEnumerable<T> source,
+    Func<T, Task> action,
+    CancellationToken token = default)
+```
+
+**Example:**
+```csharp
+await source.ForEachAsync(async x => await logger.LogAsync($"Item: {x}"));
+```
+
+#### **`IsEmptyAsync<T>`**
+Asynchronously determines whether a sequence contains no elements.
+
+```csharp
+public static async Task<bool> IsEmptyAsync<T>(
+    this IAsyncEnumerable<T> source,
+    CancellationToken token = default)
+```
+
+**Example:**
+```csharp
+if (await source.IsEmptyAsync())
+{
+    Console.WriteLine("No items found.");
+}
+```
+
+#### **`IsNullOrEmptyAsync<T>`**
+Asynchronously determines whether a sequence is null or contains no elements.
+
+```csharp
+public static async Task<bool> IsNullOrEmptyAsync<T>(
+    this IAsyncEnumerable<T>? source,
+    CancellationToken token = default)
+```
+
+**Example:**
+```csharp
+IAsyncEnumerable<int>? data = GetData();
+if (await data.IsNullOrEmptyAsync())
+{
+    Console.WriteLine("Data is null or empty.");
+}
+```
+
+#### **`NoneAsync<T>`**
+Asynchronously determines whether a sequence contains no elements (inverse of any).
+
+```csharp
+public static async Task<bool> NoneAsync<T>(
+    this IAsyncEnumerable<T> source,
+    CancellationToken token = default)
+```
+
+**Example:**
+```csharp
+if (await source.NoneAsync())
+{
+    Console.WriteLine("Stream is empty.");
+}
+```
+
+#### **`NoneAsync<T>` (with predicate)**
+Asynchronously determines whether no element of a sequence satisfies a condition.
+
+```csharp
+public static async Task<bool> NoneAsync<T>(
+    this IAsyncEnumerable<T> source,
+    Func<T, bool> predicate,
+    CancellationToken token = default)
+```
+
+**Example:**
+```csharp
+if (await source.NoneAsync(x => x.IsExpired))
+{
+    Console.WriteLine("No expired items found.");
+}
+```
+
 ---
 
 ## 🎯 Target Frameworks

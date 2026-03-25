@@ -27,7 +27,14 @@
   <Folder Name="/benchmarks/">
     <Project Path="benchmarks/Wolfgang.Extensions.IAsyncEnumerable.Benchmarks/Wolfgang.Extensions.IAsyncEnumerable.Benchmarks.csproj" />
   </Folder>
-  <Folder Name="/examples/" />
+  <Folder Name="/examples/">
+    <Project Path="examples/ChunkAsync.Example/ChunkAsync.Example.csproj" />
+    <Project Path="examples/DoAsync.Example/DoAsync.Example.csproj" />
+    <Project Path="examples/ForEachAsync.Example/ForEachAsync.Example.csproj" />
+    <Project Path="examples/IsEmptyAsync.Example/IsEmptyAsync.Example.csproj" />
+    <Project Path="examples/IsNullOrEmptyAsync.Example/IsNullOrEmptyAsync.Example.csproj" />
+    <Project Path="examples/NoneAsync.Example/NoneAsync.Example.csproj" />
+  </Folder>
   <Folder Name="/src/">
     <Project Path="src/Wolfgang.Extensions.IAsyncEnumerable/Wolfgang.Extensions.IAsyncEnumerable.csproj" Id="46f709fc-f4ce-4013-9254-c76bd0ab19ae" />
   </Folder>
