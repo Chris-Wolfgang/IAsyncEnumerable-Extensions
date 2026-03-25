@@ -2,9 +2,9 @@
 <html>
   <head>
     <meta charset="utf-8">
-      <title>Wolfgang.Extensions.IAsyncEnumerable | IAsyncEnumerable-Extensions Documentation </title>
+      <title>Wolfgang.Extensions.IAsyncEnumerable | Wolfgang.Extensions.IAsyncEnumerable Documentation </title>
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <meta name="title" content="Wolfgang.Extensions.IAsyncEnumerable | IAsyncEnumerable-Extensions Documentation ">
+      <meta name="title" content="Wolfgang.Extensions.IAsyncEnumerable | Wolfgang.Extensions.IAsyncEnumerable Documentation ">
       
       
       <link rel="icon" href="favicon.ico">
@@ -16,7 +16,7 @@
       <meta name="docfx:rel" content="">
       
       
-      <meta name="docfx:docurl" content="https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/blob/v0.2.0/docfx_project/index.md/#L1">
+      <meta name="docfx:docurl" content="https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/blob/v0.3.0/docfx_project/index.md/#L1">
       <meta name="loc:inThisArticle" content="In this article">
       <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
       <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
@@ -44,8 +44,8 @@
       <nav id="autocollapse" class="navbar navbar-expand-md" role="navigation">
         <div class="container-xxl flex-nowrap">
           <a class="navbar-brand" href="index.html">
-            <img id="logo" class="svg" src="logo.svg" alt="IAsyncEnumerable-Extensions">
-            IAsyncEnumerable-Extensions
+            <img id="logo" class="svg" src="logo.svg" alt="Wolfgang.Extensions.IAsyncEnumerable">
+            Wolfgang.Extensions.IAsyncEnumerable
           </a>
           <button class="btn btn-lg d-md-none border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navpanel" aria-controls="navpanel" aria-expanded="false" aria-label="Toggle navigation">
             <i class="bi bi-three-dots"></i>
@@ -118,6 +118,50 @@ await foreach (var batch in numbers.ChunkAsync(50))
     // Last batch may be smaller than 50
 }
 </code></pre>
+<h4 id="doasynct-synchronous-action"><strong><code>DoAsync&lt;T&gt;</code> (Synchronous action)</strong></h4>
+<p>Executes a synchronous side-effect action on each element without transforming the elements. The original items are yielded unchanged.</p>
+<pre><code class="lang-csharp">public static async IAsyncEnumerable&lt;T&gt; DoAsync&lt;T&gt;(
+    this IAsyncEnumerable&lt;T&gt; source,
+    Action&lt;T&gt; action,
+    CancellationToken token = default)
+</code></pre>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><code>source</code> - The source async enumerable</li>
+<li><code>action</code> - The synchronous action to execute on each element</li>
+<li><code>token</code> - Optional cancellation token</li>
+</ul>
+<p><strong>Returns:</strong> An async enumerable that yields the original elements after executing the action.</p>
+<p><strong>Example:</strong></p>
+<pre><code class="lang-csharp">var numbers = GetAsyncNumbers(); // IAsyncEnumerable&lt;int&gt;
+await foreach (var item in numbers.DoAsync(x =&gt; Console.WriteLine($&quot;Processing: {x}&quot;)))
+{
+    // item is unchanged — DoAsync is a pass-through
+}
+</code></pre>
+<h4 id="doasynct-asynchronous-action"><strong><code>DoAsync&lt;T&gt;</code> (Asynchronous action)</strong></h4>
+<p>Executes an asynchronous side-effect action on each element without transforming the elements.</p>
+<pre><code class="lang-csharp">public static async IAsyncEnumerable&lt;T&gt; DoAsync&lt;T&gt;(
+    this IAsyncEnumerable&lt;T&gt; source,
+    Func&lt;T, Task&gt; action,
+    CancellationToken token = default)
+</code></pre>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><code>source</code> - The source async enumerable</li>
+<li><code>action</code> - The asynchronous action to execute on each element</li>
+<li><code>token</code> - Optional cancellation token</li>
+</ul>
+<p><strong>Returns:</strong> An async enumerable that yields the original elements after executing the action.</p>
+<p><strong>Example:</strong></p>
+<pre><code class="lang-csharp">// Chain DoAsync with other extensions for logging/metrics in a pipeline
+await foreach (var batch in source
+    .DoAsync(async x =&gt; await logger.LogAsync($&quot;Processing: {x}&quot;))
+    .ChunkAsync(100))
+{
+    await ProcessBatchAsync(batch);
+}
+</code></pre>
 <hr>
 <h2 id="-target-frameworks">🎯 Target Frameworks</h2>
 <p>This library supports multiple .NET versions:</p>
@@ -156,7 +200,7 @@ await foreach (var batch in numbers.ChunkAsync(50))
 <h2 id="-building-from-source">🛠️ Building from Source</h2>
 <h3 id="prerequisites">Prerequisites</h3>
 <ul>
-<li><a href="https://dotnet.microsoft.com/download">.NET 8.0 SDK</a> or later</li>
+<li><a href="https://dotnet.microsoft.com/download">.NET 10.0 SDK</a> or later</li>
 <li>Optional: <a href="https://github.com/PowerShell/PowerShell">PowerShell Core</a> for formatting scripts</li>
 </ul>
 <h3 id="build-steps">Build Steps</h3>
@@ -229,7 +273,7 @@ docfx build --serve
 <h2 id="-documentation">📚 Documentation</h2>
 <ul>
 <li><strong>GitHub Repository:</strong> <a href="https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions">https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions</a></li>
-<li><strong>API Documentation:</strong> <a href="https://chris-wolfgang.github.io/IAsyncEnumerable-Extensions/">https://chris-wolfgang.github.io/IAsyncEnumerable-Extensions/</a></li>
+<li><strong>API Documentation:</strong> <a href="https://chris-wolfgang.github.io/IAsyncEnumerable-Extensions/versions/latest/api/Wolfgang.Extensions.IAsyncEnumerable.html">Latest</a></li>
 <li><strong>Formatting Guide:</strong> <a href="README-FORMATTING.md">README-FORMATTING.md</a></li>
 <li><strong>Contributing Guide:</strong> <a href="CONTRIBUTING.md">CONTRIBUTING.md</a></li>
 </ul>
@@ -245,7 +289,7 @@ docfx build --serve
 </article>
 
         <div class="contribution d-print-none">
-          <a href="https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/blob/v0.2.0/docfx_project/index.md/#L1" class="edit-link">Edit this page</a>
+          <a href="https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/blob/v0.3.0/docfx_project/index.md/#L1" class="edit-link">Edit this page</a>
         </div>
 
         <div class="next-article d-print-none border-top" id="nextArticle"></div>
