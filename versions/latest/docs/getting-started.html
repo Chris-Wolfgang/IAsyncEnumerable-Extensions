@@ -16,7 +16,7 @@
       <meta name="docfx:rel" content="../">
       
       
-      <meta name="docfx:docurl" content="https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/blob/v0.3.0/docfx_project/docs/getting-started.md/#L1">
+      <meta name="docfx:docurl" content="https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/blob/v0.4.0/docfx_project/docs/getting-started.md/#L1">
       <meta name="loc:inThisArticle" content="In this article">
       <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
       <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
@@ -256,6 +256,48 @@ public record DataRecord
 <li><p><strong>Profile Your Code</strong>: Use BenchmarkDotNet or similar tools to measure performance in your specific scenario</p>
 </li>
 </ol>
+<h2 id="foreachasync---terminal-iteration">ForEachAsync - Terminal Iteration</h2>
+<p>Consume an async stream with an action:</p>
+<pre><code class="lang-csharp">// Synchronous action
+await dataStream.ForEachAsync(item =&gt; Console.WriteLine($&quot;Processing: {item.Id}&quot;));
+
+// Asynchronous action
+await dataStream.ForEachAsync(async item =&gt; await SaveToDbAsync(item));
+</code></pre>
+<h2 id="doasync---passthrough-side-effects">DoAsync - Passthrough Side Effects</h2>
+<p>Execute a side-effect without consuming the stream:</p>
+<pre><code class="lang-csharp">await foreach (var batch in dataStream
+    .DoAsync(x =&gt; logger.LogDebug($&quot;Item: {x.Id}&quot;))
+    .ChunkAsync(100))
+{
+    await ProcessBatchAsync(batch);
+}
+</code></pre>
+<h2 id="isemptyasync--isnulloremptyasync">IsEmptyAsync / IsNullOrEmptyAsync</h2>
+<pre><code class="lang-csharp">if (await dataStream.IsEmptyAsync(cancellationToken))
+{
+    Console.WriteLine(&quot;No data available&quot;);
+}
+
+IAsyncEnumerable&lt;DataRecord&gt;? maybeNull = GetData();
+if (await maybeNull.IsNullOrEmptyAsync())
+{
+    Console.WriteLine(&quot;Data is null or empty&quot;);
+}
+</code></pre>
+<h2 id="noneasync---inverse-of-any">NoneAsync - Inverse of Any</h2>
+<pre><code class="lang-csharp">// Check if stream has no elements
+if (await dataStream.NoneAsync())
+{
+    Console.WriteLine(&quot;Empty stream&quot;);
+}
+
+// Check if no elements match a condition
+if (await dataStream.NoneAsync(x =&gt; x.IsExpired, cancellationToken))
+{
+    Console.WriteLine(&quot;No expired records found&quot;);
+}
+</code></pre>
 <h2 id="next-steps">Next Steps</h2>
 <ul>
 <li>Read the <a href="introduction.html">Introduction</a> to learn more about the library's philosophy</li>
@@ -272,7 +314,7 @@ public record DataRecord
 </article>
 
         <div class="contribution d-print-none">
-          <a href="https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/blob/v0.3.0/docfx_project/docs/getting-started.md/#L1" class="edit-link">Edit this page</a>
+          <a href="https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/blob/v0.4.0/docfx_project/docs/getting-started.md/#L1" class="edit-link">Edit this page</a>
         </div>
 
         <div class="next-article d-print-none border-top" id="nextArticle"></div>

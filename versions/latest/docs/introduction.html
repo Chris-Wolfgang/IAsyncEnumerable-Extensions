@@ -16,7 +16,7 @@
       <meta name="docfx:rel" content="../">
       
       
-      <meta name="docfx:docurl" content="https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/blob/v0.3.0/docfx_project/docs/introduction.md/#L1">
+      <meta name="docfx:docurl" content="https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/blob/v0.4.0/docfx_project/docs/introduction.md/#L1">
       <meta name="loc:inThisArticle" content="In this article">
       <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
       <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
@@ -87,23 +87,54 @@
 </ul>
 <h2 id="key-features">Key Features</h2>
 <h3 id="chunkasync">ChunkAsync<t></t></h3>
-<p>The <code>ChunkAsync</code> extension method allows you to split an asynchronous stream into fixed-size chunks for efficient batch processing:</p>
+<p>Splits an asynchronous stream into fixed-size chunks for efficient batch processing:</p>
 <pre><code class="lang-csharp">using Wolfgang.Extensions.IAsyncEnumerable;
 
-// Process a large async stream in batches of 100
 await foreach (var batch in largeAsyncStream.ChunkAsync(maxChunkSize: 100))
 {
-    // Each batch is an ICollection&lt;T&gt; with up to 100 items
     await ProcessBatchAsync(batch);
 }
 </code></pre>
-<p><strong>Benefits:</strong></p>
-<ul>
-<li>Enables efficient batch processing of async streams</li>
-<li>Reduces memory overhead by processing data in manageable chunks</li>
-<li>Supports cancellation tokens for responsive applications</li>
-<li>Handles edge cases like incomplete final chunks automatically</li>
-</ul>
+<h3 id="doasync">DoAsync<t></t></h3>
+<p>Executes a side-effect action on each element without transforming them. The original items are yielded unchanged, ideal for logging or metrics within a pipeline:</p>
+<pre><code class="lang-csharp">await foreach (var item in source
+    .DoAsync(x =&gt; Console.WriteLine($&quot;Processing: {x}&quot;))
+    .ChunkAsync(100))
+{
+    await ProcessBatchAsync(item);
+}
+</code></pre>
+<h3 id="foreachasync">ForEachAsync<t></t></h3>
+<p>Terminal operation that executes an action on each element, consuming the sequence:</p>
+<pre><code class="lang-csharp">await source.ForEachAsync(x =&gt; Console.WriteLine($&quot;Item: {x}&quot;));
+await source.ForEachAsync(async x =&gt; await logger.LogAsync($&quot;Item: {x}&quot;));
+</code></pre>
+<h3 id="isemptyasync">IsEmptyAsync<t></t></h3>
+<p>Asynchronously determines whether a sequence contains no elements:</p>
+<pre><code class="lang-csharp">if (await source.IsEmptyAsync())
+{
+    Console.WriteLine(&quot;No items found.&quot;);
+}
+</code></pre>
+<h3 id="isnulloremptyasync">IsNullOrEmptyAsync<t></t></h3>
+<p>Asynchronously determines whether a sequence is null or contains no elements:</p>
+<pre><code class="lang-csharp">if (await data.IsNullOrEmptyAsync())
+{
+    Console.WriteLine(&quot;Data is null or empty.&quot;);
+}
+</code></pre>
+<h3 id="noneasync">NoneAsync<t></t></h3>
+<p>Determines whether a sequence contains no elements or no elements satisfy a condition (inverse of any):</p>
+<pre><code class="lang-csharp">if (await source.NoneAsync())
+{
+    Console.WriteLine(&quot;Stream is empty.&quot;);
+}
+
+if (await source.NoneAsync(x =&gt; x.IsExpired))
+{
+    Console.WriteLine(&quot;No expired items.&quot;);
+}
+</code></pre>
 <h2 id="async-first-design">Async-First Design</h2>
 <p>This library is built with an <strong>async-first philosophy</strong>:</p>
 <ul>
@@ -136,7 +167,7 @@ await foreach (var batch in largeAsyncStream.ChunkAsync(maxChunkSize: 100))
 </article>
 
         <div class="contribution d-print-none">
-          <a href="https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/blob/v0.3.0/docfx_project/docs/introduction.md/#L1" class="edit-link">Edit this page</a>
+          <a href="https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/blob/v0.4.0/docfx_project/docs/introduction.md/#L1" class="edit-link">Edit this page</a>
         </div>
 
         <div class="next-article d-print-none border-top" id="nextArticle"></div>
