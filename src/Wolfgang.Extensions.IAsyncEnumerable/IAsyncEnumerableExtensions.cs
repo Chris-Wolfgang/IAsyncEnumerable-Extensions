@@ -26,7 +26,7 @@ public static class IAsyncEnumerableExtensions
     /// <returns>An IAsyncEnumerable{ICollection{T}} representing the chunks.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="source"/> is null.</exception>
     /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="maxChunkSize"/> is less than one.</exception>
-    public static async IAsyncEnumerable<ICollection<T>> ChunkAsync<T>
+    public static IAsyncEnumerable<ICollection<T>> ChunkAsync<T>
     (
         this IAsyncEnumerable<T> source,
         int maxChunkSize,
@@ -38,44 +38,58 @@ public static class IAsyncEnumerableExtensions
             throw new ArgumentNullException(nameof(source));
         }
 
-        token.ThrowIfCancellationRequested();
-
         if (maxChunkSize < 1)
         {
             throw new ArgumentOutOfRangeException(nameof(maxChunkSize), "Chunk size must be greater than zero.");
         }
 
-        await using var enumerator = source.GetAsyncEnumerator(token);
+        return ChunkAsyncCore(source, maxChunkSize, token);
+    }
 
-        if (!await enumerator.MoveNextAsync().ConfigureAwait(false))
+
+
+    private static async IAsyncEnumerable<ICollection<T>> ChunkAsyncCore<T>
+    (
+        IAsyncEnumerable<T> source,
+        int maxChunkSize,
+        [EnumeratorCancellation] CancellationToken token
+    )
+    {
+        token.ThrowIfCancellationRequested();
+
+        var enumerator = source.GetAsyncEnumerator(token);
+        await using (enumerator.ConfigureAwait(false))
         {
-            yield break;
-        }
-
-        var array = new T[maxChunkSize];
-        var index = 0;
-
-        do
-        {
-            array[index++] = enumerator.Current;
-
-            if (index == maxChunkSize)
+            if (!await enumerator.MoveNextAsync().ConfigureAwait(false))
             {
-                yield return array;
-                token.ThrowIfCancellationRequested();
-                array = new T[maxChunkSize];
-                index = 0;
+                yield break;
             }
 
-        } while (await enumerator.MoveNextAsync().ConfigureAwait(false));
+            var array = new T[maxChunkSize];
+            var index = 0;
 
-        if (index == 0)
-        {
-            yield break;
+            do
+            {
+                array[index++] = enumerator.Current;
+
+                if (index == maxChunkSize)
+                {
+                    yield return array;
+                    token.ThrowIfCancellationRequested();
+                    array = new T[maxChunkSize];
+                    index = 0;
+                }
+
+            } while (await enumerator.MoveNextAsync().ConfigureAwait(false));
+
+            if (index == 0)
+            {
+                yield break;
+            }
+
+            Array.Resize(ref array, index);
+            yield return array;
         }
-
-        Array.Resize(ref array, index);
-        yield return array;
     }
 
 
@@ -92,13 +106,13 @@ public static class IAsyncEnumerableExtensions
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="source"/> or <paramref name="action"/> is null.</exception>
     /// <example>
     /// <code>
-    /// await foreach (var item in source.DoAsync(x => Console.WriteLine($"Processing: {x}")))
+    /// await foreach (var item in source.DoAsync(x =&gt; Console.WriteLine($"Processing: {x}")))
     /// {
     ///     // item is unchanged
     /// }
     /// </code>
     /// </example>
-    public static async IAsyncEnumerable<T> DoAsync<T>
+    public static IAsyncEnumerable<T> DoAsync<T>
     (
         this IAsyncEnumerable<T> source,
         Action<T> action,
@@ -115,15 +129,29 @@ public static class IAsyncEnumerableExtensions
             throw new ArgumentNullException(nameof(action));
         }
 
+        return DoAsyncCore(source, action, token);
+    }
+
+
+
+    private static async IAsyncEnumerable<T> DoAsyncCore<T>
+    (
+        IAsyncEnumerable<T> source,
+        Action<T> action,
+        [EnumeratorCancellation] CancellationToken token
+    )
+    {
         token.ThrowIfCancellationRequested();
 
-        await using var enumerator = source.GetAsyncEnumerator(token);
-
-        while (await enumerator.MoveNextAsync().ConfigureAwait(false))
+        var enumerator = source.GetAsyncEnumerator(token);
+        await using (enumerator.ConfigureAwait(false))
         {
-            action(enumerator.Current);
-            yield return enumerator.Current;
-            token.ThrowIfCancellationRequested();
+            while (await enumerator.MoveNextAsync().ConfigureAwait(false))
+            {
+                action(enumerator.Current);
+                yield return enumerator.Current;
+                token.ThrowIfCancellationRequested();
+            }
         }
     }
 
@@ -141,13 +169,13 @@ public static class IAsyncEnumerableExtensions
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="source"/> or <paramref name="action"/> is null.</exception>
     /// <example>
     /// <code>
-    /// await foreach (var item in source.DoAsync(async x => await logger.LogAsync($"Processing: {x}")))
+    /// await foreach (var item in source.DoAsync(async x =&gt; await logger.LogAsync($"Processing: {x}")))
     /// {
     ///     // item is unchanged
     /// }
     /// </code>
     /// </example>
-    public static async IAsyncEnumerable<T> DoAsync<T>
+    public static IAsyncEnumerable<T> DoAsync<T>
     (
         this IAsyncEnumerable<T> source,
         Func<T, Task> action,
@@ -164,15 +192,29 @@ public static class IAsyncEnumerableExtensions
             throw new ArgumentNullException(nameof(action));
         }
 
+        return DoAsyncCore(source, action, token);
+    }
+
+
+
+    private static async IAsyncEnumerable<T> DoAsyncCore<T>
+    (
+        IAsyncEnumerable<T> source,
+        Func<T, Task> action,
+        [EnumeratorCancellation] CancellationToken token
+    )
+    {
         token.ThrowIfCancellationRequested();
 
-        await using var enumerator = source.GetAsyncEnumerator(token);
-
-        while (await enumerator.MoveNextAsync().ConfigureAwait(false))
+        var enumerator = source.GetAsyncEnumerator(token);
+        await using (enumerator.ConfigureAwait(false))
         {
-            await action(enumerator.Current).ConfigureAwait(false);
-            yield return enumerator.Current;
-            token.ThrowIfCancellationRequested();
+            while (await enumerator.MoveNextAsync().ConfigureAwait(false))
+            {
+                await action(enumerator.Current).ConfigureAwait(false);
+                yield return enumerator.Current;
+                token.ThrowIfCancellationRequested();
+            }
         }
     }
 
@@ -189,7 +231,7 @@ public static class IAsyncEnumerableExtensions
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="source"/> or <paramref name="action"/> is null.</exception>
     /// <example>
     /// <code>
-    /// await source.ForEachAsync(x => Console.WriteLine($"Processing: {x}"));
+    /// await source.ForEachAsync(x =&gt; Console.WriteLine($"Processing: {x}"));
     /// </code>
     /// </example>
     public static async Task ForEachAsync<T>
@@ -211,12 +253,14 @@ public static class IAsyncEnumerableExtensions
 
         token.ThrowIfCancellationRequested();
 
-        await using var enumerator = source.GetAsyncEnumerator(token);
-
-        while (await enumerator.MoveNextAsync().ConfigureAwait(false))
+        var enumerator = source.GetAsyncEnumerator(token);
+        await using (enumerator.ConfigureAwait(false))
         {
-            action(enumerator.Current);
-            token.ThrowIfCancellationRequested();
+            while (await enumerator.MoveNextAsync().ConfigureAwait(false))
+            {
+                action(enumerator.Current);
+                token.ThrowIfCancellationRequested();
+            }
         }
     }
 
@@ -233,7 +277,7 @@ public static class IAsyncEnumerableExtensions
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="source"/> or <paramref name="action"/> is null.</exception>
     /// <example>
     /// <code>
-    /// await source.ForEachAsync(async x => await logger.LogAsync($"Processing: {x}"));
+    /// await source.ForEachAsync(async x =&gt; await logger.LogAsync($"Processing: {x}"));
     /// </code>
     /// </example>
     public static async Task ForEachAsync<T>
@@ -255,12 +299,14 @@ public static class IAsyncEnumerableExtensions
 
         token.ThrowIfCancellationRequested();
 
-        await using var enumerator = source.GetAsyncEnumerator(token);
-
-        while (await enumerator.MoveNextAsync().ConfigureAwait(false))
+        var enumerator = source.GetAsyncEnumerator(token);
+        await using (enumerator.ConfigureAwait(false))
         {
-            await action(enumerator.Current).ConfigureAwait(false);
-            token.ThrowIfCancellationRequested();
+            while (await enumerator.MoveNextAsync().ConfigureAwait(false))
+            {
+                await action(enumerator.Current).ConfigureAwait(false);
+                token.ThrowIfCancellationRequested();
+            }
         }
     }
 
@@ -297,9 +343,11 @@ public static class IAsyncEnumerableExtensions
 
         token.ThrowIfCancellationRequested();
 
-        await using var enumerator = source.GetAsyncEnumerator(token);
-
-        return !await enumerator.MoveNextAsync().ConfigureAwait(false);
+        var enumerator = source.GetAsyncEnumerator(token);
+        await using (enumerator.ConfigureAwait(false))
+        {
+            return !await enumerator.MoveNextAsync().ConfigureAwait(false);
+        }
     }
 
 
@@ -334,9 +382,11 @@ public static class IAsyncEnumerableExtensions
 
         token.ThrowIfCancellationRequested();
 
-        await using var enumerator = source.GetAsyncEnumerator(token);
-
-        return !await enumerator.MoveNextAsync().ConfigureAwait(false);
+        var enumerator = source.GetAsyncEnumerator(token);
+        await using (enumerator.ConfigureAwait(false))
+        {
+            return !await enumerator.MoveNextAsync().ConfigureAwait(false);
+        }
     }
 
 
@@ -357,22 +407,13 @@ public static class IAsyncEnumerableExtensions
     /// }
     /// </code>
     /// </example>
-    public static async Task<bool> NoneAsync<T>
+    public static Task<bool> NoneAsync<T>
     (
         this IAsyncEnumerable<T> source,
         CancellationToken token = default
     )
     {
-        if (source is null)
-        {
-            throw new ArgumentNullException(nameof(source));
-        }
-
-        token.ThrowIfCancellationRequested();
-
-        await using var enumerator = source.GetAsyncEnumerator(token);
-
-        return !await enumerator.MoveNextAsync().ConfigureAwait(false);
+        return IsEmptyAsync(source, token);
     }
 
 
@@ -388,7 +429,7 @@ public static class IAsyncEnumerableExtensions
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="source"/> or <paramref name="predicate"/> is null.</exception>
     /// <example>
     /// <code>
-    /// if (await source.NoneAsync(x => x > 100))
+    /// if (await source.NoneAsync(x =&gt; x &gt; 100))
     /// {
     ///     Console.WriteLine("No items greater than 100.");
     /// }
@@ -413,16 +454,18 @@ public static class IAsyncEnumerableExtensions
 
         token.ThrowIfCancellationRequested();
 
-        await using var enumerator = source.GetAsyncEnumerator(token);
-
-        while (await enumerator.MoveNextAsync().ConfigureAwait(false))
+        var enumerator = source.GetAsyncEnumerator(token);
+        await using (enumerator.ConfigureAwait(false))
         {
-            if (predicate(enumerator.Current))
+            while (await enumerator.MoveNextAsync().ConfigureAwait(false))
             {
-                return false;
-            }
+                if (predicate(enumerator.Current))
+                {
+                    return false;
+                }
 
-            token.ThrowIfCancellationRequested();
+                token.ThrowIfCancellationRequested();
+            }
         }
 
         return true;
