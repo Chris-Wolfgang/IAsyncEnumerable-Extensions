@@ -6,7 +6,7 @@ on:
     types: [published]
 
 permissions:
-  contents: read  # Required for checking out repository contents during validation
+  contents: read  # Default to read-only; individual jobs declare write where required
 
 env:
   CODECOV_MINIMUM: 90
@@ -20,6 +20,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
@@ -291,6 +293,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
@@ -343,13 +347,10 @@ jobs:
           }
           
           # Check whether any .nupkg files were actually created
-            ./nuget-packages/*.bom.json
           $packages = Get-ChildItem -Path $packagesPath -Filter '*.nupkg' -ErrorAction SilentlyContinue
-            ./nuget-packages/*.bom.json
           
           if ($packages.Count -eq 0) {
             Write-Warning "No .nupkg files were produced during packing - downstream publish and release jobs will be skipped"
-            ./nuget-packages/*.bom.json
             "has-packages=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
             exit 0
           }
@@ -362,16 +363,13 @@ jobs:
         shell: pwsh
         run: |
           $packages = Get-ChildItem -Path 'nuget-packages' -Filter '*.nupkg' -ErrorAction SilentlyContinue
-            ./nuget-packages/*.bom.json
           
           if ($packages.Count -eq 0) {
             Write-Warning "No .nupkg files found - skipping smoke test"
-            ./nuget-packages/*.bom.json
             exit 0
           }
           
           # Helper to read package ID and version from the .nuspec inside a .nupkg
-            ./nuget-packages/*.bom.json
           Add-Type -AssemblyName System.IO.Compression.FileSystem
           function Get-PackageMetadata {
             param (
@@ -518,7 +516,13 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 8.0.x
+          dotnet-version: |
+            5.0.x
+            6.0.x
+            7.0.x
+            8.0.x
+            9.0.x
+            10.0.x
 
       - name: Download packages
         uses: actions/download-artifact@v4
@@ -544,11 +548,9 @@ jobs:
           NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
         run: |
           $packages = Get-ChildItem -Path './packages' -Filter '*.nupkg' -ErrorAction SilentlyContinue
-            ./nuget-packages/*.bom.json
           
           if ($packages.Count -eq 0) {
             Write-Warning "No .nupkg files found - nothing to publish"
-            ./nuget-packages/*.bom.json
             exit 0
           }
           
@@ -610,7 +612,7 @@ jobs:
         run: zip -r release-coverage.zip ./release-coverage
 
       - name: Attach artifacts to release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b  # v2.5.0
         with:
           tag_name: ${{ github.event.release.tag_name }}
           files: |
