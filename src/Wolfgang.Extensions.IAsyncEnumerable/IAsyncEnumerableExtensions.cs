@@ -43,12 +43,12 @@ public static class IAsyncEnumerableExtensions
             throw new ArgumentOutOfRangeException(nameof(maxChunkSize), "Chunk size must be greater than zero.");
         }
 
-        return ChunkAsyncCore(source, maxChunkSize, token);
+        return ChunkCoreAsync(source, maxChunkSize, token);
     }
 
 
 
-    private static async IAsyncEnumerable<ICollection<T>> ChunkAsyncCore<T>
+    private static async IAsyncEnumerable<ICollection<T>> ChunkCoreAsync<T>
     (
         IAsyncEnumerable<T> source,
         int maxChunkSize,
@@ -129,7 +129,7 @@ public static class IAsyncEnumerableExtensions
             throw new ArgumentNullException(nameof(action));
         }
 
-        return DoAsyncCore(source, action, token);
+        return DoCoreAsync(source, action, token);
     }
 
 
@@ -169,12 +169,12 @@ public static class IAsyncEnumerableExtensions
             throw new ArgumentNullException(nameof(action));
         }
 
-        return DoAsyncCore(source, action, token);
+        return DoCoreAsync(source, action, token);
     }
 
 
 
-    private static async IAsyncEnumerable<T> DoAsyncCore<T>
+    private static async IAsyncEnumerable<T> DoCoreAsync<T>
     (
         IAsyncEnumerable<T> source,
         Action<T> action,
@@ -197,7 +197,7 @@ public static class IAsyncEnumerableExtensions
 
 
 
-    private static async IAsyncEnumerable<T> DoAsyncCore<T>
+    private static async IAsyncEnumerable<T> DoCoreAsync<T>
     (
         IAsyncEnumerable<T> source,
         Func<T, Task> action,
