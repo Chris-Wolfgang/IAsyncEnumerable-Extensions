@@ -62,13 +62,11 @@ public sealed class ChunkAsyncTests
     }
 
     [Fact]
-    public async Task ChunkAsync_WithNullSource_ThrowsArgumentNullException()
+    public void ChunkAsync_WithNullSource_ThrowsArgumentNullException()
     {
         IAsyncEnumerable<int> source = null!;
 
-        var chunked = source.ChunkAsync(2);
-
-        await Assert.ThrowsAsync<ArgumentNullException>(() => CollectChunksAsync(chunked));
+        Assert.Throws<ArgumentNullException>(() => source.ChunkAsync(2));
     }
 
     [Fact]

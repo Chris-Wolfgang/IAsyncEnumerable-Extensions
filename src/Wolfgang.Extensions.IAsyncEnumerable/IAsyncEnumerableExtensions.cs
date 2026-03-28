@@ -30,7 +30,7 @@ public static class IAsyncEnumerableExtensions
     (
         this IAsyncEnumerable<T> source,
         int maxChunkSize,
-        [EnumeratorCancellation] CancellationToken token = default
+        CancellationToken token = default
     )
     {
         if (source is null)
@@ -116,7 +116,47 @@ public static class IAsyncEnumerableExtensions
     (
         this IAsyncEnumerable<T> source,
         Action<T> action,
-        [EnumeratorCancellation] CancellationToken token = default
+        CancellationToken token = default
+    )
+    {
+        if (source is null)
+        {
+            throw new ArgumentNullException(nameof(source));
+        }
+
+        if (action is null)
+        {
+            throw new ArgumentNullException(nameof(action));
+        }
+
+        return DoAsyncCore(source, action, token);
+    }
+
+
+
+    /// <summary>
+    /// Executes an asynchronous side-effect action on each element of an IAsyncEnumerable{T}
+    /// without transforming the elements. The original items are yielded unchanged.
+    /// </summary>
+    /// <param name="source">The source IAsyncEnumerable{T}.</param>
+    /// <param name="action">The asynchronous action to execute on each element.</param>
+    /// <param name="token">A cancellation token to cancel the operation.</param>
+    /// <typeparam name="T">The type of elements in the IAsyncEnumerable{T}.</typeparam>
+    /// <returns>An IAsyncEnumerable{T} that yields the original elements after executing the action.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="source"/> or <paramref name="action"/> is null.</exception>
+    /// <example>
+    /// <code>
+    /// await foreach (var item in source.DoAsync(async x =&gt; await logger.LogAsync($"Processing: {x}")))
+    /// {
+    ///     // item is unchanged
+    /// }
+    /// </code>
+    /// </example>
+    public static IAsyncEnumerable<T> DoAsync<T>
+    (
+        this IAsyncEnumerable<T> source,
+        Func<T, Task> action,
+        CancellationToken token = default
     )
     {
         if (source is null)
@@ -153,46 +193,6 @@ public static class IAsyncEnumerableExtensions
                 token.ThrowIfCancellationRequested();
             }
         }
-    }
-
-
-
-    /// <summary>
-    /// Executes an asynchronous side-effect action on each element of an IAsyncEnumerable{T}
-    /// without transforming the elements. The original items are yielded unchanged.
-    /// </summary>
-    /// <param name="source">The source IAsyncEnumerable{T}.</param>
-    /// <param name="action">The asynchronous action to execute on each element.</param>
-    /// <param name="token">A cancellation token to cancel the operation.</param>
-    /// <typeparam name="T">The type of elements in the IAsyncEnumerable{T}.</typeparam>
-    /// <returns>An IAsyncEnumerable{T} that yields the original elements after executing the action.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="source"/> or <paramref name="action"/> is null.</exception>
-    /// <example>
-    /// <code>
-    /// await foreach (var item in source.DoAsync(async x =&gt; await logger.LogAsync($"Processing: {x}")))
-    /// {
-    ///     // item is unchanged
-    /// }
-    /// </code>
-    /// </example>
-    public static IAsyncEnumerable<T> DoAsync<T>
-    (
-        this IAsyncEnumerable<T> source,
-        Func<T, Task> action,
-        [EnumeratorCancellation] CancellationToken token = default
-    )
-    {
-        if (source is null)
-        {
-            throw new ArgumentNullException(nameof(source));
-        }
-
-        if (action is null)
-        {
-            throw new ArgumentNullException(nameof(action));
-        }
-
-        return DoAsyncCore(source, action, token);
     }
 
 
