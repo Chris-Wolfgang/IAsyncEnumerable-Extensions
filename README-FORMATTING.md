@@ -15,13 +15,13 @@ The `dotnet format` command is **built into the .NET SDK** starting with .NET 6 
 Run the formatting script with PowerShell Core (`pwsh`) on any supported platform:
 
 ```powershell
-.\format.ps1
+.\scripts\format.ps1
 ```
 
 Or check without making changes:
 
 ```powershell
-.\format.ps1 -Check
+.\scripts\format.ps1 -Check
 ```
 
 ### Manual Formatting
@@ -46,7 +46,7 @@ All pull requests are automatically checked for proper formatting. PRs with form
 
 ### If CI Fails
 
-1. Run `.\format.ps1` locally
+1. Run `.\scripts\format.ps1` locally
 2. Review the changes
 3. Commit and push the formatted code
 
