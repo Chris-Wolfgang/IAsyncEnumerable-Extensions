@@ -12,9 +12,16 @@
 .PARAMETER Repository
     The repository in owner/repo format. If not provided, uses the current repository.
 
+.PARAMETER Force
+    Skip the confirmation prompt and proceed automatically. Alias: -y
+
 .EXAMPLE
     .\Fix-BranchRuleset.ps1
-    Inspects and fixes rulesets for the current repository
+    Inspects and fixes rulesets for the current repository with interactive confirmation
+
+.EXAMPLE
+    .\Fix-BranchRuleset.ps1 -Force
+    Inspects and fixes rulesets without prompting for confirmation
 
 .EXAMPLE
     .\Fix-BranchRuleset.ps1 -Repository "Chris-Wolfgang/my-repo"
@@ -28,7 +35,11 @@
 [CmdletBinding()]
 param(
     [Parameter()]
-    [string]$Repository = "Chris-Wolfgang/IAsyncEnumerable-Extensions"
+    [string]$Repository = "Chris-Wolfgang/IAsyncEnumerable-Extensions",
+
+    [Parameter()]
+    [Alias("y")]
+    [switch]$Force
 )
 
 # Check if gh CLI is installed
@@ -140,7 +151,24 @@ Write-Host ""
 
 # Present the plan
 if ($plan.Count -eq 0) {
-    Write-Host "All rulesets are already disabled and none need renaming. Nothing to do." -ForegroundColor Green
+    Write-Host "All rulesets are already disabled and none need renaming." -ForegroundColor Green
+    Write-Host ""
+
+    # Still offer to run Setup to create a fresh ruleset
+    $setupScript = Join-Path $PSScriptRoot "Setup-BranchRuleset.ps1"
+    if (Test-Path $setupScript) {
+        if ($Force) {
+            Write-Host "Skipping Setup-BranchRuleset.ps1 in non-interactive mode." -ForegroundColor Yellow
+            Write-Host "Run it manually to create a fresh ruleset:" -ForegroundColor Cyan
+            Write-Host "  pwsh -File `"$setupScript`" -Repository $Repository" -ForegroundColor Cyan
+        } else {
+            $runSetup = Read-Host "Run Setup-BranchRuleset.ps1 to create a fresh ruleset? (y/N)"
+            if ($runSetup -eq 'y' -or $runSetup -eq 'Y') {
+                & $setupScript -Repository $Repository
+            }
+        }
+    }
+
     exit 0
 }
 
@@ -158,10 +186,14 @@ foreach ($item in $plan) {
 Write-Host ""
 
 # Prompt for confirmation
-$response = Read-Host "Proceed with these changes? (y/N)"
-if ($response -ne 'y' -and $response -ne 'Y') {
-    Write-Host "Cancelled. No changes were made." -ForegroundColor Yellow
-    exit 0
+if ($Force) {
+    Write-Host "Auto-confirmed via -Force flag." -ForegroundColor Green
+} else {
+    $response = Read-Host "Proceed with these changes? (y/N)"
+    if ($response -ne 'y' -and $response -ne 'Y') {
+        Write-Host "Cancelled. No changes were made." -ForegroundColor Yellow
+        exit 0
+    }
 }
 
 Write-Host ""
@@ -228,6 +260,19 @@ if ($errors -gt 0) {
 } else {
     Write-Host "All changes applied successfully." -ForegroundColor Green
     Write-Host ""
-    Write-Host "Next step: Run .\Setup-BranchRuleset.ps1 to create a fresh ruleset." -ForegroundColor Cyan
-    Write-Host "View rulesets at: https://github.com/$Repository/settings/rules" -ForegroundColor Cyan
+
+    # Invoke Setup-BranchRuleset.ps1 to create a fresh ruleset
+    $setupScript = Join-Path $PSScriptRoot "Setup-BranchRuleset.ps1"
+    if ($Force) {
+        Write-Host "Skipping Setup-BranchRuleset.ps1 in non-interactive mode." -ForegroundColor Yellow
+        Write-Host "Run it manually to create a fresh ruleset:" -ForegroundColor Cyan
+        Write-Host "  pwsh -File `"$setupScript`" -Repository $Repository" -ForegroundColor Cyan
+    } elseif (Test-Path $setupScript) {
+        Write-Host "Running Setup-BranchRuleset.ps1 to create a fresh ruleset..." -ForegroundColor Cyan
+        Write-Host ""
+        & $setupScript -Repository $Repository
+    } else {
+        Write-Host "Setup-BranchRuleset.ps1 not found. Run it manually to create a fresh ruleset." -ForegroundColor Yellow
+        Write-Host "View rulesets at: https://github.com/$Repository/settings/rules" -ForegroundColor Cyan
+    }
 }
