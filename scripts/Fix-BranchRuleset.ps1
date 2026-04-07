@@ -161,24 +161,7 @@ Write-Host ""
 
 # Present the plan
 if ($plan.Count -eq 0) {
-    Write-Host "All rulesets are already disabled and none need renaming." -ForegroundColor Green
-    Write-Host ""
-
-    # Still offer to run Setup to create a fresh ruleset
-    $setupScript = Join-Path $PSScriptRoot "Setup-BranchRuleset.ps1"
-    if (Test-Path $setupScript) {
-        if ($Force) {
-            Write-Host "Skipping Setup-BranchRuleset.ps1 in non-interactive mode." -ForegroundColor Yellow
-            Write-Host "Run it manually to create a fresh ruleset:" -ForegroundColor Cyan
-            Write-Host "  pwsh -File `"$setupScript`" -Repository $Repository" -ForegroundColor Cyan
-        } else {
-            $runSetup = Read-Host "Run Setup-BranchRuleset.ps1 to create a fresh ruleset? (y/N)"
-            if ($runSetup -eq 'y' -or $runSetup -eq 'Y') {
-                & $setupScript -Repository $Repository
-            }
-        }
-    }
-
+    Write-Host "All rulesets are already disabled and none need renaming. Nothing to do." -ForegroundColor Green
     exit 0
 }
 
