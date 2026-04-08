@@ -15,6 +15,9 @@
 .PARAMETER Force
     Skip the confirmation prompt and proceed automatically. Alias: -y
 
+.PARAMETER SkipSetup
+    Skip automatic invocation of Setup-BranchRuleset.ps1 after fixing.
+
 .EXAMPLE
     .\Fix-BranchRuleset.ps1
     Inspects and fixes rulesets for the current repository with interactive confirmation
@@ -22,6 +25,10 @@
 .EXAMPLE
     .\Fix-BranchRuleset.ps1 -Force
     Inspects and fixes rulesets without prompting for confirmation
+
+.EXAMPLE
+    .\Fix-BranchRuleset.ps1 -Force -SkipSetup
+    Fixes rulesets non-interactively without recreating a fresh ruleset
 
 .EXAMPLE
     .\Fix-BranchRuleset.ps1 -Repository "Chris-Wolfgang/my-repo"
@@ -39,7 +46,10 @@ param(
 
     [Parameter()]
     [Alias("y")]
-    [switch]$Force
+    [switch]$Force,
+
+    [Parameter()]
+    [switch]$SkipSetup
 )
 
 # Check if gh CLI is installed
@@ -151,24 +161,7 @@ Write-Host ""
 
 # Present the plan
 if ($plan.Count -eq 0) {
-    Write-Host "All rulesets are already disabled and none need renaming." -ForegroundColor Green
-    Write-Host ""
-
-    # Still offer to run Setup to create a fresh ruleset
-    $setupScript = Join-Path $PSScriptRoot "Setup-BranchRuleset.ps1"
-    if (Test-Path $setupScript) {
-        if ($Force) {
-            Write-Host "Skipping Setup-BranchRuleset.ps1 in non-interactive mode." -ForegroundColor Yellow
-            Write-Host "Run it manually to create a fresh ruleset:" -ForegroundColor Cyan
-            Write-Host "  pwsh -File `"$setupScript`" -Repository $Repository" -ForegroundColor Cyan
-        } else {
-            $runSetup = Read-Host "Run Setup-BranchRuleset.ps1 to create a fresh ruleset? (y/N)"
-            if ($runSetup -eq 'y' -or $runSetup -eq 'Y') {
-                & $setupScript -Repository $Repository
-            }
-        }
-    }
-
+    Write-Host "All rulesets are already disabled and none need renaming. Nothing to do." -ForegroundColor Green
     exit 0
 }
 
@@ -263,8 +256,8 @@ if ($errors -gt 0) {
 
     # Invoke Setup-BranchRuleset.ps1 to create a fresh ruleset
     $setupScript = Join-Path $PSScriptRoot "Setup-BranchRuleset.ps1"
-    if ($Force) {
-        Write-Host "Skipping Setup-BranchRuleset.ps1 in non-interactive mode." -ForegroundColor Yellow
+    if ($SkipSetup) {
+        Write-Host "Skipping Setup-BranchRuleset.ps1 (-SkipSetup specified)." -ForegroundColor Yellow
         Write-Host "Run it manually to create a fresh ruleset:" -ForegroundColor Cyan
         Write-Host "  pwsh -File `"$setupScript`" -Repository $Repository" -ForegroundColor Cyan
     } elseif (Test-Path $setupScript) {
