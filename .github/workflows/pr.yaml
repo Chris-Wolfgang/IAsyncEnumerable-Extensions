@@ -7,6 +7,10 @@
 # - Uses pull_request_target to run workflow from the trusted main branch, not from the PR branch
 # - This prevents malicious workflow YAML changes in untrusted PR branches from taking effect
 # - All checkout steps use PR refs (refs/pull/*/head) to check out PR code from the base repo
+# - After checkout, configuration files (.editorconfig, BannedSymbols.txt, etc.) are fetched from
+#   the main branch to prevent malicious PRs from disabling analyzers or bypassing code quality checks
+# - If a PR changes any of these protected configuration files, CI explicitly fails with instructions
+#   for a maintainer to manually review and verify the changes before merging
 # - persist-credentials: false prevents the checkout token from being written to git config for subsequent git commands
 #   (it does NOT, by itself, prevent steps from accessing github.token / GITHUB_TOKEN if you explicitly expose it)
 # - After checkout, configuration files (.editorconfig, BannedSymbols.txt, etc.) are fetched from
@@ -20,7 +24,7 @@ permissions:
 
 env:
   CODECOV_MINIMUM: 90
-
+  
 on:
   pull_request_target:  # Runs from the main branch, not from PR branch
     branches:
@@ -46,12 +50,26 @@ jobs:
           persist-credentials: false
           fetch-depth: 0
 
+      - name: Fetch trusted gitleaks config from main
+        # Prevent PR from modifying .gitleaks.toml to bypass the scan
+        run: |
+          git fetch origin main --depth=1
+          git checkout origin/main -- .gitleaks.toml 2>/dev/null || true
+        shell: bash
+
       - name: Run gitleaks
         # gitleaks-action@v2 does not support pull_request_target, so invoke the CLI directly
+        # Pinned to a specific version with SHA256 checksum verification for supply-chain safety
         run: |
           GITLEAKS_VERSION="8.24.0"
-          curl -sSfL "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" \
-            | tar xz -C /usr/local/bin gitleaks
+          GITLEAKS_SHA256="cb49b7de5ee986510fe8666ca0273a6cc15eb82571f2f14832c9e8920751f3a4"
+          mkdir -p "$HOME/.local/bin"
+          TARBALL="$(mktemp)"
+          curl -sSfL -o "$TARBALL" "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          echo "${GITLEAKS_SHA256}  ${TARBALL}" | sha256sum -c - || { echo "Checksum verification failed!"; exit 1; }
+          tar xzf "$TARBALL" -C "$HOME/.local/bin" gitleaks
+          rm -f "$TARBALL"
+          export PATH="$HOME/.local/bin:$PATH"
           gitleaks detect --source . --verbose --redact
         shell: bash
 
@@ -64,14 +82,14 @@ jobs:
     if: github.repository != 'Chris-Wolfgang/repo-template'
     outputs:
       has-projects: ${{ steps.check-projects.outputs.has-projects }}
-
+    
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
         with:
           ref: refs/pull/${{ github.event.pull_request.number }}/head
           persist-credentials: false
-
+      
       - name: Fetch trusted configuration files from main branch
         # Skip for Dependabot — its package-version bumps to protected files (e.g.
         # Directory.Build.props) are legitimate and should not be overwritten by main's
@@ -194,20 +212,73 @@ jobs:
   # ============================================================================
   # STAGE 1: Linux - .NET Core/5+ Tests with Coverage Gate
   # ============================================================================
-  test-linux-core:
+  test-linux-core: 
     name: "Stage 1: Linux Tests (.NET 5.0-10.0) + Coverage Gate"
     runs-on:  ubuntu-latest
     needs: detect-projects
     if: github.repository != 'Chris-Wolfgang/repo-template' && needs.detect-projects.outputs.has-projects == 'true'
-
+    
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
         with:
           ref: refs/pull/${{ github.event.pull_request.number }}/head
           persist-credentials: false
+      
+      - name: Fetch trusted configuration files from main branch
+        # Skip for Dependabot — its package-version bumps to protected files (e.g.
+        # Directory.Build.props) are legitimate and should not be overwritten by main's
+        # older versions. Dependabot's identity is GitHub-controlled and not spoofable.
+        if: github.event.pull_request.user.login != 'dependabot[bot]'
+        run: |
+          echo "Fetching configuration files from main branch to prevent malicious overrides..."
+          
+          # Fetch the main branch
+          git fetch origin main:main-branch
+          
+          # List of configuration files that should come from trusted main branch
+          config_files=(
+            ".editorconfig"
+            "Directory.Build.props"
+            "Directory.Build.targets"
+            "BannedSymbols.txt"
+            "*.globalconfig"
+            "*.ruleset"
+            ".github/workflows/*.yml"
+            ".github/workflows/*.yaml"
+          )
+          
+          # Copy each configuration file from main branch if it exists
+          for config_file in "${config_files[@]}"; do
+            # Handle glob patterns
+            if [[ "$config_file" == *"*"* ]]; then
+              # Find files matching the pattern in main branch
+              git ls-tree -r --name-only main-branch | grep -E "${config_file//\*/.*}" | while read -r file; do
+                if [ -n "$file" ]; then
+                  echo "  ✓ Copying $file from main branch"
+                  mkdir -p "$(dirname "$file")"
+                  git show "main-branch:$file" > "$file" || echo "  ⚠️  Failed to copy $file"
+                fi
+              done
+            else
+              # Check if file exists in main branch
+              if git cat-file -e "main-branch:$config_file" 2>/dev/null; then
+                echo "  ✓ Copying $config_file from main branch"
+                git show "main-branch:$config_file" > "$config_file"
+              else
+                echo "  ℹ️  $config_file not found in main branch, skipping"
+              fi
+            fi
+          done
+          
+          echo ""
+          echo "✅ Configuration files secured - using versions from main branch"
 
       - name: Fetch trusted configuration files from main branch
+        # Skip for Dependabot — its package-version bumps to protected files (e.g.
+        # Directory.Build.props) are legitimate and should not be overwritten by main's
+        # older versions. Dependabot's identity is GitHub-controlled and not spoofable.
+        if: github.event.pull_request.user.login != 'dependabot[bot]'
         run: |
           echo "Fetching configuration files from main branch to prevent malicious overrides..."
 
@@ -276,12 +347,12 @@ jobs:
       - name: Restore and build (exclude .NET Framework-only projects)
         run: |
           echo "Finding .NET project files in repository (via find command)..."
-
+          
           # Filter out projects that ONLY target .NET Framework 4.x
           # Multi-targeting projects (e.g., net8.0;net48) will be INCLUDED
           projects=()
           project_found=false
-
+          
           while IFS= read -r -d '' proj; do
             project_found=true
             # Check if project has any .NET 5+ target framework
@@ -294,53 +365,60 @@ jobs:
               echo "⊘ Excluding: $proj (Framework-only, incompatible with Linux)"
             fi
           done < <(find . -type f \( -name "*.csproj" -o -name "*.vbproj" -o -name "*.fsproj" \) -print0)
-
+          
           if [ "$project_found" = false ]; then
             echo "❌ No .NET projects found."
             echo "This should not occur as detect-projects already verified project existence."
             exit 1
           fi
-
+          
           if [ ${#projects[@]} -eq 0 ]; then
             echo "❌ No compatible .NET projects found."
             echo "All projects target only .NET Framework 4.x, which is incompatible with Linux."
             exit 1
           fi
-
+          
           echo ""
           echo "=========================================="
           echo "Projects to build:"
           echo "=========================================="
           printf '%s\n' "${projects[@]}"
           echo ""
-
+          
           # Restore each project
           echo "Restoring projects..."
           for proj in "${projects[@]}"; do
             echo "Restoring: $proj"
             dotnet restore "$proj" || exit 1
           done
-
+          
           echo ""
           echo "Building projects..."
           # Build each project, handling multi-targeting projects
           # For multi-targeting projects, build only Linux-compatible frameworks (.NET 5.0+, .NET Core, .NET Standard)
           for proj in "${projects[@]}"; do
             echo "Building: $proj"
-
-            # Extract target frameworks from the project file
-            # Support both <TargetFramework> (single) and <TargetFrameworks> (multiple)
-            # Collapse newlines so multi-line <TargetFrameworks> values are handled correctly
-            frameworks=$(tr '\n' ' ' < "$proj" | grep -oP '<TargetFramework[s]?>\s*\K[^<]+' | tr ';' '\n' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | grep -E '^(net(5\.0|6\.0|7\.0|8\.0|9\.0|10\.0)|netcoreapp[0-9.]+|netstandard[0-9.]+)$' || true)
-
+            
+            # Extract target frameworks via MSBuild property evaluation.
+            # This handles multi-line <TargetFrameworks> XML, conditional property groups,
+            # and TFMs inherited from Directory.Build.props — all of which break grep-based parsing.
+            # Falls back from <TargetFrameworks> (multiple) to <TargetFramework> (single).
+            tfm_raw=$(dotnet msbuild "$proj" -noLogo -getProperty:TargetFrameworks 2>/dev/null \
+              | grep -v '^[[:space:]]*$' | tail -n1 | sed 's/^TargetFrameworks[=:][[:space:]]*//' | tr -d '[:space:]')
+            if [ -z "$tfm_raw" ]; then
+              tfm_raw=$(dotnet msbuild "$proj" -noLogo -getProperty:TargetFramework 2>/dev/null \
+                | grep -v '^[[:space:]]*$' | tail -n1 | sed 's/^TargetFramework[=:][[:space:]]*//' | tr -d '[:space:]')
+            fi
+            frameworks=$(printf '%s' "$tfm_raw" | tr ';' '\n' | grep -E '^(net(5\.0|6\.0|7\.0|8\.0|9\.0|10\.0)|netcoreapp[0-9.]+|netstandard[0-9.]+)$' || true)
+            
             if [ -z "$frameworks" ]; then
               echo "⚠️  No Linux-compatible frameworks found in $proj"
               continue
             fi
-
+            
             # Check if this is a multi-targeting project
             framework_count=$(echo "$frameworks" | wc -l)
-
+            
             if [ "$framework_count" -eq 1 ]; then
               # Single target framework - build normally
               echo "  Target framework: $frameworks"
@@ -355,53 +433,69 @@ jobs:
               done <<< "$frameworks"
             fi
           done
-
+          
           echo ""
           echo "✅ All compatible projects built successfully"
 
       - name: Run tests with coverage (.NET Core 5.0 - 10.0)
         run: |
-          # Find all test projects (C#, VB.NET, F#)
+          # Find all test projects (C#, VB.NET, F#).
+          # Gracefully skip if there is no ./tests directory (e.g. template-publishing
+          # repos or library repos in early development that have no tests yet).
+          # The downstream coverage steps already handle the no-coverage-files case.
+          if [ ! -d ./tests ]; then
+            echo "ℹ️  No ./tests directory — skipping test stage."
+            exit 0
+          fi
+
           mapfile -d '' -t test_projects < <(find ./tests -type f \( -name "*.csproj" -o -name "*.vbproj" -o -name "*.fsproj" \) -print0)
 
           if [ ${#test_projects[@]} -eq 0 ]; then
-            echo "❌ No test projects found in ./tests directory!"
-            exit 1
+            echo "ℹ️  No test projects found under ./tests — skipping test stage."
+            exit 0
           fi
-
+          
           echo "=========================================="
           echo "Found test projects:"
           echo "=========================================="
           printf '%s\n' "${test_projects[@]}"
           echo ""
-
+          
           for test_proj in "${test_projects[@]}"; do
             echo "=========================================="
             echo "Testing project: $test_proj"
             echo "=========================================="
-
-            # Extract target frameworks from the project file
-            # Support both <TargetFramework> (single) and <TargetFrameworks> (multiple)
-            frameworks=$(grep -oP '<TargetFramework[s]?>\K[^<]+' "$test_proj" | tr ';' '\n' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | grep -E '^(net(5\.0|6\.0|7\.0|8\.0|9\.0|10\.0)|netcoreapp3\.1)$' || true)
-
+            
+            # Extract target frameworks via MSBuild property evaluation (handles multi-line XML
+            # and Directory.Build.props inheritance — both break grep-based parsing).
+            # Falls back from <TargetFrameworks> (multiple) to <TargetFramework> (single).
+            tfm_raw=$(dotnet msbuild "$test_proj" -noLogo -getProperty:TargetFrameworks 2>/dev/null \
+              | grep -v '^[[:space:]]*$' | tail -n1 | sed 's/^TargetFrameworks[=:][[:space:]]*//' | tr -d '[:space:]')
+            if [ -z "$tfm_raw" ]; then
+              tfm_raw=$(dotnet msbuild "$test_proj" -noLogo -getProperty:TargetFramework 2>/dev/null \
+                | grep -v '^[[:space:]]*$' | tail -n1 | sed 's/^TargetFramework[=:][[:space:]]*//' | tr -d '[:space:]')
+            fi
+            frameworks=$(printf '%s' "$tfm_raw" | tr ';' '\n' | grep -E '^(net(5\.0|6\.0|7\.0|8\.0|9\.0|10\.0)|netcoreapp3\.1)$' || true)
+            
             if [ -z "$frameworks" ]; then
               echo "⊘ Skipping: No compatible .NET 5.0-10.0 target frameworks found"
               echo ""
               continue
             fi
-
+            
             echo "Target frameworks: $(echo "$frameworks" | tr '\n' ' ')"
             echo ""
-
+            
             # Test each framework that the project actually targets
             while IFS= read -r fw; do
               [ -z "$fw" ] && continue
               echo "Testing framework: $fw"
-
+              
               dotnet test "$test_proj" \
                 --configuration Release \
                 --framework "$fw" \
                 --collect:"XPlat Code Coverage" \
+                --settings coverlet.runsettings \
                 --results-directory "./TestResults" \
                 --logger "console;verbosity=minimal" || exit 1
             done <<< "$frameworks"
@@ -442,18 +536,18 @@ jobs:
           echo "Coverage Summary:"
           cat CoverageReport/Summary.txt
           echo ""
-
+          
           failed_projects=""
           threshold=${CODECOV_MINIMUM:-90}
-
+          
           while read -r line; do
             # Match lines with module names and percentages
             if echo "$line" | grep -qE '^[^ ].*[0-9]+%$' && ! echo "$line" | grep -q '^Summary'; then
               module=$(echo "$line" | awk '{print $1}')
               percent=$(echo "$line" | awk '{print $NF}' | tr -d '%')
-
+              
               echo "Checking module: '$module' - Coverage: ${percent}%"
-
+              
               if [ "$percent" -lt "$threshold" ]; then
                 echo "  ❌ FAIL: Below ${threshold}% threshold"
                 failed_projects="$failed_projects $module (${percent}%)"
@@ -506,13 +600,58 @@ jobs:
     runs-on: windows-latest
     needs: [detect-projects, test-linux-core]
     if: github.repository != 'Chris-Wolfgang/repo-template' && needs.detect-projects.outputs.has-projects == 'true'
-
+    
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
         with:
           ref: refs/pull/${{ github.event.pull_request.number }}/head
           persist-credentials: false
+      
+      - name: Fetch trusted configuration files from main branch
+        shell: pwsh
+        run: |
+          Write-Host "Fetching configuration files from main branch to prevent malicious overrides..."
+          
+          # Fetch the main branch
+          git fetch origin main:main-branch
+          
+          # List of configuration files that should come from trusted main branch
+          $configFiles = @(
+            ".editorconfig",
+            "Directory.Build.props",
+            "Directory.Build.targets",
+            "BannedSymbols.txt"
+          )
+          
+          # Copy each configuration file from main branch if it exists
+          foreach ($configFile in $configFiles) {
+            # Check if file exists in main branch
+            $exists = git cat-file -e "main-branch:$configFile" 2>&1
+            if ($LASTEXITCODE -eq 0) {
+              Write-Host "  ✓ Copying $configFile from main branch"
+              git show "main-branch:$configFile" | Out-File -FilePath $configFile -Encoding UTF8 -NoNewline
+            } else {
+              Write-Host "  ℹ️  $configFile not found in main branch, skipping"
+            }
+          }
+          
+          # Handle glob patterns for .globalconfig, .ruleset, and workflow files
+          $globPatterns = @("*.globalconfig", "*.ruleset", ".github/workflows/*.yml", ".github/workflows/*.yaml")
+          foreach ($pattern in $globPatterns) {
+            $files = git ls-tree -r --name-only main-branch | Select-String -Pattern $pattern.Replace("*", ".*")
+            foreach ($file in $files) {
+              if ($file) {
+                Write-Host "  ✓ Copying $file from main branch"
+                $dir = Split-Path -Parent $file
+                if ($dir) { New-Item -ItemType Directory -Force -Path $dir | Out-Null }
+                git show "main-branch:$file" | Out-File -FilePath $file -Encoding UTF8 -NoNewline
+              }
+            }
+          }
+          
+          Write-Host ""
+          Write-Host "✅ Configuration files secured - using versions from main branch"
 
       - name: Fetch trusted configuration files from main branch
         shell: pwsh
@@ -582,47 +721,54 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
 
+          # Gracefully skip if there is no ./tests directory (e.g. template-publishing
+          # repos or library repos in early development that have no tests yet).
+          if (-not (Test-Path -Path './tests' -PathType Container)) {
+            Write-Host "ℹ️  No ./tests directory — skipping test stage."
+            exit 0
+          }
+
           $testProjects = @(Get-ChildItem -Path './tests/*' -Recurse -File -Include '*.csproj','*.vbproj','*.fsproj')
 
           if (@($testProjects).Count -eq 0) {
-            Write-Error "❌ No test projects found in ./tests directory!"
-            exit 1
+            Write-Host "ℹ️  No test projects found under ./tests — skipping test stage."
+            exit 0
           }
-
+          
           Write-Host "==========================================" -ForegroundColor Cyan
           Write-Host "Found test projects:" -ForegroundColor Cyan
           Write-Host "==========================================" -ForegroundColor Cyan
           $testProjects | ForEach-Object { Write-Host $_.FullName -ForegroundColor White }
           Write-Host ""
-
+          
           foreach ($testProj in $testProjects) {
             Write-Host "==========================================" -ForegroundColor Cyan
             Write-Host "Testing project: $($testProj.FullName)" -ForegroundColor Cyan
             Write-Host "==========================================" -ForegroundColor Cyan
-
+            
             # Extract target frameworks from the project file
             # Support both <TargetFramework> (single) and <TargetFrameworks> (multiple)
             $content = Get-Content $testProj.FullName -Raw
             $tfmMatch = [regex]::Match($content, '<TargetFramework[s]?>([^<]+)</TargetFramework[s]?>')
-
+            
             if (-not $tfmMatch.Success) {
               Write-Host "⊘ Skipping: No target frameworks found" -ForegroundColor Yellow
               Write-Host ""
               continue
             }
-
+            
             # Split by semicolon for multi-targeting projects
             $frameworks = $tfmMatch.Groups[1].Value -split ';' | ForEach-Object { $_.Trim() } | Where-Object { $_ -match '^net(5\.0|6\.0|7\.0|8\.0|9\.0|10\.0|462|47|471|472|48|481|coreapp3\.1)$' }
-
+            
             if ($frameworks.Count -eq 0) {
               Write-Host "⊘ Skipping: No compatible .NET 5.0-10.0 or Framework 4.6.2-4.8.1 target frameworks found" -ForegroundColor Yellow
               Write-Host ""
               continue
             }
-
+            
             Write-Host "Target frameworks: $($frameworks -join ', ')" -ForegroundColor White
             Write-Host ""
-
+            
             # Test each framework; collect coverage only for .NET 5.0+ TFMs.
             # netcoreapp3.1 and net4x are tested but excluded from coverage:
             # netcoreapp3.1 has no matching test TFM on Linux (Stage 1) so its numbers
@@ -745,15 +891,68 @@ jobs:
     runs-on: macos-latest
     needs: [detect-projects, test-windows]
     if: github.repository != 'Chris-Wolfgang/repo-template' && needs.detect-projects.outputs.has-projects == 'true'
-
+    
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
         with:
           ref: refs/pull/${{ github.event.pull_request.number }}/head
           persist-credentials: false
+      
+      - name: Fetch trusted configuration files from main branch
+        # Skip for Dependabot — its package-version bumps to protected files (e.g.
+        # Directory.Build.props) are legitimate and should not be overwritten by main's
+        # older versions. Dependabot's identity is GitHub-controlled and not spoofable.
+        if: github.event.pull_request.user.login != 'dependabot[bot]'
+        run: |
+          echo "Fetching configuration files from main branch to prevent malicious overrides..."
+          
+          # Fetch the main branch
+          git fetch origin main:main-branch
+          
+          # List of configuration files that should come from trusted main branch
+          config_files=(
+            ".editorconfig"
+            "Directory.Build.props"
+            "Directory.Build.targets"
+            "BannedSymbols.txt"
+            "*.globalconfig"
+            "*.ruleset"
+            ".github/workflows/*.yml"
+            ".github/workflows/*.yaml"
+          )
+          
+          # Copy each configuration file from main branch if it exists
+          for config_file in "${config_files[@]}"; do
+            # Handle glob patterns
+            if [[ "$config_file" == *"*"* ]]; then
+              # Find files matching the pattern in main branch
+              git ls-tree -r --name-only main-branch | grep -E "${config_file//\*/.*}" | while read -r file; do
+                if [ -n "$file" ]; then
+                  echo "  ✓ Copying $file from main branch"
+                  mkdir -p "$(dirname "$file")"
+                  git show "main-branch:$file" > "$file" || echo "  ⚠️  Failed to copy $file"
+                fi
+              done
+            else
+              # Check if file exists in main branch
+              if git cat-file -e "main-branch:$config_file" 2>/dev/null; then
+                echo "  ✓ Copying $config_file from main branch"
+                git show "main-branch:$config_file" > "$config_file"
+              else
+                echo "  ℹ️  $config_file not found in main branch, skipping"
+              fi
+            fi
+          done
+          
+          echo ""
+          echo "✅ Configuration files secured - using versions from main branch"
 
       - name: Fetch trusted configuration files from main branch
+        # Skip for Dependabot — its package-version bumps to protected files (e.g.
+        # Directory.Build.props) are legitimate and should not be overwritten by main's
+        # older versions. Dependabot's identity is GitHub-controlled and not spoofable.
+        if: github.event.pull_request.user.login != 'dependabot[bot]'
         run: |
           echo "Fetching configuration files from main branch to prevent malicious overrides..."
 
@@ -811,12 +1010,12 @@ jobs:
       - name: Restore and build (exclude .NET Framework-only projects)
         run: |
           echo "Enumerating tracked .NET project files (git ls-files)..."
-
+          
           # Filter out projects that ONLY target .NET Framework 4.x
           # Multi-targeting projects (e.g., net8.0;net48) will be INCLUDED
           projects=()
           project_found=false
-
+          
           while IFS= read -r -d '' proj; do
             project_found=true
             # Check if project has any .NET 6+ target framework (macOS ARM64 compatible)
@@ -829,53 +1028,59 @@ jobs:
               echo "⊘ Excluding: $proj (no .NET 6+ target, incompatible with macOS ARM64)"
             fi
           done < <(git ls-files -z -- '*.csproj' '*.vbproj' '*.fsproj')
-
+          
           if [ "$project_found" = false ]; then
             echo "❌ No .NET projects found."
             echo "This should not occur as detect-projects already verified project existence."
             exit 1
           fi
-
+          
           if [ ${#projects[@]} -eq 0 ]; then
             echo "❌ No compatible .NET projects found."
             echo "All projects lack .NET 6+ targets, which are required for macOS ARM64."
             exit 1
           fi
-
+          
           echo ""
           echo "=========================================="
           echo "Projects to build (excluding .NET Framework-only projects):"
           echo "=========================================="
           printf '%s\n' "${projects[@]}"
           echo ""
-
+          
           # Restore each project
           echo "Restoring projects..."
           for proj in "${projects[@]}"; do
             echo "Restoring: $proj"
             dotnet restore "$proj" || exit 1
           done
-
+          
           echo ""
           echo "Building projects..."
           # Build each project, handling multi-targeting projects
           # For multi-targeting projects, build only macOS ARM64-compatible frameworks (net6.0-10.0)
           for proj in "${projects[@]}"; do
             echo "Building: $proj"
-
-            # Extract target frameworks from the project file
-            # Support both <TargetFramework> (single) and <TargetFrameworks> (multiple)
-            # Trim whitespace from each framework before filtering
-            frameworks=$(tr -d '\n\r' < "$proj" | sed -n -E 's/.*<TargetFrameworks?>[[:space:]]*>([^<]+)<\/TargetFrameworks?>.*/\1/p' | tr ';' '\n' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | grep -E '^net(6\.0|7\.0|8\.0|9\.0|10\.0)$' || true)
-
+            
+            # Extract target frameworks via MSBuild property evaluation (handles multi-line XML
+            # and Directory.Build.props inheritance). Filter to .NET 6+ for macOS ARM64 compatibility.
+            # Falls back from <TargetFrameworks> (multiple) to <TargetFramework> (single).
+            tfm_raw=$(dotnet msbuild "$proj" -noLogo -getProperty:TargetFrameworks 2>/dev/null \
+              | grep -v '^[[:space:]]*$' | tail -n1 | sed 's/^TargetFrameworks[=:][[:space:]]*//' | tr -d '[:space:]')
+            if [ -z "$tfm_raw" ]; then
+              tfm_raw=$(dotnet msbuild "$proj" -noLogo -getProperty:TargetFramework 2>/dev/null \
+                | grep -v '^[[:space:]]*$' | tail -n1 | sed 's/^TargetFramework[=:][[:space:]]*//' | tr -d '[:space:]')
+            fi
+            frameworks=$(printf '%s' "$tfm_raw" | tr ';' '\n' | grep -E '^net(6\.0|7\.0|8\.0|9\.0|10\.0)$' || true)
+            
             if [ -z "$frameworks" ]; then
               echo "⚠️  No macOS ARM64-compatible frameworks found in $proj"
               continue
             fi
-
+            
             # Check if this is a multi-targeting project
             framework_count=$(echo "$frameworks" | wc -l)
-
+            
             if [ "$framework_count" -eq 1 ]; then
               # Single target framework - build normally
               echo "  Target framework: $frameworks"
@@ -890,49 +1095,61 @@ jobs:
               done <<< "$frameworks"
             fi
           done
-
+          
           echo ""
           echo "✅ All compatible projects built successfully"
 
       - name:  Run tests (.NET 6.0 - 10.0 only - ARM64 compatible)
         run: |
-          # Find all test projects (C#, VB.NET, F#)
+          # Find all test projects (C#, VB.NET, F#).
+          # Gracefully skip if there is no ./tests directory (e.g. template-publishing
+          # repos or library repos in early development that have no tests yet).
+          if [ ! -d ./tests ]; then
+            echo "ℹ️  No ./tests directory — skipping test stage."
+            exit 0
+          fi
+
           test_projects=()
           while IFS= read -r -d '' file; do
           test_projects+=("$file")
           done < <(find ./tests -type f \( -name "*.csproj" -o -name "*.vbproj" -o -name "*.fsproj" \) -print0)
 
           if [ ${#test_projects[@]} -eq 0 ]; then
-            echo "❌ No test projects found in ./tests directory!"
-            exit 1
+            echo "ℹ️  No test projects found under ./tests — skipping test stage."
+            exit 0
           fi
-
+          
           echo "=========================================="
           echo "Found test projects:"
           echo "=========================================="
           printf '%s\n' "${test_projects[@]}"
           echo ""
-
+          
           for test_proj in "${test_projects[@]}"; do
             echo "=========================================="
             echo "Testing project: $test_proj"
             echo "=========================================="
-
-            # Extract target frameworks from the project file
-            # Support both <TargetFramework> (single) and <TargetFrameworks> (multiple)
-            # Only include .NET 6.0+ (ARM64 compatible on macOS)
-            # Normalize line endings to handle multi-line <TargetFramework> / <TargetFrameworks> elements
-            frameworks=$(tr -d '\n\r' < "$test_proj" | grep -Eo '<TargetFrameworks?>[^<]+' | sed -E 's/<TargetFrameworks?>//' | tr ';' '\n' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | grep -E '^net(6\.0|7\.0|8\.0|9\.0|10\.0)$' || true)
-
+            
+            # Extract target frameworks via MSBuild property evaluation (handles multi-line XML
+            # and Directory.Build.props inheritance). Filter to .NET 6+ for macOS ARM64 compatibility.
+            # Falls back from <TargetFrameworks> (multiple) to <TargetFramework> (single).
+            tfm_raw=$(dotnet msbuild "$test_proj" -noLogo -getProperty:TargetFrameworks 2>/dev/null \
+              | grep -v '^[[:space:]]*$' | tail -n1 | sed 's/^TargetFrameworks[=:][[:space:]]*//' | tr -d '[:space:]')
+            if [ -z "$tfm_raw" ]; then
+              tfm_raw=$(dotnet msbuild "$test_proj" -noLogo -getProperty:TargetFramework 2>/dev/null \
+                | grep -v '^[[:space:]]*$' | tail -n1 | sed 's/^TargetFramework[=:][[:space:]]*//' | tr -d '[:space:]')
+            fi
+            frameworks=$(printf '%s' "$tfm_raw" | tr ';' '\n' | grep -E '^net(6\.0|7\.0|8\.0|9\.0|10\.0)$' || true)
+            
             if [ -z "$frameworks" ]; then
               echo "⊘ Skipping: No compatible .NET 6.0-10.0 target frameworks found (ARM64 required)"
               echo ""
               continue
             fi
-
+            
             echo "Target frameworks: $(echo "$frameworks" | tr '\n' ' ')"
             echo ""
-
+            
             # Test each framework that the project actually targets
             # All frameworks here are net6.0+ so all get coverage
             while IFS= read -r fw; do
@@ -1057,15 +1274,68 @@ jobs:
     name: "Security Scan (DevSkim)"
     runs-on: ubuntu-latest
     if: github.repository != 'Chris-Wolfgang/repo-template'
-
+    
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
         with:
           ref: refs/pull/${{ github.event.pull_request.number }}/head
           persist-credentials: false
+      
+      - name: Fetch trusted configuration files from main branch
+        # Skip for Dependabot — its package-version bumps to protected files (e.g.
+        # Directory.Build.props) are legitimate and should not be overwritten by main's
+        # older versions. Dependabot's identity is GitHub-controlled and not spoofable.
+        if: github.event.pull_request.user.login != 'dependabot[bot]'
+        run: |
+          echo "Fetching configuration files from main branch to prevent malicious overrides..."
+          
+          # Fetch the main branch
+          git fetch origin main:main-branch
+          
+          # List of configuration files that should come from trusted main branch
+          config_files=(
+            ".editorconfig"
+            "Directory.Build.props"
+            "Directory.Build.targets"
+            "BannedSymbols.txt"
+            "*.globalconfig"
+            "*.ruleset"
+            ".github/workflows/*.yml"
+            ".github/workflows/*.yaml"
+          )
+          
+          # Copy each configuration file from main branch if it exists
+          for config_file in "${config_files[@]}"; do
+            # Handle glob patterns
+            if [[ "$config_file" == *"*"* ]]; then
+              # Find files matching the pattern in main branch
+              git ls-tree -r --name-only main-branch | grep -E "${config_file//\*/.*}" | while read -r file; do
+                if [ -n "$file" ]; then
+                  echo "  ✓ Copying $file from main branch"
+                  mkdir -p "$(dirname "$file")"
+                  git show "main-branch:$file" > "$file" || echo "  ⚠️  Failed to copy $file"
+                fi
+              done
+            else
+              # Check if file exists in main branch
+              if git cat-file -e "main-branch:$config_file" 2>/dev/null; then
+                echo "  ✓ Copying $config_file from main branch"
+                git show "main-branch:$config_file" > "$config_file"
+              else
+                echo "  ℹ️  $config_file not found in main branch, skipping"
+              fi
+            fi
+          done
+          
+          echo ""
+          echo "✅ Configuration files secured - using versions from main branch"
 
       - name: Fetch trusted configuration files from main branch
+        # Skip for Dependabot — its package-version bumps to protected files (e.g.
+        # Directory.Build.props) are legitimate and should not be overwritten by main's
+        # older versions. Dependabot's identity is GitHub-controlled and not spoofable.
+        if: github.event.pull_request.user.login != 'dependabot[bot]'
         run: |
           echo "Fetching configuration files from main branch to prevent malicious overrides..."
 
@@ -1131,7 +1401,7 @@ jobs:
             echo "=========================================="
             cat devskim-results.txt
             echo ""
-
+            
             if grep -qi "error\|critical\|high" devskim-results.txt; then
               echo "❌ Security issues detected - review required"
               exit 1
