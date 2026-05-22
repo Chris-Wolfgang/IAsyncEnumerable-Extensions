@@ -1,6 +1,6 @@
-# Contributing to Wolfgang.Extensions.IAsyncEnumerable
+# Contributing to {{PROJECT_NAME}}
 
-Thank you for your interest in contributing to **Wolfgang.Extensions.IAsyncEnumerable**! We welcome contributions to help improve this project.
+Thank you for your interest in contributing to **{{PROJECT_NAME}}**! We welcome contributions to help improve this project.
 
 ## How Can You Contribute?
 
@@ -145,7 +145,7 @@ var now = DateTimeOffset.UtcNow;
 ## Build and Test Instructions
 
 ### Prerequisites
-- .NET 10.0 SDK or later
+- .NET 8.0 SDK or later
 - PowerShell Core (optional, for formatting scripts)
 
 ### Build the Project
