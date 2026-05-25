@@ -5,7 +5,6 @@
 		<LangVersion>14</LangVersion>
 		<Version>0.5.0</Version>
 		<Title>$(AssemblyName)</Title>
-		<Authors>Chris Wolfgang</Authors>
 		<Description>A collection of extension methods for IAsyncEnumerable</Description>
 		<Copyright>Copyright 2026 Chris Wolfgang </Copyright>
 		<PackageProjectUrl>https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions</PackageProjectUrl>
