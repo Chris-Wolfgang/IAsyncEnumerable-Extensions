@@ -10,6 +10,7 @@
 		<Description>A collection of extension methods for IAsyncEnumerable</Description>
 		<Copyright>Copyright 2026 Chris Wolfgang </Copyright>
 		<PackageProjectUrl>https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions.git</RepositoryUrl>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
