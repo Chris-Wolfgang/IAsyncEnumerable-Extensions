@@ -1,16 +1,16 @@
 #!/usr/bin/env pwsh
 <#
 .SYNOPSIS
-    Runs the same checks as pr.yaml locally (build, test, coverage, security).
+    Runs the same checks as the Windows section of pr.yaml locally.
 
 .DESCRIPTION
-    Replicates the PR workflow checks locally so you can verify your changes
-    will pass before pushing. Runs in order:
+    Replicates the PR workflow's Windows stage locally so you can verify
+    your changes will pass before pushing. Runs in order:
       1. Restore and build (Release)
       2. Run all tests across all target frameworks
       3. Generate coverage report and enforce threshold
-      4. Run DevSkim security scan (separate CI job)
-      5. Run gitleaks secrets scan (separate CI job)
+      4. Run DevSkim security scan
+      5. Run gitleaks secrets scan
 
 .PARAMETER SkipTests
     Skip test execution (build only).
@@ -84,8 +84,17 @@ if (-not $SkipTests -and $failed.Count -eq 0) {
     $testProjects = @(Get-ChildItem -Path './tests' -Recurse -File -Include '*.csproj', '*.vbproj', '*.fsproj' -ErrorAction SilentlyContinue)
 
     if ($testProjects.Count -eq 0) {
-        Write-Fail "No test projects found in ./tests"
-        $failed += "Tests (none found)"
+        # If ./src has projects, fail — silent skip would diverge from CI's
+        # strict gate. If neither ./src nor ./tests has projects (template-pack
+        # / in-dev repos), the skip is legitimate.
+        $srcHasProjects = @(Get-ChildItem -Path './src' -Recurse -File -Include '*.csproj','*.vbproj','*.fsproj' -ErrorAction SilentlyContinue).Count -gt 0
+        if ($srcHasProjects) {
+            Write-Fail "./tests has no test projects but ./src contains projects — refusing to silently skip the coverage gate."
+            $failed += "Tests"
+        }
+        else {
+            Write-Host "No test projects found in ./tests and no ./src projects — skipping (template-pack / in-dev shape)."
+        }
     }
     else {
         foreach ($testProj in $testProjects) {
@@ -165,7 +174,23 @@ if (-not $SkipTests -and -not $SkipCoverage -and $failed.Count -eq 0) {
         $rgPath = Get-Command reportgenerator -ErrorAction SilentlyContinue
         if (-not $rgPath) {
             Write-Host "Installing ReportGenerator..."
-            dotnet tool install -g dotnet-reportgenerator-globaltool
+            dotnet tool update -g dotnet-reportgenerator-globaltool 2>$null
+            if ($LASTEXITCODE -ne 0) { dotnet tool install -g dotnet-reportgenerator-globaltool }
+            # Ensure global tools dir is on PATH for this session. The .NET
+            # installer normally adds it to the user's profile, but a fresh
+            # shell or a pwsh-invoked-from-script session may not have it yet.
+            $globalToolsDir = if ($IsWindows -or $env:OS -eq 'Windows_NT') {
+                Join-Path $env:USERPROFILE '.dotnet\tools'
+            } else {
+                Join-Path $HOME '.dotnet/tools'
+            }
+            if (Test-Path $globalToolsDir -PathType Container) {
+                $sep = [IO.Path]::PathSeparator
+                $pathSegments = $env:PATH -split [regex]::Escape($sep)
+                if ($pathSegments -notcontains $globalToolsDir) {
+                    $env:PATH = "$globalToolsDir$sep$env:PATH"
+                }
+            }
         }
 
         reportgenerator `
@@ -203,7 +228,10 @@ if (-not $SkipTests -and -not $SkipCoverage -and $failed.Count -eq 0) {
             }
         }
         else {
-            Write-Fail "Coverage report not generated — failing threshold check"
+            # Diverged from pr.yaml behavior in the past — that would let a local
+            # "All checks passed" silently hide ReportGenerator failures while CI
+            # rejected the same situation. Fail loudly here too, so local matches CI.
+            Write-Fail "Coverage report not generated (CoverageReport/Summary.txt missing) — ReportGenerator likely failed."
             $failed += "Coverage"
         }
     }
@@ -212,7 +240,7 @@ if (-not $SkipTests -and -not $SkipCoverage -and $failed.Count -eq 0) {
 # ============================================================================
 # STEP 4: DevSkim Security Scan
 # ============================================================================
-if (-not $SkipSecurity -and $failed.Count -eq 0) {
+if (-not $SkipSecurity) {
     Write-Step "Step 4: DevSkim Security Scan"
 
     $devskim = Get-Command devskim -ErrorAction SilentlyContinue
@@ -248,7 +276,7 @@ if (-not $SkipSecurity -and $failed.Count -eq 0) {
 # ============================================================================
 # STEP 5: Gitleaks Secrets Scan
 # ============================================================================
-if (-not $SkipSecurity -and $failed.Count -eq 0) {
+if (-not $SkipSecurity) {
     Write-Step "Step 5: Gitleaks Secrets Scan"
 
     $gitleaks = Get-Command gitleaks -ErrorAction SilentlyContinue
@@ -269,13 +297,15 @@ if (-not $SkipSecurity -and $failed.Count -eq 0) {
         else {
             $archive = "gitleaks_${version}_linux_x64.tar.gz"
             $url = "https://github.com/gitleaks/gitleaks/releases/download/v${version}/$archive"
-            $dest = Join-Path $HOME ".local/bin"
-            New-Item -ItemType Directory -Force -Path $dest | Out-Null
-            $tarPath = Join-Path ([System.IO.Path]::GetTempPath()) $archive
-            Invoke-WebRequest -Uri $url -OutFile $tarPath
-            tar -xzf $tarPath -C $dest gitleaks
-            Remove-Item $tarPath -ErrorAction SilentlyContinue
-            $env:PATH = "${dest}:$env:PATH"
+            # Install to a user-writable location instead of /usr/local/bin
+            # (which would require sudo for most local dev shells). $HOME/.local/bin
+            # is on PATH by default on most Linux distros and macOS; if not, prepend it.
+            $localBin = Join-Path $HOME ".local/bin"
+            New-Item -ItemType Directory -Force -Path $localBin | Out-Null
+            curl -sSfL $url | tar xz -C $localBin gitleaks
+            if (-not ($env:PATH -split [IO.Path]::PathSeparator | Where-Object { $_ -eq $localBin })) {
+                $env:PATH = "$localBin$([IO.Path]::PathSeparator)$env:PATH"
+            }
         }
     }
 

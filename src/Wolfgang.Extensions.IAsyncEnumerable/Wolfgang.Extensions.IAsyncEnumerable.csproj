@@ -7,8 +7,8 @@
 		<Title>$(AssemblyName)</Title>
 		<Description>A collection of extension methods for IAsyncEnumerable</Description>
 		<PackageProjectUrl>https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions.git</RepositoryUrl>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
-		<AssemblyVersion>1.0.0</AssemblyVersion>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
