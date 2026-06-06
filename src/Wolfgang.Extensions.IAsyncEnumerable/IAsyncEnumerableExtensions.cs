@@ -4,9 +4,6 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
-[assembly: InternalsVisibleTo("Wolfgang.Extensions.IAsyncEnumerable.Benchmarks")]
-[assembly: InternalsVisibleTo("Wolfgang.Extensions.IAsyncEnumerable.Tests.Unit")]
-
 namespace Wolfgang.Extensions.IAsyncEnumerable;
 
 /// <summary>
@@ -87,8 +84,12 @@ public static class IAsyncEnumerableExtensions
                 yield break;
             }
 
-            Array.Resize(ref array, index);
-            yield return array;
+            // Right-sized copy is one allocation + one copy; Array.Resize did
+            // the same work plus an extra bookkeeping step. The final-chunk
+            // array escapes the method, so pooling isn't safe.
+            var tail = new T[index];
+            Array.Copy(array, tail, index);
+            yield return tail;
         }
     }
 
@@ -382,24 +383,15 @@ public static class IAsyncEnumerableExtensions
     /// }
     /// </code>
     /// </example>
-    public static async Task<bool> IsNullOrEmptyAsync<T>
+    public static Task<bool> IsNullOrEmptyAsync<T>
     (
         this IAsyncEnumerable<T>? source,
         CancellationToken token = default
     )
     {
-        if (source is null)
-        {
-            return true;
-        }
-
-        token.ThrowIfCancellationRequested();
-
-        var enumerator = source.GetAsyncEnumerator(token);
-        await using (enumerator.ConfigureAwait(false))
-        {
-            return !await enumerator.MoveNextAsync().ConfigureAwait(false);
-        }
+        return source is null
+            ? Task.FromResult(true)
+            : IsEmptyAsync(source, token);
     }
 
 
@@ -416,7 +408,7 @@ public static class IAsyncEnumerableExtensions
     /// <param name="source">The IAsyncEnumerable{T} to check.</param>
     /// <param name="token">A cancellation token to cancel the operation.</param>
     /// <typeparam name="T">The type of elements in the IAsyncEnumerable{T}.</typeparam>
-    /// <returns>false if the source sequence contains any elements; otherwise, true.</returns>
+    /// <returns>true if the source sequence contains no elements; otherwise, false.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="source"/> is null.</exception>
     /// <example>
     /// <code>
