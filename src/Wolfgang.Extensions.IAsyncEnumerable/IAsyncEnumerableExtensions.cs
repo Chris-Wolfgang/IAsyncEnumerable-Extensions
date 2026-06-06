@@ -4,9 +4,6 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
-[assembly: InternalsVisibleTo("Wolfgang.Extensions.IAsyncEnumerable.Benchmarks")]
-[assembly: InternalsVisibleTo("Wolfgang.Extensions.IAsyncEnumerable.Tests.Unit")]
-
 namespace Wolfgang.Extensions.IAsyncEnumerable;
 
 /// <summary>
@@ -87,8 +84,12 @@ public static class IAsyncEnumerableExtensions
                 yield break;
             }
 
-            Array.Resize(ref array, index);
-            yield return array;
+            // Right-sized copy is one allocation + one copy; Array.Resize did
+            // the same work plus an extra bookkeeping step. The final-chunk
+            // array escapes the method, so pooling isn't safe.
+            var tail = new T[index];
+            Array.Copy(array, tail, index);
+            yield return tail;
         }
     }
 
@@ -355,7 +356,13 @@ public static class IAsyncEnumerableExtensions
     /// <summary>
     /// Asynchronously determines whether a sequence is null or contains no elements.
     /// </summary>
-    /// <param name="source">The IAsyncEnumerable{T} to check.</param>
+    /// <remarks>
+    /// Unlike <see cref="IsEmptyAsync{T}"/>, this method is null-tolerant: passing a
+    /// null <paramref name="source"/> returns <c>true</c> without throwing. The
+    /// cancellation token is observed only when the source is non-null (a null source
+    /// short-circuits before any token check).
+    /// </remarks>
+    /// <param name="source">The IAsyncEnumerable{T} to check. May be null.</param>
     /// <param name="token">A cancellation token to cancel the operation.</param>
     /// <typeparam name="T">The type of elements in the IAsyncEnumerable{T}.</typeparam>
     /// <returns>
@@ -369,24 +376,15 @@ public static class IAsyncEnumerableExtensions
     /// }
     /// </code>
     /// </example>
-    public static async Task<bool> IsNullOrEmptyAsync<T>
+    public static Task<bool> IsNullOrEmptyAsync<T>
     (
         this IAsyncEnumerable<T>? source,
         CancellationToken token = default
     )
     {
-        if (source is null)
-        {
-            return true;
-        }
-
-        token.ThrowIfCancellationRequested();
-
-        var enumerator = source.GetAsyncEnumerator(token);
-        await using (enumerator.ConfigureAwait(false))
-        {
-            return !await enumerator.MoveNextAsync().ConfigureAwait(false);
-        }
+        return source is null
+            ? Task.FromResult(true)
+            : IsEmptyAsync(source, token);
     }
 
 
@@ -394,10 +392,16 @@ public static class IAsyncEnumerableExtensions
     /// <summary>
     /// Asynchronously determines whether a sequence contains no elements.
     /// </summary>
+    /// <remarks>
+    /// This overload is a naming alias for <see cref="IsEmptyAsync{T}"/> — the two
+    /// are observationally equivalent. Pick whichever reads more naturally at the
+    /// call site (e.g. <c>await source.NoneAsync()</c> as a guard, or
+    /// <c>await source.IsEmptyAsync()</c> as a state check).
+    /// </remarks>
     /// <param name="source">The IAsyncEnumerable{T} to check.</param>
     /// <param name="token">A cancellation token to cancel the operation.</param>
     /// <typeparam name="T">The type of elements in the IAsyncEnumerable{T}.</typeparam>
-    /// <returns>false if the source sequence contains any elements; otherwise, true.</returns>
+    /// <returns>true if the source sequence contains no elements; otherwise, false.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="source"/> is null.</exception>
     /// <example>
     /// <code>
