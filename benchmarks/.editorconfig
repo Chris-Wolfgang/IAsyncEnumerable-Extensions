@@ -1,0 +1,64 @@
+# Curated editorconfig for the benchmarks/ tree.
+#
+# Benchmark projects are held to the same TreatWarningsAsErrors=Release bar
+# as the rest of the repo (per the root Directory.Build.props). This file
+# silences only the genuinely-benchmark-inappropriate analyzer rules so the
+# Release build stays clean without dropping warning-as-error coverage.
+#
+# Pattern matches the tests/.editorconfig approach: per-rule carve-outs,
+# scoped to *.cs under this folder, with the reason for each suppression
+# documented inline.
+
+root = false
+
+[*.cs]
+
+# CA1707: Identifiers should not contain underscores.
+#   Benchmark method names use Method_Scenario_Variant for readability in
+#   the BDN console + JSON output (e.g. DoAsync_SyncAction). Reverts an
+#   intentional naming convention.
+dotnet_diagnostic.CA1707.severity = none
+
+# CA1812: Avoid uninstantiated internal classes.
+#   BDN discovers benchmark classes via reflection at runtime via
+#   BenchmarkSwitcher.FromAssembly; no compile-time call site exists.
+dotnet_diagnostic.CA1812.severity = none
+
+# CA1822: Mark members as static.
+#   [Benchmark]-attributed methods MUST be instance methods so BDN can
+#   create per-iteration instances (GlobalSetup, IterationSetup, etc.).
+dotnet_diagnostic.CA1822.severity = none
+
+# CA1051: Do not declare visible instance fields.
+#   [Params] requires public mutable fields/properties; making them
+#   private would break the benchmark parameter discovery.
+dotnet_diagnostic.CA1051.severity = none
+
+# CA1819: Properties should not return arrays.
+#   Benchmark setup commonly stores pre-allocated arrays as the
+#   subject-under-measurement. Defensive copies would distort measurements.
+dotnet_diagnostic.CA1819.severity = none
+
+# CA5394 / S2245: Insecure random number generator.
+#   Benchmarks generate deterministic-but-not-cryptographic data for
+#   throughput measurement. System.Random is the correct choice; CSPRNG
+#   would add measurement noise.
+dotnet_diagnostic.CA5394.severity = none
+dotnet_diagnostic.S2245.severity = none
+
+# S1118: Hide public constructor.
+#   Program.cs in benchmark assemblies is invoked by the BDN runner via
+#   reflection; the public default constructor on top-level classes is
+#   intentional.
+dotnet_diagnostic.S1118.severity = none
+
+# MA0048: File name must match type name.
+#   Two benchmark classes occasionally live in one file when they share
+#   a parameter set; readability wins over the analyzer's preference.
+dotnet_diagnostic.MA0048.severity = none
+
+# MA0051: Method is too long.
+#   Setup methods can be naturally long when they construct realistic
+#   workloads (multi-step data generation). Splitting would obscure
+#   the workload shape that the benchmark measures.
+dotnet_diagnostic.MA0051.severity = none

@@ -1,7 +1,11 @@
 # Wolfgang.Extensions.IAsyncEnumerable
 
-High-performance, production-grade extension methods for `IAsyncEnumerable<T>` with comprehensive test coverage and strict code quality enforcement.
+A collection of extension methods for `IAsyncEnumerable<T>` in .NET — chunking, side-effect projection, eager iteration, and emptiness / quantifier predicates. Built async-first with strict analyzer enforcement and multi-TFM packaging.
 
+[![NuGet](https://img.shields.io/nuget/v/Wolfgang.Extensions.IAsyncEnumerable.svg?logo=nuget&label=NuGet)](https://www.nuget.org/packages/Wolfgang.Extensions.IAsyncEnumerable)
+[![NuGet downloads](https://img.shields.io/nuget/dt/Wolfgang.Extensions.IAsyncEnumerable.svg?logo=nuget&label=downloads)](https://www.nuget.org/packages/Wolfgang.Extensions.IAsyncEnumerable)
+[![PR build](https://img.shields.io/github/actions/workflow/status/Chris-Wolfgang/IAsyncEnumerable-Extensions/pr.yaml?event=pull_request_target&label=PR%20build&logo=github)](https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/actions/workflows/pr.yaml)
+[![Release](https://img.shields.io/github/actions/workflow/status/Chris-Wolfgang/IAsyncEnumerable-Extensions/release.yaml?label=release&logo=github)](https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/actions/workflows/release.yaml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![.NET](https://img.shields.io/badge/.NET-Multi--Targeted-purple.svg)](https://dotnet.microsoft.com/)
 [![GitHub](https://img.shields.io/badge/GitHub-Repository-181717?logo=github)](https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions)
@@ -14,340 +18,7 @@ High-performance, production-grade extension methods for `IAsyncEnumerable<T>` w
 dotnet add package Wolfgang.Extensions.IAsyncEnumerable
 ```
 
-**NuGet Package:** Available on [NuGet.org](https://www.nuget.org/packages/Wolfgang.Extensions.IAsyncEnumerable/)
-
----
-
-## 🚀 Quick Start
-
-```csharp
-using Wolfgang.Extensions.IAsyncEnumerable;
-
-// Chunk an async stream into batches
-await foreach (var chunk in asyncStream.ChunkAsync(maxChunkSize: 100, token: cancellationToken))
-{
-    // Process each chunk (ICollection<T>)
-    await ProcessBatchAsync(chunk);
-}
-```
-
----
-
-## ✨ Features
-
-### Current Extension Methods
-
-#### **`ChunkAsync<T>`**
-Splits an `IAsyncEnumerable<T>` into fixed-size chunks for batch processing.
-
-```csharp
-public static async IAsyncEnumerable<ICollection<T>> ChunkAsync<T>(
-    this IAsyncEnumerable<T> source,
-    int maxChunkSize,
-    CancellationToken token = default)
-```
-
-**Parameters:**
-- `source` - The source async enumerable to chunk
-- `maxChunkSize` - Maximum size of each chunk (must be > 0)
-- `token` - Optional cancellation token
-
-**Returns:** An async enumerable of collections, where each collection contains up to `maxChunkSize` elements.
-
-**Example:**
-```csharp
-var numbers = GetAsyncNumbers(); // IAsyncEnumerable<int>
-await foreach (var batch in numbers.ChunkAsync(50))
-{
-    Console.WriteLine($"Processing batch of {batch.Count} items");
-    // Last batch may be smaller than 50
-}
-```
-
-#### **`DoAsync<T>` (Synchronous action)**
-Executes a synchronous side-effect action on each element without transforming the elements. The original items are yielded unchanged.
-
-```csharp
-public static async IAsyncEnumerable<T> DoAsync<T>(
-    this IAsyncEnumerable<T> source,
-    Action<T> action,
-    CancellationToken token = default)
-```
-
-**Parameters:**
-- `source` - The source async enumerable
-- `action` - The synchronous action to execute on each element
-- `token` - Optional cancellation token
-
-**Returns:** An async enumerable that yields the original elements after executing the action.
-
-**Example:**
-```csharp
-var numbers = GetAsyncNumbers(); // IAsyncEnumerable<int>
-await foreach (var item in numbers.DoAsync(x => Console.WriteLine($"Processing: {x}")))
-{
-    // item is unchanged — DoAsync is a pass-through
-}
-```
-
-#### **`DoAsync<T>` (Asynchronous action)**
-Executes an asynchronous side-effect action on each element without transforming the elements.
-
-```csharp
-public static async IAsyncEnumerable<T> DoAsync<T>(
-    this IAsyncEnumerable<T> source,
-    Func<T, Task> action,
-    CancellationToken token = default)
-```
-
-**Parameters:**
-- `source` - The source async enumerable
-- `action` - The asynchronous action to execute on each element
-- `token` - Optional cancellation token
-
-**Returns:** An async enumerable that yields the original elements after executing the action.
-
-**Example:**
-```csharp
-// Chain DoAsync with other extensions for logging/metrics in a pipeline
-await foreach (var batch in source
-    .DoAsync(async x => await logger.LogAsync($"Processing: {x}"))
-    .ChunkAsync(100))
-{
-    await ProcessBatchAsync(batch);
-}
-```
-
-#### **`ForEachAsync<T>` (Synchronous action)**
-Executes a synchronous action on each element of an `IAsyncEnumerable<T>`, consuming the sequence. This is a terminal operation.
-
-```csharp
-public static async Task ForEachAsync<T>(
-    this IAsyncEnumerable<T> source,
-    Action<T> action,
-    CancellationToken token = default)
-```
-
-**Parameters:**
-- `source` - The source async enumerable
-- `action` - The synchronous action to execute on each element
-- `token` - Optional cancellation token
-
-**Example:**
-```csharp
-await source.ForEachAsync(x => Console.WriteLine($"Item: {x}"));
-```
-
-#### **`ForEachAsync<T>` (Asynchronous action)**
-Executes an asynchronous action on each element of an `IAsyncEnumerable<T>`, consuming the sequence. This is a terminal operation.
-
-```csharp
-public static async Task ForEachAsync<T>(
-    this IAsyncEnumerable<T> source,
-    Func<T, Task> action,
-    CancellationToken token = default)
-```
-
-**Example:**
-```csharp
-await source.ForEachAsync(async x => await logger.LogAsync($"Item: {x}"));
-```
-
-#### **`IsEmptyAsync<T>`**
-Asynchronously determines whether a sequence contains no elements.
-
-```csharp
-public static async Task<bool> IsEmptyAsync<T>(
-    this IAsyncEnumerable<T> source,
-    CancellationToken token = default)
-```
-
-**Example:**
-```csharp
-if (await source.IsEmptyAsync())
-{
-    Console.WriteLine("No items found.");
-}
-```
-
-#### **`IsNullOrEmptyAsync<T>`**
-Asynchronously determines whether a sequence is null or contains no elements.
-
-```csharp
-public static async Task<bool> IsNullOrEmptyAsync<T>(
-    this IAsyncEnumerable<T>? source,
-    CancellationToken token = default)
-```
-
-**Example:**
-```csharp
-IAsyncEnumerable<int>? data = GetData();
-if (await data.IsNullOrEmptyAsync())
-{
-    Console.WriteLine("Data is null or empty.");
-}
-```
-
-#### **`NoneAsync<T>`**
-Asynchronously determines whether a sequence contains no elements (inverse of any).
-
-```csharp
-public static async Task<bool> NoneAsync<T>(
-    this IAsyncEnumerable<T> source,
-    CancellationToken token = default)
-```
-
-**Example:**
-```csharp
-if (await source.NoneAsync())
-{
-    Console.WriteLine("Stream is empty.");
-}
-```
-
-#### **`NoneAsync<T>` (with predicate)**
-Asynchronously determines whether no element of a sequence satisfies a condition.
-
-```csharp
-public static async Task<bool> NoneAsync<T>(
-    this IAsyncEnumerable<T> source,
-    Func<T, bool> predicate,
-    CancellationToken token = default)
-```
-
-**Example:**
-```csharp
-if (await source.NoneAsync(x => x.IsExpired))
-{
-    Console.WriteLine("No expired items found.");
-}
-```
-
----
-
-## 🎯 Target Frameworks
-
-This library supports multiple .NET versions:
-- **.NET Framework 4.6.2** (`net462`)
-- **.NET Standard 2.0** (`netstandard2.0`)
-- **.NET 8.0** (`net8.0`)
-- **.NET 10.0** (`net10.0`)
-
----
-
-## 🔍 Code Quality & Static Analysis
-
-This project enforces **strict code quality standards** through **7 specialized analyzers** and custom async-first rules:
-
-### Analyzers in Use
-
-1. **Microsoft.CodeAnalysis.NetAnalyzers** - Built-in .NET analyzers for correctness and performance
-2. **Roslynator.Analyzers** - Advanced refactoring and code quality rules
-3. **AsyncFixer** - Async/await best practices and anti-pattern detection
-4. **Microsoft.VisualStudio.Threading.Analyzers** - Thread safety and async patterns
-5. **Microsoft.CodeAnalysis.BannedApiAnalyzers** - Prevents usage of banned synchronous APIs
-6. **Meziantou.Analyzer** - Comprehensive code quality rules
-7. **SonarAnalyzer.CSharp** - Industry-standard code analysis
-
-### Async-First Enforcement
-
-This library uses **`BannedSymbols.txt`** to prohibit synchronous APIs and enforce async-first patterns:
-
-**Blocked APIs Include:**
-- ❌ `Task.Wait()`, `Task.Result` - Use `await` instead
-- ❌ `Thread.Sleep()` - Use `await Task.Delay()` instead
-- ❌ Synchronous file I/O (`File.ReadAllText`) - Use async versions
-- ❌ Synchronous stream operations - Use `ReadAsync()`, `WriteAsync()`
-- ❌ `Parallel.For/ForEach` - Use `Task.WhenAll()` or `Parallel.ForEachAsync()`
-- ❌ Obsolete APIs (`WebClient`, `BinaryFormatter`)
-
-**Why?** To ensure all code is **truly async** and **non-blocking** for optimal performance in async contexts.
-
----
-
-## 🛠️ Building from Source
-
-### Prerequisites
-- [.NET 10.0 SDK](https://dotnet.microsoft.com/download) or later
-- Optional: [PowerShell Core](https://github.com/PowerShell/PowerShell) for formatting scripts
-
-### Build Steps
-
-```bash
-# Clone the repository
-git clone https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions.git
-cd IAsyncEnumerable-Extensions
-
-# Restore dependencies
-dotnet restore
-
-# Build the solution
-dotnet build --configuration Release
-
-# Run tests
-dotnet test --configuration Release
-
-# Run code formatting (PowerShell Core)
-pwsh ./format.ps1
-```
-
-### Code Formatting
-
-This project uses `.editorconfig` and `dotnet format`:
-
-```bash
-# Format code
-dotnet format
-
-# Verify formatting (as CI does)
-dotnet format --verify-no-changes
-```
-
-See [README-FORMATTING.md](README-FORMATTING.md) for detailed formatting guidelines.
-
-### Building Documentation
-
-This project uses [DocFX](https://dotnet.github.io/docfx/) to generate API documentation:
-
-```bash
-# Install DocFX (one-time setup)
-dotnet tool install -g docfx
-
-# Generate API metadata and build documentation
-cd docfx_project
-docfx metadata  # Extract API metadata from source code
-docfx build     # Build HTML documentation
-
-# Documentation is generated in the docs/ folder at the repository root
-```
-
-The documentation is automatically built and deployed to GitHub Pages when changes are pushed to the `main` branch.
-
-**Local Preview:**
-```bash
-# Serve documentation locally (with live reload)
-cd docfx_project
-docfx build --serve
-
-# Open http://localhost:8080 in your browser
-```
-
-**Documentation Structure:**
-- `docfx_project/` - DocFX configuration and source files
-- `docs/` - Generated HTML documentation (published to GitHub Pages)
-- `docfx_project/index.md` - Main landing page content
-- `docfx_project/docs/` - Additional documentation articles
-- `docfx_project/api/` - Auto-generated API reference YAML files
-
----
-
-## 🤝 Contributing
-
-Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for:
-- Code quality standards
-- Build and test instructions
-- Pull request guidelines
-- Analyzer configuration details
+**NuGet Package:** [Wolfgang.Extensions.IAsyncEnumerable](https://www.nuget.org/packages/Wolfgang.Extensions.IAsyncEnumerable)
 
 ---
 
@@ -360,15 +31,91 @@ This project is licensed under the **MIT License**. See the [LICENSE](LICENSE) f
 ## 📚 Documentation
 
 - **GitHub Repository:** [https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions](https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions)
-- **API Documentation:** [Latest](https://chris-wolfgang.github.io/IAsyncEnumerable-Extensions/versions/latest/api/Wolfgang.Extensions.IAsyncEnumerable.html)
-- **Formatting Guide:** [README-FORMATTING.md](README-FORMATTING.md)
+- **API Documentation:** https://Chris-Wolfgang.github.io/IAsyncEnumerable-Extensions/
+- **CHANGELOG:** [CHANGELOG.md](CHANGELOG.md)
 - **Contributing Guide:** [CONTRIBUTING.md](CONTRIBUTING.md)
+- **Formatting Guide:** [docs/README-FORMATTING.md](docs/README-FORMATTING.md)
+- **DocFX Version Picker Troubleshooting:** [docs/DOCFX-VERSION-PICKER.md](docs/DOCFX-VERSION-PICKER.md)
+- **Release Workflow Setup:** [docs/RELEASE-WORKFLOW-SETUP.md](docs/RELEASE-WORKFLOW-SETUP.md)
+- **Workflow Security:** [docs/WORKFLOW_SECURITY.md](docs/WORKFLOW_SECURITY.md)
+
+---
+
+## ✨ Extension methods
+
+All nine extensions live on `IAsyncEnumerableExtensions` (`namespace Wolfgang.Extensions.IAsyncEnumerable`). See the [API documentation](https://Chris-Wolfgang.github.io/IAsyncEnumerable-Extensions/) for signatures, parameter details, and per-method examples.
+
+| Method | Purpose |
+|---|---|
+| `ChunkAsync<T>(source, maxChunkSize, ct)` | Splits the stream into fixed-size `ICollection<T>` batches. |
+| `DoAsync<T>(source, Action<T>, ct)` | Side-effect projection — runs a sync action per element; yields the originals unchanged. |
+| `DoAsync<T>(source, Func<T, Task>, ct)` | Side-effect projection — runs an async action per element; yields the originals unchanged. |
+| `ForEachAsync<T>(source, Action<T>, ct)` | Eager iteration with a sync action — terminal. |
+| `ForEachAsync<T>(source, Func<T, Task>, ct)` | Eager iteration with an async action — terminal. |
+| `IsEmptyAsync<T>(source, ct)` | `true` if the stream yields zero elements. Short-circuits on the first element. |
+| `IsNullOrEmptyAsync<T>(source?, ct)` | `true` if the stream is `null` or yields zero elements. Null-tolerant. |
+| `NoneAsync<T>(source, ct)` | `true` if the stream yields zero elements (same shape as `IsEmptyAsync`, different naming). |
+| `NoneAsync<T>(source, predicate, ct)` | `true` if no element satisfies the predicate. Short-circuits on the first match. |
+
+---
+
+## 🚀 Quick Start
+
+```csharp
+using Wolfgang.Extensions.IAsyncEnumerable;
+
+// Chunk an async stream into batches of up to 100, with logging side-effect
+await foreach (var batch in source
+    .DoAsync(x => logger.LogInformation("Processing {Item}", x))
+    .ChunkAsync(maxChunkSize: 100, token: cancellationToken))
+{
+    await ProcessBatchAsync(batch);
+}
+```
+
+---
+
+## 🎯 Target Frameworks
+
+`net462`, `netstandard2.0`, `net8.0`, `net10.0` — single NuGet package, picks the best fit at consume time.
+
+---
+
+## 🔍 Code Quality
+
+This project enforces strict analyzer rules and async-first patterns via:
+
+- **Microsoft.CodeAnalysis.NetAnalyzers** (built into the SDK) — correctness + performance
+- **Roslynator.Analyzers** — refactoring + style
+- **AsyncFixer** — async/await anti-patterns
+- **Microsoft.VisualStudio.Threading.Analyzers** — thread-safety + async patterns
+- **Microsoft.CodeAnalysis.BannedApiAnalyzers** — banned synchronous APIs (see [`BannedSymbols.txt`](BannedSymbols.txt))
+- **Meziantou.Analyzer** — broad code-quality rules
+- **SonarAnalyzer.CSharp** — industry-standard analysis
+- **Microsoft.CodeAnalysis.PublicApiAnalyzers** — public-API surface change detection (see `src/.../PublicAPI.Shipped.txt`)
+
+`<TreatWarningsAsErrors>true</TreatWarningsAsErrors>` is active for Release builds, so any analyzer warning blocks the release pipeline.
+
+`BannedSymbols.txt` prohibits the usual sync-over-async traps: `Task.Wait()` / `Task.Result`, `Thread.Sleep`, sync file/stream I/O, `Parallel.For`/`ForEach`, `WebClient`, `BinaryFormatter`.
+
+---
+
+## 🛠️ Building from Source
+
+```bash
+git clone https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions.git
+cd IAsyncEnumerable-Extensions
+dotnet restore
+dotnet build --configuration Release
+dotnet test  --configuration Release
+```
+
+SDK requirement: the version installed by `.github/workflows/pr.yaml` (currently .NET 10 + side-by-side SDKs for the older TFMs). See [`docs/README-FORMATTING.md`](docs/README-FORMATTING.md) for the source-formatting workflow.
 
 ---
 
 ## 🙏 Acknowledgments
 
-Built with:
-- [Microsoft.Bcl.AsyncInterfaces](https://www.nuget.org/packages/Microsoft.Bcl.AsyncInterfaces/) for backward compatibility
-- Comprehensive analyzer packages for code quality enforcement
-- .NET async/await patterns for optimal performance
+- [Microsoft.Bcl.AsyncInterfaces](https://www.nuget.org/packages/Microsoft.Bcl.AsyncInterfaces/) — `IAsyncEnumerable<T>` backport for `net462` / `netstandard2.0`
+- The analyzer-package authors above
+- The .NET team for `IAsyncEnumerable<T>` and the async-stream language support that made this library a one-file project

@@ -1,3 +1,4 @@
+using NoneAsyncExample;
 using Wolfgang.Extensions.IAsyncEnumerable;
 
 // NoneAsync is the async inverse of Any.
@@ -70,4 +71,7 @@ static async IAsyncEnumerable<Order> GenerateOrders()
     }
 }
 
-internal record Order(string Id, decimal Amount);
+namespace NoneAsyncExample
+{
+    internal record Order(string Id, decimal Amount);
+}

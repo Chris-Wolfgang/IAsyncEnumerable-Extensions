@@ -1,3 +1,4 @@
+using ChunkAsyncExample;
 using Wolfgang.Extensions.IAsyncEnumerable;
 
 // ChunkAsync splits an IAsyncEnumerable<T> into fixed-size chunks.
@@ -63,4 +64,7 @@ static async IAsyncEnumerable<Record> GenerateRecords(int count)
     }
 }
 
-internal record Record(int Id, string Name);
+namespace ChunkAsyncExample
+{
+    internal record Record(int Id, string Name);
+}
