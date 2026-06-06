@@ -159,6 +159,48 @@ public sealed class NoneAsyncTests
 
 
 
+    [Fact]
+    public async Task NoneAsync_predicate_when_predicate_throws_exception_propagates()
+    {
+        var source = CreateSource(1, 2, 3);
+        var sentinel = new InvalidOperationException("predicate boom");
+
+        var actual = await Assert.ThrowsAsync<InvalidOperationException>
+        (
+            () => source.NoneAsync(_ => throw sentinel)
+        );
+
+        Assert.Same(sentinel, actual);
+    }
+
+
+
+    [Fact]
+    public async Task NoneAsync_predicate_when_token_canceled_mid_iteration_throws_OperationCanceledException()
+    {
+        // Token starts uncanceled, so the upfront ThrowIfCancellationRequested passes.
+        // The first predicate invocation cancels the token; the post-predicate
+        // ThrowIfCancellationRequested (NoneAsync predicate-overload, source line 467)
+        // is what we're exercising.
+        using var tokenSource = new CancellationTokenSource();
+        var source = CreateSource(1, 2, 3);
+
+        await Assert.ThrowsAsync<OperationCanceledException>
+        (
+            () => source.NoneAsync
+            (
+                _ =>
+                {
+                    tokenSource.Cancel();
+                    return false;  // don't short-circuit — let the post-predicate token check fire
+                },
+                tokenSource.Token
+            )
+        );
+    }
+
+
+
     private static async IAsyncEnumerable<int> CreateSource(params int[] values)
     {
         foreach (var value in values)
