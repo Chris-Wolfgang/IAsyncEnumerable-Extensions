@@ -33,7 +33,7 @@ public class EmptyCheckAsyncBenchmarks
 
     [Benchmark]
     public async Task<bool> IsNullOrEmptyAsync_Null()
-        => await IAsyncEnumerableExtensions.IsNullOrEmptyAsync<int>(null, CancellationToken.None);
+        => await IAsyncEnumerableExtensions.IsNullOrEmptyAsync<int>(source: null, token: CancellationToken.None);
 
     [Benchmark]
     public async Task<bool> IsNullOrEmptyAsync_Empty()

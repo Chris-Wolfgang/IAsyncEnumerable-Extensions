@@ -21,7 +21,7 @@ Console.WriteLine();
 
 // Practical example: guard clause with nullable async source
 Console.WriteLine("Processing with null guard:");
-await ProcessDataAsync(null);
+await ProcessDataAsync(data: null);
 await ProcessDataAsync(GenerateNumbers(0));
 await ProcessDataAsync(GenerateNumbers(3));
 
