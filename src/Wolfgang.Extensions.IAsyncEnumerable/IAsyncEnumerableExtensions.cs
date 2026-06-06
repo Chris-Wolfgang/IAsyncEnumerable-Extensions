@@ -99,6 +99,13 @@ public static class IAsyncEnumerableExtensions
     /// Executes a synchronous side-effect action on each element of an IAsyncEnumerable{T}
     /// without transforming the elements. The original items are yielded unchanged.
     /// </summary>
+    /// <remarks>
+    /// Exceptions thrown by <paramref name="action"/> propagate to the consuming
+    /// <c>await foreach</c> and terminate the enumeration. The cancellation token is
+    /// observed between elements (after each <c>yield return</c>), not while the action
+    /// is running — wrap long-running actions in their own cancellation if mid-action
+    /// cancellation is required.
+    /// </remarks>
     /// <param name="source">The source IAsyncEnumerable{T}.</param>
     /// <param name="action">The synchronous action to execute on each element.</param>
     /// <param name="token">A cancellation token to cancel the operation.</param>
