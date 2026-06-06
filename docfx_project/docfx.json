@@ -33,11 +33,13 @@
       {
         "files": [
           "logo.svg",
-          "images/**"
+          "images/**",
+          "public/**",
+          "versions.json"
         ]
       }
     ],
-
+    // Note: "../docs" is used as the DocFX output directory for GitHub Actions deployment and is git-ignored for local builds.
     "output": "_site",
     "template": [
       "default",
@@ -48,7 +50,7 @@
       "_appTitle": "Wolfgang.Extensions.IAsyncEnumerable Documentation",
       "_appLogoPath": "logo.svg",
       "_enableSearch": true,
-      "_appFooter": "Made with DocFX",
+      "_appFooter": "Made with DocFX <script>(function(){var r='/';if(window.location.hostname.endsWith('.github.io')){var s=window.location.pathname.split('/').filter(Boolean);if(s.length)r='/'+s[0]+'/';}var t=document.createElement('script');t.src=r+'public/version-picker.js';t.async=true;document.head.appendChild(t);})();</script>",
       "_disableSidebar": false,
       "_disableTocFilter": false,
       "_enableDarkMode": true,
