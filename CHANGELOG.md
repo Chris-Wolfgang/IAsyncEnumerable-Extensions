@@ -24,19 +24,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Dependabot bump: dotnet-dependencies group (2 packages).
-
-### Added
-
-### Changed
-
-### Deprecated
-
-### Removed
-
-### Fixed
-
-### Security
-
 ## [0.5.1] - 2026-06-06
 
 No public API changes. This release is a maintenance / infrastructure refresh
