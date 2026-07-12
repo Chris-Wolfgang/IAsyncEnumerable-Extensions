@@ -290,7 +290,7 @@ var assemblies = [
   {
     "name": "Wolfgang.Extensions.IAsyncEnumerable",
     "classes": [
-      { "name": "Wolfgang.Extensions.IAsyncEnumerable.IAsyncEnumerableExtensions", "rp": "Wolfgang.Extensions.IAsyncEnumerable_IAsyncEnumerableExtensions.html", "cl": 98, "ucl": 0, "cal": 98, "tl": 484, "cb": 48, "tb": 48, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "Wolfgang.Extensions.IAsyncEnumerable.IAsyncEnumerableExtensions", "rp": "Wolfgang.Extensions.IAsyncEnumerable_IAsyncEnumerableExtensions.html", "cl": 98, "ucl": 0, "cal": 98, "tl": 484, "cb": 48, "tb": 48, "cm": 0, "fcm": 0, "tm": 0, "lch": [100], "bch": [100], "mch": [], "mfch": [], "hc": [{ "et": "7/12/2026 - 1:34:21 AM", "cl": 98, "ucl": 0, "cal": 98, "tl": 484, "lcq": 100, "cb": 48, "tb": 48, "bcq": 100, "cm": 0, "fcm": 0, "tm": 0, "mcq": 0, "mfcq": 0 }], "metrics": { } },
     ]},
 ];
 
