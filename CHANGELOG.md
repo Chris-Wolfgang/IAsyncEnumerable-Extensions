@@ -19,6 +19,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+## [0.5.2] - 2026-07-06
+
+### Changed
+
+- Dependabot bump: dotnet-dependencies group (2 packages).
 ## [0.5.1] - 2026-06-06
 
 No public API changes. This release is a maintenance / infrastructure refresh
@@ -124,5 +129,6 @@ plus a fix for a Release-build blocker.
   without an explicit maintainer admin-bypass.
 - `persist-credentials: false` on the gitleaks / stryker checkouts.
 
-[Unreleased]: https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/compare/v0.5.1...HEAD
+[Unreleased]: https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/compare/v0.5.2...HEAD
+[0.5.2]: https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/compare/v0.5.1...v0.5.2
 [0.5.1]: https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/compare/v0.5.0...v0.5.1
