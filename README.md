@@ -75,11 +75,13 @@ await foreach (var batch in source
 
 ---
 
-## 🎯 Target Frameworks
+## 🎯 Supported Frameworks
 
-`net462`, `netstandard2.0`, `net8.0`, `net10.0` — single NuGet package, picks the best fit at consume time.
+This library targets:
 
----
+- **.NET Framework:** 4.6.2
+
+See the [NuGet package page](https://www.nuget.org/packages/Wolfgang.Extensions.IAsyncEnumerable/) for the authoritative per-TFM compatibility matrix.
 
 ## 🔍 Code Quality
 
