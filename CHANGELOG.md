@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `docs/migrations/TEMPLATE-major-version-migration.md` establishing the
+  migration-guide convention for future major-version releases (#244).
+
 ### Changed
 
 ### Deprecated
