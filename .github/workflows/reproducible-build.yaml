@@ -1,0 +1,105 @@
+name: "Reproducible Build Verification"
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 7 * * 2'  # weekly Tuesday 07:00 UTC
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: "Build (${{ matrix.os }})"
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore
+        run: dotnet restore src/Wolfgang.Extensions.IAsyncEnumerable/Wolfgang.Extensions.IAsyncEnumerable.csproj
+
+      - name: Build (Release, ContinuousIntegrationBuild)
+        # CI=true is already set by GitHub Actions, which flips
+        # Directory.Build.props's ContinuousIntegrationBuild condition —
+        # no extra property needed. Deterministic defaults to true for
+        # Release builds in the modern SDK.
+        run: dotnet build src/Wolfgang.Extensions.IAsyncEnumerable/Wolfgang.Extensions.IAsyncEnumerable.csproj --no-restore --configuration Release
+
+      - name: Hash per-TFM assemblies
+        shell: pwsh
+        run: |
+          # $_.Directory.Name (no backslash char-class) — a [\\/]bin[\\/]Release
+          # style regex is fragile across bash-heredoc/PowerShell boundaries
+          # (per reference_thorough_review_impl_patterns' #165 note).
+          #
+          # Filter to OUR assembly by name, not '*.dll' — net462's output
+          # dir also copies dependency DLLs (Microsoft.Bcl.AsyncInterfaces,
+          # System.Runtime.CompilerServices.Unsafe, etc.) alongside ours;
+          # their hashes are whatever NuGet published and say nothing
+          # about whether THIS repo's build is reproducible.
+          $assemblies = Get-ChildItem -Path 'src/Wolfgang.Extensions.IAsyncEnumerable/bin/Release' -Recurse -Filter 'Wolfgang.Extensions.IAsyncEnumerable.dll' |
+            Where-Object { $_.Directory.Name -ne 'ref' }
+
+          $hashes = foreach ($asm in $assemblies) {
+            $hash = (Get-FileHash -Path $asm.FullName -Algorithm SHA256).Hash
+            [pscustomobject]@{
+              tfm  = $asm.Directory.Name
+              file = $asm.Name
+              sha256 = $hash
+            }
+          }
+
+          $hashes | Sort-Object tfm, file | ConvertTo-Json -AsArray | Out-File -FilePath 'assembly-hashes-${{ matrix.os }}.json' -Encoding utf8
+          $hashes | Format-Table -AutoSize
+
+      - name: Upload hashes
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: assembly-hashes-${{ matrix.os }}
+          path: assembly-hashes-${{ matrix.os }}.json
+
+  compare:
+    name: "Compare hashes across runners"
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download all hash artifacts
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          pattern: assembly-hashes-*
+          path: hashes
+          merge-multiple: false
+
+      - name: Compare ubuntu-latest vs windows-latest hashes
+        shell: bash
+        run: |
+          set -e
+          ubuntu=$(find hashes -path '*ubuntu*' -name '*.json' | head -1)
+          windows=$(find hashes -path '*windows*' -name '*.json' | head -1)
+
+          if [ -z "$ubuntu" ] || [ -z "$windows" ]; then
+            echo "::error::Could not locate both hash artifacts (ubuntu: '$ubuntu', windows: '$windows')."
+            exit 1
+          fi
+
+          echo "Comparing $ubuntu against $windows"
+          if diff <(jq -S 'sort_by(.tfm, .file)' "$ubuntu") <(jq -S 'sort_by(.tfm, .file)' "$windows"); then
+            echo "✅ Byte-identical assemblies across ubuntu-latest and windows-latest."
+          else
+            echo "::error::Assembly hashes diverge between ubuntu-latest and windows-latest — build is not reproducible across runners."
+            exit 1
+          fi

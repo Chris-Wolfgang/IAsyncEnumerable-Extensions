@@ -9,6 +9,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `reproducible-build.yaml`: weekly + on-demand verification that
+  building the same commit on `ubuntu-latest` and `windows-latest`
+  produces a byte-identical `Wolfgang.Extensions.IAsyncEnumerable.dll`
+  per TFM (SHA-256 compared, assembly not `.nupkg` — ZIP timestamps
+  make the package hash differ even when the DLL doesn't). Verified
+  locally that the hash step runs cleanly against the real Release
+  build.
+- `release.yaml`: emits `reproducible-build-manifest.json` (per-TFM
+  SHA-256 + toolchain) attached to every GitHub Release, so a consumer
+  can independently verify their own build matches. Verified locally
+  end-to-end against the real build output.
+- `docs/REPRODUCIBLE-BUILD.md`: documents the deterministic-vs-
+  reproducible distinction, the third-party verification procedure,
+  and links from README's "Verify the build" (#241, #250).
+
 ### Changed
 
 ### Deprecated
