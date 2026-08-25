@@ -19,6 +19,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+- `workflow-security.yaml`: zizmor + actionlint run on any PR/push touching
+  `.github/workflows/**`, catching workflow-level vulnerabilities (untrusted
+  `run:`-block injection, missing `permissions:`, unpinned actions) that
+  CodeQL doesn't inspect. zizmor findings upload as SARIF to the Security
+  tab; actionlint posts inline PR review comments and fails on `error`.
+  `.zizmor.yml` holds the repo-wide suppression baseline. Documented in
+  `docs/WORKFLOW_SECURITY.md` (#248).
+
 ## [0.5.2] - 2026-07-06
 
 ### Changed
