@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `tests/Wolfgang.Extensions.IAsyncEnumerable.Tests.DocExamples`: compiles
+  every XML-doc `<example><code>` block (8 total) against the real
+  assembly inside a Roslyn-hosted neutral-context harness, so a
+  renamed/removed member the docs still reference fails the build
+  instead of drifting silently. Verified the guard actually fires:
+  temporarily renamed a method in one example, confirmed `CS1061` at
+  the `#line`-mapped real doc location, reverted (#237).
+
 ### Changed
 
 ### Deprecated
