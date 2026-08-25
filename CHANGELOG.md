@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `tests/Wolfgang.Extensions.IAsyncEnumerable.Tests.Concurrency`: 5
+  `STRESS_ITERATIONS`-scaled stress tests running many independent
+  consumers concurrently over `ChunkAsync`/`DoAsync`/`ForEachAsync`/
+  `NoneAsync` and racing `DisposeAsync` across independent enumerators,
+  asserting correctness-under-contention rather than just timing.
+  `concurrency.yaml` runs it weekly (5000 rounds) + on-demand. Coyote
+  was evaluated and skipped (rough `IAsyncEnumerable` support, net8.0-only
+  CLI) — this library also has no shared mutable state to model-check in
+  the first place (#233).
+
 ### Changed
 
 ### Deprecated
