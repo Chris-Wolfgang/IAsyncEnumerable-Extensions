@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `samples/ShadowWorkloads`: 4 realistic consumer scenarios doubling as
+  usage documentation — a paginated-SQL bulk-insert pipeline
+  (`ChunkAsync`), an HTTP-paged API with a telemetry side-effect
+  (`DoAsync` + `ForEachAsync`), a cancellable file-line stream
+  (`ForEachAsync` + `CancellationToken`), and concurrent independent
+  consumers (`Task.WhenAll` + `ChunkAsync`). `shadow.yaml` runs them
+  nightly + on demand and gates on allocation regression (`compare.py`,
+  >50% fails; latency is advisory only — shared runner wall-clock is
+  too noisy to hard-fail on). `docs/shadow-baseline.json` is the
+  committed baseline, captured locally. Verified end-to-end: ran all 4
+  scenarios, captured real numbers, confirmed `compare.py` passes
+  against the matching baseline and fails against a deliberately
+  corrupted one (#229).
+
 ### Changed
 
 ### Deprecated
