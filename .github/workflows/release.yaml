@@ -422,6 +422,15 @@ jobs:
           Write-Host "✅ NuGet packages created successfully" -ForegroundColor Green
           "has-packages=true" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
 
+      - name: Check ABI compatibility (ApiCompat)
+        if: steps.check-packages.outputs.has-packages == 'true'
+        shell: pwsh
+        # -Command (not -File): apicompat's own exit code leaks through
+        # under -File and masks a real failure locally, per the gotcha
+        # documented at the top of the script and in
+        # reference_etl_dual_abi_gate.
+        run: pwsh -Command "./scripts/Check-ApiCompatibility.ps1 -Configuration Release"
+
       - name: Smoke test NuGet package installation
         shell: pwsh
         run: |

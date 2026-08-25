@@ -13,6 +13,9 @@
 # Claude Code
 .claude/
 
+# scripts/Check-ApiCompatibility.ps1 scratch download (#232)
+/apicompat-previous/
+
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 
