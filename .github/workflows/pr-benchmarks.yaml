@@ -1,0 +1,110 @@
+name: "PR Benchmark Regression Check"
+
+# Forward-looking signal, distinct from benchmarks.yaml (P2): that one
+# graphs the BDN trend on every push to main (backward-looking — surfaces
+# a regression after it merges). This compares the PR's own HEAD against
+# its base branch and comments the delta before merge.
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'src/**'
+      - 'benchmarks/**'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  pr-benchmarks:
+    name: "Compare PR head vs base branch"
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write  # to post/update the delta-table comment
+
+    steps:
+      - name: Checkout PR head
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          path: head
+
+      - name: Checkout PR base
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.base.sha }}
+          path: base
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Setup Python
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.0.0
+        with:
+          python-version: '3.x'
+
+      - name: Run benchmarks (PR head)
+        working-directory: head/benchmarks/Wolfgang.Extensions.IAsyncEnumerable.Benchmarks
+        run: dotnet run -c Release -- --filter "*" --job short --memory --exporters json
+
+      - name: Merge head reports
+        working-directory: head/benchmarks/Wolfgang.Extensions.IAsyncEnumerable.Benchmarks
+        run: |
+          shopt -s nullglob
+          reports=(BenchmarkDotNet.Artifacts/results/*-report-full-compressed.json)
+          if [ ${#reports[@]} -eq 0 ]; then
+            echo "::error::No BenchmarkDotNet JSON report found for PR head"
+            exit 1
+          fi
+          jq -s '{Title: "head", HostEnvironmentInfo: .[0].HostEnvironmentInfo, Benchmarks: [.[].Benchmarks[]]}' "${reports[@]}" > "$GITHUB_WORKSPACE/head-report.json"
+
+      - name: Run benchmarks (PR base)
+        working-directory: base/benchmarks/Wolfgang.Extensions.IAsyncEnumerable.Benchmarks
+        run: dotnet run -c Release -- --filter "*" --job short --memory --exporters json
+
+      - name: Merge base reports
+        working-directory: base/benchmarks/Wolfgang.Extensions.IAsyncEnumerable.Benchmarks
+        run: |
+          shopt -s nullglob
+          reports=(BenchmarkDotNet.Artifacts/results/*-report-full-compressed.json)
+          if [ ${#reports[@]} -eq 0 ]; then
+            echo "::error::No BenchmarkDotNet JSON report found for PR base"
+            exit 1
+          fi
+          jq -s '{Title: "base", HostEnvironmentInfo: .[0].HostEnvironmentInfo, Benchmarks: [.[].Benchmarks[]]}' "${reports[@]}" > "$GITHUB_WORKSPACE/base-report.json"
+
+      - name: Compare and render delta table
+        id: compare
+        run: |
+          set +e
+          python3 head/benchmarks/compare-pr-benchmarks.py head-report.json base-report.json delta.md
+          echo "regressed=$?" >> "$GITHUB_OUTPUT"
+
+      - name: Post/update PR comment
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh pr comment "${{ github.event.pull_request.number }}" --repo "${{ github.repository }}" \
+            --body-file delta.md --edit-last --create-if-none
+
+      - name: Enforce the allocation-regression gate
+        if: steps.compare.outputs.regressed == '1'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          labels=$(gh pr view "${{ github.event.pull_request.number }}" --repo "${{ github.repository }}" --json labels --jq '.labels[].name')
+          if echo "$labels" | grep -qx 'perf-impact-acknowledged'; then
+            echo "Allocation regression detected but PR carries 'perf-impact-acknowledged' — not failing."
+            exit 0
+          fi
+          echo "::error::Allocation regression exceeds tolerance and PR is not labeled 'perf-impact-acknowledged'. See the delta-table comment. Add the label if this is an intentional trade-off."
+          exit 1

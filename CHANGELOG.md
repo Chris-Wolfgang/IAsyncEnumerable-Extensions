@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `pr-benchmarks.yaml` + `benchmarks/compare-pr-benchmarks.py`: runs the
+  BDN suite on the PR's HEAD and on its base branch, comments a
+  time/allocation delta table on the PR (idempotently updated, not
+  appended), and fails the check on an allocation regression > 50%
+  unless the PR carries the new `perf-impact-acknowledged` label. Time
+  regressions (> 20%) are reported but advisory-only — shared
+  GitHub-hosted runner wall-clock is too noisy to hard-fail on.
+  Forward-looking, distinct from the existing `benchmarks.yaml` (P2),
+  which graphs the trend on every push to `main` after the fact (#249).
+
 ### Changed
 
 ### Deprecated
