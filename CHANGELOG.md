@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   member fails the check instead of silently no-opping. This library has
   no reflection or `Expression.Compile`, so no trim-safety annotations
   were needed (#238).
+- `docs/migrations/TEMPLATE-major-version-migration.md` establishing the
+  migration-guide convention for future major-version releases (#244).
 
 ### Changed
 
@@ -26,6 +28,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 ### Security
+
+- `scorecard.yaml`: weekly + push-to-main OSSF Scorecard scan, SARIF
+  uploaded to the Security tab, badge added to `README.md`, 7.5 score
+  floor documented in `SECURITY.md` (#247).
 
 ## [0.5.2] - 2026-07-06
 
