@@ -115,6 +115,30 @@ public sealed class DoAsyncTests
 
 
     [Fact]
+    public async Task DoAsync_Action_with_pre_canceled_token_never_enumerates_source()
+    {
+        // The pre-loop ThrowIfCancellationRequested() must fire on the very first
+        // MoveNextAsync() call, before the source is touched. Draining the whole
+        // sequence would instead hit the in-loop check after the first yield, which
+        // fires on this same pre-canceled token regardless of the pre-loop check.
+        using var tokenSource = new CancellationTokenSource();
+        tokenSource.Cancel();
+
+        var source = new TrackingAsyncEnumerable(1, 2, 3);
+
+        var tapped = source.DoAsync(_ => { }, tokenSource.Token);
+
+        await Assert.ThrowsAsync<OperationCanceledException>
+        (
+            async () => await tapped.GetAsyncEnumerator().MoveNextAsync()
+        );
+
+        Assert.False(source.EnumerationStarted);
+    }
+
+
+
+    [Fact]
     public async Task DoAsync_Action_when_cancellation_requested_during_enumeration_throws_OperationCanceledException()
     {
         using var tokenSource = new CancellationTokenSource();
@@ -296,6 +320,29 @@ public sealed class DoAsyncTests
         (
             () => CollectAsync(source.DoAsync(_ => Task.CompletedTask, tokenSource.Token))
         );
+    }
+
+
+
+    [Fact]
+    public async Task DoAsync_Func_with_pre_canceled_token_never_enumerates_source()
+    {
+        // Same isolation as the Action overload's pre-loop check: assert on the very
+        // first MoveNextAsync() call rather than draining the sequence, so the
+        // in-loop check (after the first yield) can't mask a removed pre-loop check.
+        using var tokenSource = new CancellationTokenSource();
+        tokenSource.Cancel();
+
+        var source = new TrackingAsyncEnumerable(1, 2, 3);
+
+        var tapped = source.DoAsync(_ => Task.CompletedTask, tokenSource.Token);
+
+        await Assert.ThrowsAsync<OperationCanceledException>
+        (
+            async () => await tapped.GetAsyncEnumerator().MoveNextAsync()
+        );
+
+        Assert.False(source.EnumerationStarted);
     }
 
 
