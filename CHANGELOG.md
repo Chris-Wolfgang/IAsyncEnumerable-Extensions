@@ -39,6 +39,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+- `release.yaml`: SLSA build-provenance attestation via
+  `actions/attest-build-provenance`, binding each published `.nupkg` to
+  the exact workflow run/commit/repo that produced it — closes the
+  supply-chain-hardening loop alongside the CycloneDX SBOM generation
+  already in place. `SECURITY.md` documents `gh attestation verify` for
+  consumers. Package signing (a third, complementary layer) stays
+  tracked separately in #289, blocked on a code-signing certificate
+  (#234).
 - `workflow-security.yaml`: zizmor + actionlint run on any PR/push touching
   `.github/workflows/**`, catching workflow-level vulnerabilities (untrusted
   `run:`-block injection, missing `permissions:`, unpinned actions) that
