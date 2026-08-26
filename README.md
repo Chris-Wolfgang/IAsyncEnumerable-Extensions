@@ -39,6 +39,7 @@ This project is licensed under the **MIT License**. See the [LICENSE](LICENSE) f
 - **DocFX Version Picker Troubleshooting:** [docs/DOCFX-VERSION-PICKER.md](docs/DOCFX-VERSION-PICKER.md)
 - **Release Workflow Setup:** [docs/RELEASE-WORKFLOW-SETUP.md](docs/RELEASE-WORKFLOW-SETUP.md)
 - **Workflow Security:** [docs/WORKFLOW_SECURITY.md](docs/WORKFLOW_SECURITY.md)
+- **Verify the build:** [docs/REPRODUCIBLE-BUILD.md](docs/REPRODUCIBLE-BUILD.md)
 
 ---
 

@@ -1,0 +1,93 @@
+name: "SourceLink Verification"
+
+# Verifies the mechanical chain that a debugger's "step into" depends on:
+# PDB embeds a correct SourceLink JSON blob -> that blob maps each source
+# file to a commit-pinned raw.githubusercontent.com URL -> that URL
+# actually resolves and serves the real file.
+#
+# This does NOT drive an actual IDE debugger through F11 (not scriptable
+# in CI) — it verifies every prerequisite step-into depends on, so a
+# broken SourceLink config (wrong repo URL, untagged commit, missing
+# embed) is caught here instead of only when a consumer's F11 silently
+# falls back to decompiled assembly.
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 9 * * 3'  # weekly Wednesday 09:00 UTC
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: "Verify embedded SourceLink URLs resolve"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Build (Release, net10.0)
+        run: dotnet build src/Wolfgang.Extensions.IAsyncEnumerable/Wolfgang.Extensions.IAsyncEnumerable.csproj --configuration Release --framework net10.0
+
+      - name: Install sourcelink tool
+        run: dotnet tool install --global sourcelink
+
+      - name: Print SourceLink-mapped URLs
+        id: urls
+        run: |
+          pdb="src/Wolfgang.Extensions.IAsyncEnumerable/bin/Release/net10.0/Wolfgang.Extensions.IAsyncEnumerable.pdb"
+          if [ ! -f "$pdb" ]; then
+            echo "::error::PDB not found at $pdb"
+            exit 1
+          fi
+
+          # `sourcelink print-urls` prints alternating lines: a source-file
+          # path/hash line, then either "embedded" (source is embedded
+          # directly, not fetched — nothing to verify) or the mapped URL.
+          # Collect only the real https:// URLs.
+          sourcelink print-urls "$pdb" | grep '^https://' | sort -u > urls.txt
+
+          count=$(wc -l < urls.txt)
+          echo "Found $count distinct SourceLink URL(s)."
+          cat urls.txt
+
+          if [ "$count" -eq 0 ]; then
+            echo "::error::No SourceLink URLs found in the PDB — SourceLink is not wired up correctly."
+            exit 1
+          fi
+
+      - name: Verify every URL resolves with real content
+        run: |
+          failed=0
+          while IFS= read -r url; do
+            status=$(curl -s -o response.txt -w '%{http_code}' "$url")
+            if [ "$status" != "200" ]; then
+              echo "::error::$url -> HTTP $status (expected 200)"
+              failed=1
+              continue
+            fi
+            if [ ! -s response.txt ]; then
+              echo "::error::$url -> HTTP 200 but empty body"
+              failed=1
+              continue
+            fi
+            echo "✅ $url"
+          done < urls.txt
+
+          rm -f response.txt
+
+          if [ "$failed" -eq 1 ]; then
+            echo "::error::One or more SourceLink URLs did not resolve. A consumer's debugger step-into would silently fall back to decompiled assembly for these files."
+            exit 1
+          fi
+
+          echo "All SourceLink URLs resolve to real content."
