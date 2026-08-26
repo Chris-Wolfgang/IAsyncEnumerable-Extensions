@@ -10,3 +10,7 @@
 #   some-rule-id:
 #     ignore:
 #       - workflow.yml  # reason this specific instance is accepted risk
+
+# zizmor 1.29+ requires `rules` to be present even when there is nothing to
+# suppress yet — an empty mapping is the "no suppressions" baseline.
+rules: {}
