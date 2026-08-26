@@ -1,0 +1,54 @@
+name: "License Audit"
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - '**/*.csproj'
+      - 'licenses/allowed-licenses.json'
+  schedule:
+    - cron: '0 5 * * 1'  # weekly Monday 05:00 UTC
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  license-audit:
+    name: "Audit shipped dependency licenses"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Install dotnet-project-licenses
+        run: dotnet tool update --global dotnet-project-licenses || dotnet tool install --global dotnet-project-licenses
+
+      - name: Audit src/ dependencies against the allowlist
+        # Only the src/ project graph — analyzer packages (Roslynator,
+        # Meziantou, SonarAnalyzer, BannedApiAnalyzers, etc.) are
+        # PrivateAssets=all build-time-only and are never distributed in
+        # the NuGet package, so auditing tests/benchmarks/examples would
+        # flag packages that ship in nobody's output.
+        # dotnet-project-licenses targets net7.0; ubuntu-latest no longer ships an
+        # EOL net7.0 runtime, so the tool needs roll-forward to launch on
+        # whatever runtime the image actually has (net8.0+).
+        env:
+          DOTNET_ROLL_FORWARD: LatestMajor
+        run: >
+          dotnet-project-licenses
+          --input src/Wolfgang.Extensions.IAsyncEnumerable/Wolfgang.Extensions.IAsyncEnumerable.csproj
+          --allowed-license-types licenses/allowed-licenses.json
+          --log-level Information

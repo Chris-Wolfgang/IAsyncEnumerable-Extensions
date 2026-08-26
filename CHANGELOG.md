@@ -19,6 +19,194 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+## [0.5.3] - 2026-08-26
+
+No public API changes. This release is a maintenance / infrastructure
+refresh delivering the repo's thorough-review CI/CD hardening campaign —
+supply-chain verification, testing depth, and documentation, with zero
+source or public-API changes.
+
+### Added
+
+- `cross-platform-differential.yaml` + `scripts/normalize-trx.py`:
+  weekly + on-demand. Runs the net10.0 test suite on `ubuntu-latest`,
+  `ubuntu-24.04-arm`, `macos-latest` (Apple Silicon), and
+  `windows-latest`, normalizes each `.trx` (test name + outcome +
+  first line of any failure message; timestamps/durations/machine
+  names stripped), and diffs every platform against the linux-x64
+  baseline. Distinct from `pr.yaml`'s existing Stage 1/2/3, which only
+  verify PASS/FAIL per OS — this verifies they pass the *same way*.
+  Scoped to net10.0 only (the one TFM that genuinely runs on all 4
+  platforms; net462 is Windows-only). Verified `normalize-trx.py`
+  locally against a real `.trx`: 105 tests normalized correctly;
+  confirmed identical runs diff clean (exit 0) and a deliberately
+  altered outcome is caught (exit 1) (#235).
+- `sourcelink-verify.yaml` + `docs/SOURCELINK-VERIFICATION.md`: weekly +
+  on-demand verification that the PDB's embedded SourceLink URLs
+  actually resolve to real source content. Driving an actual IDE
+  debugger through F11 isn't scriptable in CI, so this verifies every
+  mechanical prerequisite instead (`sourcelink print-urls` + `curl`
+  each URL). Verified locally against a real build: the real URL
+  resolves (200, non-empty), and a deliberately invalid commit SHA on
+  the same path correctly 404s, confirming the check has teeth (#239).
+
+- `pr-benchmarks.yaml` + `benchmarks/compare-pr-benchmarks.py`: runs the
+  BDN suite on the PR's HEAD and on its base branch, comments a
+  time/allocation delta table on the PR (idempotently updated, not
+  appended), and fails the check on an allocation regression > 50%
+  unless the PR carries the new `perf-impact-acknowledged` label. Time
+  regressions (> 20%) are reported but advisory-only — shared
+  GitHub-hosted runner wall-clock is too noisy to hard-fail on.
+  Forward-looking, distinct from the existing `benchmarks.yaml` (P2),
+  which graphs the trend on every push to `main` after the fact (#249).
+- `tests/Wolfgang.Extensions.IAsyncEnumerable.Tests.Fuzz`: continuous
+  fuzz testing via CsCheck (chosen over FsCheck — .NET-native idiomatic
+  API, no F# interop). 4 properties: `ChunkAsync` concatenation,
+  `DoAsync` transparency, `NoneAsync(predicate)` ↔ `!Any(predicate)`,
+  `IsEmptyAsync` ↔ `count == 0`. `fuzz.yaml` runs weekly at 100,000
+  cases / 300s per property and files an issue on failure (default
+  locally/ad hoc: 1,000 cases, no time limit, via
+  `FUZZ_ITERATIONS`/`FUZZ_TIME_SECONDS`). Reproduction uses CsCheck's
+  own seed mechanism (`CsCheck_Seed=...`, printed in the failure
+  message) rather than a separate replay-folder artifact.
+
+  Verified locally: all 4 properties pass at 1,000 and 20,000
+  iterations. Verified the gate actually fails and reports a
+  reproducible seed — temporarily broke one property's assertion,
+  confirmed `CsCheckException` with a seed, reverted.
+- `reproducible-build.yaml`: weekly + on-demand verification that
+  building the same commit on `ubuntu-latest` and `windows-latest`
+  produces a byte-identical `Wolfgang.Extensions.IAsyncEnumerable.dll`
+  per TFM (SHA-256 compared, assembly not `.nupkg` — ZIP timestamps
+  make the package hash differ even when the DLL doesn't). Verified
+  locally that the hash step runs cleanly against the real Release
+  build.
+- `release.yaml`: emits `reproducible-build-manifest.json` (per-TFM
+  SHA-256 + toolchain) attached to every GitHub Release, so a consumer
+  can independently verify their own build matches. Verified locally
+  end-to-end against the real build output.
+- `docs/REPRODUCIBLE-BUILD.md`: documents the deterministic-vs-
+  reproducible distinction, the third-party verification procedure,
+  and links from README's "Verify the build" (#241, #250).
+- `docs/CULTURE-INVARIANCE.md` + `CultureInvarianceTests.cs`: documents
+  that the library has zero culture-sensitive public surface (no
+  `ToString()`, formatting, comparison, or parsing) and empirically
+  proves it — every public method exercised under `tr-TR`/`de-DE`/
+  `ar-SA`/`ja-JP`/`zh-CN`, asserting identical results to the
+  culture-invariant baseline. Verified locally: all 25 cases (5
+  methods × 5 cultures) pass across every targeted TFM
+  (net462 → net10.0) (#240).
+- `samples/ShadowWorkloads`: 4 realistic consumer scenarios doubling as
+  usage documentation — a paginated-SQL bulk-insert pipeline
+  (`ChunkAsync`), an HTTP-paged API with a telemetry side-effect
+  (`DoAsync` + `ForEachAsync`), a cancellable file-line stream
+  (`ForEachAsync` + `CancellationToken`), and concurrent independent
+  consumers (`Task.WhenAll` + `ChunkAsync`). `shadow.yaml` runs them
+  nightly + on demand and gates on allocation regression (`compare.py`,
+  >50% fails; latency is advisory only — shared runner wall-clock is
+  too noisy to hard-fail on). `docs/shadow-baseline.json` is the
+  committed baseline, captured locally. Verified end-to-end: ran all 4
+  scenarios, captured real numbers, confirmed `compare.py` passes
+  against the matching baseline and fails against a deliberately
+  corrupted one (#229).
+- `license-audit.yaml` + `licenses/allowed-licenses.json`: gates the
+  src/ project's shipped dependency graph (analyzer packages excluded —
+  build-time only, never distributed) against an MIT/Apache-2.0/
+  BSD-2/BSD-3/ISC/0BSD allowlist on every PR touching a `.csproj`, plus
+  weekly. `THIRD-PARTY-NOTICES.md` documents the current baseline (one
+  dependency: `Microsoft.Bcl.AsyncInterfaces` 10.0.11, MIT) and now
+  ships in the NuGet package alongside `README.md`. Verified locally:
+  the gate passes against the real allowlist and fails (non-zero exit)
+  against a deliberately restrictive one (#243).
+- `scripts/Check-ApiCompatibility.ps1` + `compat-suppressions.txt`:
+  release-time ABI-compatibility gate via `Microsoft.DotNet.ApiCompat.Tool`,
+  comparing each built TFM's assembly against the previously-published
+  NuGet version. Catches behavioural ABI breaks (default-value changes,
+  nullability flips, binary-layout shifts) that PublicAPI.Shipped.txt
+  diffs don't. Wired into `release.yaml`'s `pack-and-validate` job.
+  Verified locally end-to-end against the real published 0.5.1→0.5.2
+  history — all 4 TFMs compared, zero breaks (#232).
+- `tests/Wolfgang.Extensions.IAsyncEnumerable.Tests.DocExamples`: compiles
+  every XML-doc `<example><code>` block (8 total) against the real
+  assembly inside a Roslyn-hosted neutral-context harness, so a
+  renamed/removed member the docs still reference fails the build
+  instead of drifting silently. Verified the guard actually fires:
+  temporarily renamed a method in one example, confirmed `CS1061` at
+  the `#line`-mapped real doc location, reverted (#237).
+- `tests/Wolfgang.Extensions.IAsyncEnumerable.Tests.Concurrency`: 5
+  `STRESS_ITERATIONS`-scaled stress tests running many independent
+  consumers concurrently over `ChunkAsync`/`DoAsync`/`ForEachAsync`/
+  `NoneAsync` and racing `DisposeAsync` across independent enumerators,
+  asserting correctness-under-contention rather than just timing.
+  `concurrency.yaml` runs it weekly (5000 rounds) + on-demand. Coyote
+  was evaluated and skipped (rough `IAsyncEnumerable` support, net8.0-only
+  CLI) — this library also has no shared mutable state to model-check in
+  the first place (#233).
+- `docs/ALLOCATION-POLICY.md`: documents that no public method is
+  zero-alloc by design (every method is an async/iterator state
+  machine, and `ChunkAsync`'s array allocation is its whole point), and
+  points to the existing `[MemoryDiagnoser]` BDN trend as the ongoing
+  allocation-regression signal instead of a half-implemented zero-byte
+  gate (#242).
+- `tests/AotSmoke`: Native AOT / trim compatibility smoke test. A console
+  consumer exercises every public method on `IAsyncEnumerableExtensions`
+  and asserts real results; `aot-smoke.yaml` publishes it
+  `PublishAot`+`PublishTrimmed` on linux-x64 and runs it, so a trimmed
+  member fails the check instead of silently no-opping. This library has
+  no reflection or `Expression.Compile`, so no trim-safety annotations
+  were needed (#238).
+- `docs/adr/` — Architecture Decision Records: `TEMPLATE.md`, `index.md`,
+  and four retroactive ADRs covering the AssemblyVersion pin, the two
+  `DoAsync` overloads, `ChunkAsync`'s `ICollection<T>` return type, and
+  the `BannedSymbols.txt` async-first enforcement policy (#245).
+- `docs/migrations/TEMPLATE-major-version-migration.md` establishing the
+  migration-guide convention for future major-version releases (#244).
+
+### Changed
+
+- `stryker-config.json`: mutation-score gate is now real —
+  `thresholds.break` raised from `0` to `85` (was a report-only bucket
+  before). Added `ignore-mutations: ["string"]` +
+  `ignore-methods: ["ConfigureAwait"]` to drop accepted-equivalent
+  mutants (exception-message text, `ConfigureAwait(false)→(true)`) from
+  the denominator — measured score went from 73.86% (raw) to 92.06%
+  (filtered) on the current test suite. `stryker.yaml` now also runs on
+  every PR touching `src/**`/`tests/**` (plain `pull_request`, not
+  folded into `pr.yaml`'s gated pipeline — read-only measurement, no
+  elevated permissions needed) in addition to the existing weekly
+  schedule + dispatch; ~1.5 min per run on this repo's single-file
+  source, cheap enough for real per-PR gating even though the fleet
+  convention keeps Stryker schedule-only elsewhere. Filed #304 for the
+  5 remaining real survivors (pre-cancelled-token statement mutants,
+  not equivalent — genuine test-coverage gaps, out of scope here) (#231).
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+- `release.yaml`: SLSA build-provenance attestation via
+  `actions/attest-build-provenance`, binding each published `.nupkg` to
+  the exact workflow run/commit/repo that produced it — closes the
+  supply-chain-hardening loop alongside the CycloneDX SBOM generation
+  already in place. `SECURITY.md` documents `gh attestation verify` for
+  consumers. Package signing (a third, complementary layer) stays
+  tracked separately in #289, blocked on a code-signing certificate
+  (#234).
+- `workflow-security.yaml`: zizmor + actionlint run on any PR/push touching
+  `.github/workflows/**`, catching workflow-level vulnerabilities (untrusted
+  `run:`-block injection, missing `permissions:`, unpinned actions) that
+  CodeQL doesn't inspect. zizmor findings upload as SARIF to the Security
+  tab; actionlint posts inline PR review comments and fails on `error`.
+  `.zizmor.yml` holds the repo-wide suppression baseline. Documented in
+  `docs/WORKFLOW_SECURITY.md` (#248).
+- `scorecard.yaml`: weekly + push-to-main OSSF Scorecard scan, SARIF
+  uploaded to the Security tab, badge added to `README.md`, 7.5 score
+  floor documented in `SECURITY.md` (#247).
+
 ## [0.5.2] - 2026-07-06
 
 ### Changed
@@ -129,6 +317,7 @@ plus a fix for a Release-build blocker.
   without an explicit maintainer admin-bypass.
 - `persist-credentials: false` on the gitleaks / stryker checkouts.
 
-[Unreleased]: https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/compare/v0.5.2...HEAD
+[Unreleased]: https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/compare/v0.5.3...HEAD
+[0.5.3]: https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/compare/v0.5.2...v0.5.3
 [0.5.2]: https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/compare/v0.5.1...v0.5.2
 [0.5.1]: https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/compare/v0.5.0...v0.5.1

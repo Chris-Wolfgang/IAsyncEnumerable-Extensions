@@ -9,6 +9,7 @@ A collection of extension methods for `IAsyncEnumerable<T>` in .NET — chunking
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![.NET](https://img.shields.io/badge/.NET-Multi--Targeted-purple.svg)](https://dotnet.microsoft.com/)
 [![GitHub](https://img.shields.io/badge/GitHub-Repository-181717?logo=github)](https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions)
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/badge)](https://securityscorecards.dev/viewer/?uri=github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions)
 
 ---
 
@@ -38,6 +39,7 @@ This project is licensed under the **MIT License**. See the [LICENSE](LICENSE) f
 - **DocFX Version Picker Troubleshooting:** [docs/DOCFX-VERSION-PICKER.md](docs/DOCFX-VERSION-PICKER.md)
 - **Release Workflow Setup:** [docs/RELEASE-WORKFLOW-SETUP.md](docs/RELEASE-WORKFLOW-SETUP.md)
 - **Workflow Security:** [docs/WORKFLOW_SECURITY.md](docs/WORKFLOW_SECURITY.md)
+- **Verify the build:** [docs/REPRODUCIBLE-BUILD.md](docs/REPRODUCIBLE-BUILD.md)
 
 ---
 

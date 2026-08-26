@@ -1,0 +1,16 @@
+# zizmor configuration — https://docs.zizmor.sh/configuration/
+#
+# Suppression baseline. Add an entry only after triaging a finding as an
+# accepted risk (not a false positive you can just fix) and record why.
+# Prefer a same-line `# zizmor: ignore[rule-id]` comment in the workflow
+# file itself for a single finding — reserve this file for repo-wide rule
+# exclusions.
+#
+# rules:
+#   some-rule-id:
+#     ignore:
+#       - workflow.yml  # reason this specific instance is accepted risk
+
+# zizmor 1.29+ requires `rules` to be present even when there is nothing to
+# suppress yet — an empty mapping is the "no suppressions" baseline.
+rules: {}
