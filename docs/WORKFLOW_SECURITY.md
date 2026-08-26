@@ -176,6 +176,29 @@ When adding new configuration files that control code quality or security:
 3. Test that the file is correctly fetched from main branch.
 4. Update this documentation.
 
+## Workflow-file static analysis
+
+CodeQL (`codeql.yaml`) scans this repo's C# source. It does not inspect the
+GitHub Actions YAML itself for workflow-level vulnerabilities. That's
+`workflow-security.yaml`'s job — it runs on any PR or push to `main` that
+touches `.github/workflows/**` or `.zizmor.yml`:
+
+- **[zizmor](https://github.com/zizmorcore/zizmor)** — untrusted-input
+  injection into `run:` blocks, missing/overly-permissive `permissions:`,
+  secret leakage via expression-context expansion, unpinned third-party
+  actions. Findings upload as SARIF to the Security tab, same as CodeQL.
+  Repo-wide suppressions with a documented reason live in `.zizmor.yml`;
+  a single-finding exception can instead use an inline
+  `# zizmor: ignore[rule-id]` comment in the workflow file.
+- **[actionlint](https://github.com/rhysd/actionlint)** — YAML/expression
+  syntax errors, invalid `uses:` refs, shellcheck issues inside `run:`
+  blocks. Reported as inline PR review comments via reviewdog; a new
+  `error`-level finding fails the check.
+
+Because this workflow itself lives under `.github/workflows/`, it is a
+protected configuration file (see above) — a PR that adds or edits it will
+be flagged for manual review when merging into `main`.
+
 ## References
 
 - [GitHub Actions Security Hardening](https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions)
