@@ -9,6 +9,50 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `scripts/Check-ApiCompatibility.ps1` + `compat-suppressions.txt`:
+  release-time ABI-compatibility gate via `Microsoft.DotNet.ApiCompat.Tool`,
+  comparing each built TFM's assembly against the previously-published
+  NuGet version. Catches behavioural ABI breaks (default-value changes,
+  nullability flips, binary-layout shifts) that PublicAPI.Shipped.txt
+  diffs don't. Wired into `release.yaml`'s `pack-and-validate` job.
+  Verified locally end-to-end against the real published 0.5.1→0.5.2
+  history — all 4 TFMs compared, zero breaks (#232).
+- `tests/Wolfgang.Extensions.IAsyncEnumerable.Tests.DocExamples`: compiles
+  every XML-doc `<example><code>` block (8 total) against the real
+  assembly inside a Roslyn-hosted neutral-context harness, so a
+  renamed/removed member the docs still reference fails the build
+  instead of drifting silently. Verified the guard actually fires:
+  temporarily renamed a method in one example, confirmed `CS1061` at
+  the `#line`-mapped real doc location, reverted (#237).
+- `tests/Wolfgang.Extensions.IAsyncEnumerable.Tests.Concurrency`: 5
+  `STRESS_ITERATIONS`-scaled stress tests running many independent
+  consumers concurrently over `ChunkAsync`/`DoAsync`/`ForEachAsync`/
+  `NoneAsync` and racing `DisposeAsync` across independent enumerators,
+  asserting correctness-under-contention rather than just timing.
+  `concurrency.yaml` runs it weekly (5000 rounds) + on-demand. Coyote
+  was evaluated and skipped (rough `IAsyncEnumerable` support, net8.0-only
+  CLI) — this library also has no shared mutable state to model-check in
+  the first place (#233).
+- `docs/ALLOCATION-POLICY.md`: documents that no public method is
+  zero-alloc by design (every method is an async/iterator state
+  machine, and `ChunkAsync`'s array allocation is its whole point), and
+  points to the existing `[MemoryDiagnoser]` BDN trend as the ongoing
+  allocation-regression signal instead of a half-implemented zero-byte
+  gate (#242).
+- `tests/AotSmoke`: Native AOT / trim compatibility smoke test. A console
+  consumer exercises every public method on `IAsyncEnumerableExtensions`
+  and asserts real results; `aot-smoke.yaml` publishes it
+  `PublishAot`+`PublishTrimmed` on linux-x64 and runs it, so a trimmed
+  member fails the check instead of silently no-opping. This library has
+  no reflection or `Expression.Compile`, so no trim-safety annotations
+  were needed (#238).
+- `docs/adr/` — Architecture Decision Records: `TEMPLATE.md`, `index.md`,
+  and four retroactive ADRs covering the AssemblyVersion pin, the two
+  `DoAsync` overloads, `ChunkAsync`'s `ICollection<T>` return type, and
+  the `BannedSymbols.txt` async-first enforcement policy (#245).
+- `docs/migrations/TEMPLATE-major-version-migration.md` establishing the
+  migration-guide convention for future major-version releases (#244).
+
 ### Changed
 
 - `stryker-config.json`: mutation-score gate is now real —
@@ -34,6 +78,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 ### Security
+
+- `release.yaml`: SLSA build-provenance attestation via
+  `actions/attest-build-provenance`, binding each published `.nupkg` to
+  the exact workflow run/commit/repo that produced it — closes the
+  supply-chain-hardening loop alongside the CycloneDX SBOM generation
+  already in place. `SECURITY.md` documents `gh attestation verify` for
+  consumers. Package signing (a third, complementary layer) stays
+  tracked separately in #289, blocked on a code-signing certificate
+  (#234).
+- `workflow-security.yaml`: zizmor + actionlint run on any PR/push touching
+  `.github/workflows/**`, catching workflow-level vulnerabilities (untrusted
+  `run:`-block injection, missing `permissions:`, unpinned actions) that
+  CodeQL doesn't inspect. zizmor findings upload as SARIF to the Security
+  tab; actionlint posts inline PR review comments and fails on `error`.
+  `.zizmor.yml` holds the repo-wide suppression baseline. Documented in
+  `docs/WORKFLOW_SECURITY.md` (#248).
+- `scorecard.yaml`: weekly + push-to-main OSSF Scorecard scan, SARIF
+  uploaded to the Security tab, badge added to `README.md`, 7.5 score
+  floor documented in `SECURITY.md` (#247).
 
 ## [0.5.2] - 2026-07-06
 
