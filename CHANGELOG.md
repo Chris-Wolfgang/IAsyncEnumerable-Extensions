@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `docs/ALLOCATION-POLICY.md`: documents that no public method is
+  zero-alloc by design (every method is an async/iterator state
+  machine, and `ChunkAsync`'s array allocation is its whole point), and
+  points to the existing `[MemoryDiagnoser]` BDN trend as the ongoing
+  allocation-regression signal instead of a half-implemented zero-byte
+  gate (#242).
 - `tests/AotSmoke`: Native AOT / trim compatibility smoke test. A console
   consumer exercises every public method on `IAsyncEnumerableExtensions`
   and asserts real results; `aot-smoke.yaml` publishes it
