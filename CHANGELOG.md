@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `docs/adr/` — Architecture Decision Records: `TEMPLATE.md`, `index.md`,
+  and four retroactive ADRs covering the AssemblyVersion pin, the two
+  `DoAsync` overloads, `ChunkAsync`'s `ICollection<T>` return type, and
+  the `BannedSymbols.txt` async-first enforcement policy (#245).
 - `docs/migrations/TEMPLATE-major-version-migration.md` establishing the
   migration-guide convention for future major-version releases (#244).
 
