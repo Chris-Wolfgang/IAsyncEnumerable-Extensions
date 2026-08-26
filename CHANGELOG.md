@@ -16,6 +16,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   instead of drifting silently. Verified the guard actually fires:
   temporarily renamed a method in one example, confirmed `CS1061` at
   the `#line`-mapped real doc location, reverted (#237).
+- `tests/Wolfgang.Extensions.IAsyncEnumerable.Tests.Concurrency`: 5
+  `STRESS_ITERATIONS`-scaled stress tests running many independent
+  consumers concurrently over `ChunkAsync`/`DoAsync`/`ForEachAsync`/
+  `NoneAsync` and racing `DisposeAsync` across independent enumerators,
+  asserting correctness-under-contention rather than just timing.
+  `concurrency.yaml` runs it weekly (5000 rounds) + on-demand. Coyote
+  was evaluated and skipped (rough `IAsyncEnumerable` support, net8.0-only
+  CLI) — this library also has no shared mutable state to model-check in
+  the first place (#233).
 - `docs/ALLOCATION-POLICY.md`: documents that no public method is
   zero-alloc by design (every method is an async/iterator state
   machine, and `ChunkAsync`'s array allocation is its whole point), and
