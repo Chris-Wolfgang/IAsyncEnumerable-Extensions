@@ -18,6 +18,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   ships in the NuGet package alongside `README.md`. Verified locally:
   the gate passes against the real allowlist and fails (non-zero exit)
   against a deliberately restrictive one (#243).
+- `scripts/Check-ApiCompatibility.ps1` + `compat-suppressions.txt`:
+  release-time ABI-compatibility gate via `Microsoft.DotNet.ApiCompat.Tool`,
+  comparing each built TFM's assembly against the previously-published
+  NuGet version. Catches behavioural ABI breaks (default-value changes,
+  nullability flips, binary-layout shifts) that PublicAPI.Shipped.txt
+  diffs don't. Wired into `release.yaml`'s `pack-and-validate` job.
+  Verified locally end-to-end against the real published 0.5.1→0.5.2
+  history — all 4 TFMs compared, zero breaks (#232).
+- `tests/Wolfgang.Extensions.IAsyncEnumerable.Tests.DocExamples`: compiles
+  every XML-doc `<example><code>` block (8 total) against the real
+  assembly inside a Roslyn-hosted neutral-context harness, so a
+  renamed/removed member the docs still reference fails the build
+  instead of drifting silently. Verified the guard actually fires:
+  temporarily renamed a method in one example, confirmed `CS1061` at
+  the `#line`-mapped real doc location, reverted (#237).
+- `tests/Wolfgang.Extensions.IAsyncEnumerable.Tests.Concurrency`: 5
+  `STRESS_ITERATIONS`-scaled stress tests running many independent
+  consumers concurrently over `ChunkAsync`/`DoAsync`/`ForEachAsync`/
+  `NoneAsync` and racing `DisposeAsync` across independent enumerators,
+  asserting correctness-under-contention rather than just timing.
+  `concurrency.yaml` runs it weekly (5000 rounds) + on-demand. Coyote
+  was evaluated and skipped (rough `IAsyncEnumerable` support, net8.0-only
+  CLI) — this library also has no shared mutable state to model-check in
+  the first place (#233).
 - `docs/ALLOCATION-POLICY.md`: documents that no public method is
   zero-alloc by design (every method is an async/iterator state
   machine, and `ChunkAsync`'s array allocation is its whole point), and
@@ -39,6 +63,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   migration-guide convention for future major-version releases (#244).
 
 ### Changed
+
+- `stryker-config.json`: mutation-score gate is now real —
+  `thresholds.break` raised from `0` to `85` (was a report-only bucket
+  before). Added `ignore-mutations: ["string"]` +
+  `ignore-methods: ["ConfigureAwait"]` to drop accepted-equivalent
+  mutants (exception-message text, `ConfigureAwait(false)→(true)`) from
+  the denominator — measured score went from 73.86% (raw) to 92.06%
+  (filtered) on the current test suite. `stryker.yaml` now also runs on
+  every PR touching `src/**`/`tests/**` (plain `pull_request`, not
+  folded into `pr.yaml`'s gated pipeline — read-only measurement, no
+  elevated permissions needed) in addition to the existing weekly
+  schedule + dispatch; ~1.5 min per run on this repo's single-file
+  source, cheap enough for real per-PR gating even though the fleet
+  convention keeps Stryker schedule-only elsewhere. Filed #304 for the
+  5 remaining real survivors (pre-cancelled-token statement mutants,
+  not equivalent — genuine test-coverage gaps, out of scope here) (#231).
 
 ### Deprecated
 
