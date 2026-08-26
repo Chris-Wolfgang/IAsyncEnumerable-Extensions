@@ -39,6 +39,9 @@
     <Project Path="src/Wolfgang.Extensions.IAsyncEnumerable/Wolfgang.Extensions.IAsyncEnumerable.csproj" Id="46f709fc-f4ce-4013-9254-c76bd0ab19ae" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/Wolfgang.Extensions.IAsyncEnumerable.Tests.Fuzz/Wolfgang.Extensions.IAsyncEnumerable.Tests.Fuzz.csproj" />
+    <Project Path="tests/Wolfgang.Extensions.IAsyncEnumerable.Tests.DocExamples/Wolfgang.Extensions.IAsyncEnumerable.Tests.DocExamples.csproj" />
+    <Project Path="tests/Wolfgang.Extensions.IAsyncEnumerable.Tests.Concurrency/Wolfgang.Extensions.IAsyncEnumerable.Tests.Concurrency.csproj" />
     <Project Path="tests/Wolfgang.Extensions.IAsyncEnumerable.Tests.Unit/Wolfgang.Extensions.IAsyncEnumerable.Tests.Unit.csproj" />
   </Folder>
 </Solution>

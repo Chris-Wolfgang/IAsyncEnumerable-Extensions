@@ -1,0 +1,59 @@
+name: "Continuous Fuzz"
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 8 * * 6'  # weekly Saturday 08:00 UTC
+
+permissions:
+  contents: read
+
+jobs:
+  fuzz:
+    name: "Run fuzz properties (100,000 cases / 5 min per property)"
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    permissions:
+      contents: read
+      issues: write  # to file an issue on a fuzz-discovered failure
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Run fuzz properties
+        id: fuzz
+        env:
+          FUZZ_ITERATIONS: '100000'
+          FUZZ_TIME_SECONDS: '300'
+        run: >
+          dotnet test tests/Wolfgang.Extensions.IAsyncEnumerable.Tests.Fuzz/Wolfgang.Extensions.IAsyncEnumerable.Tests.Fuzz.csproj
+          --configuration Release
+          --logger "console;verbosity=detailed"
+
+      - name: File an issue on failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh issue create \
+            --repo "${{ github.repository }}" \
+            --title "Continuous fuzz found a failing case ($(date -u +%Y-%m-%d))" \
+            --label "maintenance - testing" \
+            --body "$(cat <<EOF
+          The weekly \`fuzz.yaml\` run failed at 100,000 cases / property.
+
+          Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+          Check the run log for the \`CsCheck.CsCheckException\` message — it
+          includes a reproducible seed (\`-e CsCheck_Seed=...\`). Re-run the
+          specific property test locally with that seed set to reproduce
+          deterministically, per CsCheck's shrinking output.
+          EOF
+          )"
