@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `license-audit.yaml` + `licenses/allowed-licenses.json`: gates the
+  src/ project's shipped dependency graph (analyzer packages excluded —
+  build-time only, never distributed) against an MIT/Apache-2.0/
+  BSD-2/BSD-3/ISC/0BSD allowlist on every PR touching a `.csproj`, plus
+  weekly. `THIRD-PARTY-NOTICES.md` documents the current baseline (one
+  dependency: `Microsoft.Bcl.AsyncInterfaces` 10.0.11, MIT) and now
+  ships in the NuGet package alongside `README.md`. Verified locally:
+  the gate passes against the real allowlist and fails (non-zero exit)
+  against a deliberately restrictive one (#243).
 - `scripts/Check-ApiCompatibility.ps1` + `compat-suppressions.txt`:
   release-time ABI-compatibility gate via `Microsoft.DotNet.ApiCompat.Tool`,
   comparing each built TFM's assembly against the previously-published
