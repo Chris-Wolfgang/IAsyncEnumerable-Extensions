@@ -1,0 +1,49 @@
+name: "AOT/Trim Smoke Test"
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  aot-smoke:
+    name: "Native AOT publish + run (linux-x64)"
+    # Native AOT can only be published on the target OS — Windows can't
+    # cross-publish linux-x64 AOT, hence a dedicated Linux job rather than
+    # folding this into pr.yaml's Windows/macOS stages.
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Install Native AOT prerequisites
+        run: sudo apt-get update && sudo apt-get install -y clang zlib1g-dev
+
+      - name: Publish AotSmoke (linux-x64, AOT + trimmed)
+        run: >
+          dotnet publish tests/AotSmoke/AotSmoke.csproj
+          --configuration Release
+          --runtime linux-x64
+          --self-contained true
+          --output ./aot-smoke-publish
+
+      - name: Run the published AOT binary
+        run: ./aot-smoke-publish/AotSmoke
