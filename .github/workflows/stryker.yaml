@@ -1,18 +1,36 @@
 # Stryker mutation testing
 #
 # Runs the Stryker.NET mutation tester against the repo's test projects to
-# measure mutation score. Mutation runs are slow — triggered manually
-# (workflow_dispatch) and on a weekly schedule, not on every PR.
+# measure mutation score, on workflow_dispatch, weekly, AND on every PR
+# that touches src/ or tests/. Mutation runs are slow in general — the
+# fleet convention keeps this schedule/dispatch-only — but this repo is a
+# single ~450-line source file (~1.5 min per full run measured locally),
+# so a real per-PR gate is cheap here even though it wouldn't be
+# everywhere. `thresholds.break` in stryker-config.json (#231) is a real
+# floor: a PR that drops the mutation score below it fails this check.
 #
-# The workflow looks for a stryker-config.json at the repo root or under
-# tests/**/. If none is present the run is a no-op (Stryker setup is a
-# per-repo follow-up; this file is the canonical infrastructure).
+# Deliberately a plain `pull_request` trigger, not `pull_request_target`
+# and not folded into pr.yaml's multi-stage gated pipeline — this is a
+# read-only measurement of already-checked-out PR code with no elevated
+# permissions or secrets exposure, so the extra trust machinery pr.yaml
+# carries for that scenario isn't needed here.
 name: Stryker (mutation testing)
 
 on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'src/**'
+      - 'tests/**'
+      - 'stryker-config.json'
   workflow_dispatch:
   schedule:
     - cron: '0 6 * * 0' # weekly Sunday 06:00 UTC
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read

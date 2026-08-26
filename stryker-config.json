@@ -11,9 +11,15 @@
       "progress"
     ],
     "thresholds": {
-      "high": 90,
-      "low": 75,
-      "break": 0
-    }
+      "high": 92,
+      "low": 85,
+      "break": 85
+    },
+    "ignore-mutations": [
+      "string"
+    ],
+    "ignore-methods": [
+      "ConfigureAwait"
+    ]
   }
 }

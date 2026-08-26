@@ -1,0 +1,49 @@
+name: "Shadow Testing (realistic workloads)"
+
+on:
+  schedule:
+    - cron: '0 3 * * *'  # nightly at 03:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  shadow:
+    name: "Run shadow workloads + compare against baseline"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Setup Python
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.0.0
+        with:
+          python-version: '3.x'
+
+      - name: Run shadow workload scenarios
+        working-directory: samples/ShadowWorkloads
+        run: dotnet run --configuration Release -- --filter '*' --exporters json
+
+      - name: Compare against baseline
+        # The full-exporter writes one *-report-full-compressed.json per
+        # benchmark CLASS under results/ (not one combined file for the
+        # whole run) — compare.py globs and merges them.
+        working-directory: samples/ShadowWorkloads
+        run: python3 compare.py BenchmarkDotNet.Artifacts/results ../../docs/shadow-baseline.json
+
+      - name: Upload BDN artifacts
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: shadow-workload-results
+          path: samples/ShadowWorkloads/BenchmarkDotNet.Artifacts/
+          retention-days: 30
