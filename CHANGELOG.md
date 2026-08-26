@@ -9,6 +9,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `cross-platform-differential.yaml` + `scripts/normalize-trx.py`:
+  weekly + on-demand. Runs the net10.0 test suite on `ubuntu-latest`,
+  `ubuntu-24.04-arm`, `macos-latest` (Apple Silicon), and
+  `windows-latest`, normalizes each `.trx` (test name + outcome +
+  first line of any failure message; timestamps/durations/machine
+  names stripped), and diffs every platform against the linux-x64
+  baseline. Distinct from `pr.yaml`'s existing Stage 1/2/3, which only
+  verify PASS/FAIL per OS — this verifies they pass the *same way*.
+  Scoped to net10.0 only (the one TFM that genuinely runs on all 4
+  platforms; net462 is Windows-only). Verified `normalize-trx.py`
+  locally against a real `.trx`: 105 tests normalized correctly;
+  confirmed identical runs diff clean (exit 0) and a deliberately
+  altered outcome is caught (exit 1) (#235).
 - `sourcelink-verify.yaml` + `docs/SOURCELINK-VERIFICATION.md`: weekly +
   on-demand verification that the PDB's embedded SourceLink URLs
   actually resolve to real source content. Driving an actual IDE
