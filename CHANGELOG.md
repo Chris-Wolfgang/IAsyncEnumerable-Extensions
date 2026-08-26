@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `sourcelink-verify.yaml` + `docs/SOURCELINK-VERIFICATION.md`: weekly +
+  on-demand verification that the PDB's embedded SourceLink URLs
+  actually resolve to real source content. Driving an actual IDE
+  debugger through F11 isn't scriptable in CI, so this verifies every
+  mechanical prerequisite instead (`sourcelink print-urls` + `curl`
+  each URL). Verified locally against a real build: the real URL
+  resolves (200, non-empty), and a deliberately invalid commit SHA on
+  the same path correctly 404s, confirming the check has teeth (#239).
+
 - `pr-benchmarks.yaml` + `benchmarks/compare-pr-benchmarks.py`: runs the
   BDN suite on the PR's HEAD and on its base branch, comments a
   time/allocation delta table on the PR (idempotently updated, not
