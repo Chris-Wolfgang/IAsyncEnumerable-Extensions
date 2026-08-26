@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `docs/migrations/TEMPLATE-major-version-migration.md` establishing the
+  migration-guide convention for future major-version releases (#244).
+
 ### Changed
 
 ### Deprecated
@@ -27,6 +30,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   consumers. Package signing (a third, complementary layer) stays
   tracked separately in #289, blocked on a code-signing certificate
   (#234).
+- `scorecard.yaml`: weekly + push-to-main OSSF Scorecard scan, SARIF
+  uploaded to the Security tab, badge added to `README.md`, 7.5 score
+  floor documented in `SECURITY.md` (#247).
 
 ## [0.5.2] - 2026-07-06
 
