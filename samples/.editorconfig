@@ -1,0 +1,43 @@
+# Curated editorconfig for the samples/ tree.
+#
+# Sample/shadow-workload projects are held to the same
+# TreatWarningsAsErrors=Release bar as the rest of the repo (per the root
+# Directory.Build.props). This file silences only the genuinely
+# sample-inappropriate analyzer rules so the Release build stays clean
+# without dropping warning-as-error coverage. Mirrors benchmarks/.editorconfig.
+
+root = false
+
+[*.cs]
+
+# CA1707: Identifiers should not contain underscores.
+#   Scenario method names use Scenario_Variant for readability in BDN
+#   console + JSON output.
+dotnet_diagnostic.CA1707.severity = none
+
+# CA1812: Avoid uninstantiated internal classes.
+#   BDN discovers benchmark classes via reflection at runtime via
+#   BenchmarkSwitcher.FromAssembly; no compile-time call site exists.
+dotnet_diagnostic.CA1812.severity = none
+
+# CA1822: Mark members as static.
+#   [Benchmark]-attributed methods MUST be instance methods so BDN can
+#   create per-iteration instances (GlobalSetup, IterationSetup, etc.).
+dotnet_diagnostic.CA1822.severity = none
+
+# CA5394 / S2245: Insecure random number generator.
+#   Scenarios generate deterministic-but-not-cryptographic synthetic
+#   workload data. System.Random is the correct choice here.
+dotnet_diagnostic.CA5394.severity = none
+dotnet_diagnostic.S2245.severity = none
+
+# S1118: Hide public constructor.
+#   Program.cs is invoked by the BDN runner via reflection; the public
+#   default constructor on top-level classes is intentional.
+dotnet_diagnostic.S1118.severity = none
+
+# MA0051: Method is too long.
+#   Setup/scenario methods can be naturally long when they construct
+#   realistic workloads. Splitting would obscure the workload shape
+#   that the scenario measures.
+dotnet_diagnostic.MA0051.severity = none

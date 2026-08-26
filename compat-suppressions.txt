@@ -1,0 +1,16 @@
+# ApiCompat suppression baseline for scripts/Check-ApiCompatibility.ps1 (#232)
+#
+# Line-based SUBSTRING matching against the apicompat diagnostic message —
+# NOT the CompatibilitySuppressions.xml format used by SDK PackageValidation
+# (a separate, currently-unadopted gate tracked in #286). One entry per
+# line; '#'-prefixed lines are comments and blank lines are ignored.
+#
+# Entries have a ONE-RELEASE shelf life: Get-PreviousVersion compares
+# against the highest previously-published version below the current one,
+# so a suppression only does work while the break is visible across that
+# single hop. Prune entries at the next release once they stop matching
+# anything (verify with an empty suppressions file first — zero breaks
+# proves the pruned entries were already inert).
+#
+# Example entry (do not uncomment — illustrative only):
+# Wolfgang.Extensions.IAsyncEnumerable.IAsyncEnumerableExtensions.OldMethod
