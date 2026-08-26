@@ -18,6 +18,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   GitHub-hosted runner wall-clock is too noisy to hard-fail on.
   Forward-looking, distinct from the existing `benchmarks.yaml` (P2),
   which graphs the trend on every push to `main` after the fact (#249).
+- `tests/AotSmoke`: Native AOT / trim compatibility smoke test. A console
+  consumer exercises every public method on `IAsyncEnumerableExtensions`
+  and asserts real results; `aot-smoke.yaml` publishes it
+  `PublishAot`+`PublishTrimmed` on linux-x64 and runs it, so a trimmed
+  member fails the check instead of silently no-opping. This library has
+  no reflection or `Expression.Compile`, so no trim-safety annotations
+  were needed (#238).
+- `docs/adr/` — Architecture Decision Records: `TEMPLATE.md`, `index.md`,
+  and four retroactive ADRs covering the AssemblyVersion pin, the two
+  `DoAsync` overloads, `ChunkAsync`'s `ICollection<T>` return type, and
+  the `BannedSymbols.txt` async-first enforcement policy (#245).
 - `docs/migrations/TEMPLATE-major-version-migration.md` establishing the
   migration-guide convention for future major-version releases (#244).
 
@@ -31,6 +42,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+- `workflow-security.yaml`: zizmor + actionlint run on any PR/push touching
+  `.github/workflows/**`, catching workflow-level vulnerabilities (untrusted
+  `run:`-block injection, missing `permissions:`, unpinned actions) that
+  CodeQL doesn't inspect. zizmor findings upload as SARIF to the Security
+  tab; actionlint posts inline PR review comments and fails on `error`.
+  `.zizmor.yml` holds the repo-wide suppression baseline. Documented in
+  `docs/WORKFLOW_SECURITY.md` (#248).
 - `scorecard.yaml`: weekly + push-to-main OSSF Scorecard scan, SARIF
   uploaded to the Security tab, badge added to `README.md`, 7.5 score
   floor documented in `SECURITY.md` (#247).
