@@ -18,6 +18,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   resolves (200, non-empty), and a deliberately invalid commit SHA on
   the same path correctly 404s, confirming the check has teeth (#239).
 
+- `docs/migrations/TEMPLATE-major-version-migration.md` establishing the
+  migration-guide convention for future major-version releases (#244).
 
 ### Changed
 
@@ -28,6 +30,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 ### Security
+
+- `scorecard.yaml`: weekly + push-to-main OSSF Scorecard scan, SARIF
+  uploaded to the Security tab, badge added to `README.md`, 7.5 score
+  floor documented in `SECURITY.md` (#247).
 
 ## [0.5.2] - 2026-07-06
 
