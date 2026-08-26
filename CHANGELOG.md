@@ -55,6 +55,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- `stryker-config.json`: mutation-score gate is now real —
+  `thresholds.break` raised from `0` to `85` (was a report-only bucket
+  before). Added `ignore-mutations: ["string"]` +
+  `ignore-methods: ["ConfigureAwait"]` to drop accepted-equivalent
+  mutants (exception-message text, `ConfigureAwait(false)→(true)`) from
+  the denominator — measured score went from 73.86% (raw) to 92.06%
+  (filtered) on the current test suite. `stryker.yaml` now also runs on
+  every PR touching `src/**`/`tests/**` (plain `pull_request`, not
+  folded into `pr.yaml`'s gated pipeline — read-only measurement, no
+  elevated permissions needed) in addition to the existing weekly
+  schedule + dispatch; ~1.5 min per run on this repo's single-file
+  source, cheap enough for real per-PR gating even though the fleet
+  convention keeps Stryker schedule-only elsewhere. Filed #304 for the
+  5 remaining real survivors (pre-cancelled-token statement mutants,
+  not equivalent — genuine test-coverage gaps, out of scope here) (#231).
+
 ### Deprecated
 
 ### Removed
