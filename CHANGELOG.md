@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `scripts/Check-ApiCompatibility.ps1` + `compat-suppressions.txt`:
+  release-time ABI-compatibility gate via `Microsoft.DotNet.ApiCompat.Tool`,
+  comparing each built TFM's assembly against the previously-published
+  NuGet version. Catches behavioural ABI breaks (default-value changes,
+  nullability flips, binary-layout shifts) that PublicAPI.Shipped.txt
+  diffs don't. Wired into `release.yaml`'s `pack-and-validate` job.
+  Verified locally end-to-end against the real published 0.5.1→0.5.2
+  history — all 4 TFMs compared, zero breaks (#232).
 - `tests/Wolfgang.Extensions.IAsyncEnumerable.Tests.DocExamples`: compiles
   every XML-doc `<example><code>` block (8 total) against the real
   assembly inside a Roslyn-hosted neutral-context harness, so a
