@@ -42,6 +42,11 @@ jobs:
         # PrivateAssets=all build-time-only and are never distributed in
         # the NuGet package, so auditing tests/benchmarks/examples would
         # flag packages that ship in nobody's output.
+        # dotnet-project-licenses targets net7.0; ubuntu-latest no longer ships an
+        # EOL net7.0 runtime, so the tool needs roll-forward to launch on
+        # whatever runtime the image actually has (net8.0+).
+        env:
+          DOTNET_ROLL_FORWARD: LatestMajor
         run: >
           dotnet-project-licenses
           --input src/Wolfgang.Extensions.IAsyncEnumerable/Wolfgang.Extensions.IAsyncEnumerable.csproj
