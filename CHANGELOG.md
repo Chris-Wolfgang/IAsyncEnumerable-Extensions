@@ -9,6 +9,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## [0.5.3] - 2026-08-26
+
+No public API changes. This release is a maintenance / infrastructure
+refresh delivering the repo's thorough-review CI/CD hardening campaign —
+supply-chain verification, testing depth, and documentation, with zero
+source or public-API changes.
+
+### Added
+
 - `cross-platform-differential.yaml` + `scripts/normalize-trx.py`:
   weekly + on-demand. Runs the net10.0 test suite on `ubuntu-latest`,
   `ubuntu-24.04-arm`, `macos-latest` (Apple Silicon), and
@@ -298,6 +317,7 @@ plus a fix for a Release-build blocker.
   without an explicit maintainer admin-bypass.
 - `persist-credentials: false` on the gitleaks / stryker checkouts.
 
-[Unreleased]: https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/compare/v0.5.2...HEAD
+[Unreleased]: https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/compare/v0.5.3...HEAD
+[0.5.3]: https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/compare/v0.5.2...v0.5.3
 [0.5.2]: https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/compare/v0.5.1...v0.5.2
 [0.5.1]: https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/compare/v0.5.0...v0.5.1
