@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `docs/CULTURE-INVARIANCE.md` + `CultureInvarianceTests.cs`: documents
+  that the library has zero culture-sensitive public surface (no
+  `ToString()`, formatting, comparison, or parsing) and empirically
+  proves it — every public method exercised under `tr-TR`/`de-DE`/
+  `ar-SA`/`ja-JP`/`zh-CN`, asserting identical results to the
+  culture-invariant baseline. Verified locally: all 25 cases (5
+  methods × 5 cultures) pass across every targeted TFM
+  (net462 → net10.0) (#240).
 - `samples/ShadowWorkloads`: 4 realistic consumer scenarios doubling as
   usage documentation — a paginated-SQL bulk-insert pipeline
   (`ChunkAsync`), an HTTP-paged API with a telemetry side-effect
