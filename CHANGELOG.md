@@ -9,6 +9,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `tests/Wolfgang.Extensions.IAsyncEnumerable.Tests.Fuzz`: continuous
+  fuzz testing via CsCheck (chosen over FsCheck — .NET-native idiomatic
+  API, no F# interop). 4 properties: `ChunkAsync` concatenation,
+  `DoAsync` transparency, `NoneAsync(predicate)` ↔ `!Any(predicate)`,
+  `IsEmptyAsync` ↔ `count == 0`. `fuzz.yaml` runs weekly at 100,000
+  cases / 300s per property and files an issue on failure (default
+  locally/ad hoc: 1,000 cases, no time limit, via
+  `FUZZ_ITERATIONS`/`FUZZ_TIME_SECONDS`). Reproduction uses CsCheck's
+  own seed mechanism (`CsCheck_Seed=...`, printed in the failure
+  message) rather than a separate replay-folder artifact.
+
+  Verified locally: all 4 properties pass at 1,000 and 20,000
+  iterations. Verified the gate actually fails and reports a
+  reproducible seed — temporarily broke one property's assertion,
+  confirmed `CsCheckException` with a seed, reverted.
 - `reproducible-build.yaml`: weekly + on-demand verification that
   building the same commit on `ubuntu-latest` and `windows-latest`
   produces a byte-identical `Wolfgang.Extensions.IAsyncEnumerable.dll`
