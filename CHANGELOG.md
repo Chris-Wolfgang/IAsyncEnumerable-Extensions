@@ -24,6 +24,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   iterations. Verified the gate actually fails and reports a
   reproducible seed — temporarily broke one property's assertion,
   confirmed `CsCheckException` with a seed, reverted.
+- `docs/migrations/TEMPLATE-major-version-migration.md` establishing the
+  migration-guide convention for future major-version releases (#244).
 
 ### Changed
 
@@ -34,6 +36,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 ### Security
+
+- `scorecard.yaml`: weekly + push-to-main OSSF Scorecard scan, SARIF
+  uploaded to the Security tab, badge added to `README.md`, 7.5 score
+  floor documented in `SECURITY.md` (#247).
 
 ## [0.5.2] - 2026-07-06
 
