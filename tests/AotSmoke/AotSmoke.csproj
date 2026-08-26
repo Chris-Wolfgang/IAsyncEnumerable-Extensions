@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<OutputType>Exe</OutputType>
+		<TargetFramework>net8.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<InvariantGlobalization>true</InvariantGlobalization>
+		<PublishAot>true</PublishAot>
+		<PublishTrimmed>true</PublishTrimmed>
+		<IsPackable>false</IsPackable>
+		<!-- Throwaway AOT smoke harness — not shipped, not held to the
+		     strict warnings-as-errors bar the shipped library is held to.
+		     Directory.Build.props still applies TWAE in Release regardless
+		     of .slnx membership (it's a directory-walk-up import, not a
+		     solution-membership rule), so this is an explicit opt-out. -->
+		<TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\..\src\Wolfgang.Extensions.IAsyncEnumerable\Wolfgang.Extensions.IAsyncEnumerable.csproj" />
+	</ItemGroup>
+
+</Project>
