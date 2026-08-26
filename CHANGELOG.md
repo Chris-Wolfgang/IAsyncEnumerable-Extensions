@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `tests/AotSmoke`: Native AOT / trim compatibility smoke test. A console
+  consumer exercises every public method on `IAsyncEnumerableExtensions`
+  and asserts real results; `aot-smoke.yaml` publishes it
+  `PublishAot`+`PublishTrimmed` on linux-x64 and runs it, so a trimmed
+  member fails the check instead of silently no-opping. This library has
+  no reflection or `Expression.Compile`, so no trim-safety annotations
+  were needed (#238).
 - `docs/adr/` — Architecture Decision Records: `TEMPLATE.md`, `index.md`,
   and four retroactive ADRs covering the AssemblyVersion pin, the two
   `DoAsync` overloads, `ChunkAsync`'s `ICollection<T>` return type, and
