@@ -350,6 +350,10 @@ jobs:
     name: Pack & Validate NuGet
     needs: validate-release
     runs-on: windows-latest
+    permissions:
+      contents: read
+      id-token: write       # required to mint the SLSA provenance attestation
+      attestations: write   # required to publish it to the repo's Attestations tab
     outputs:
       has-packages: ${{ steps.check-packages.outputs.has-packages }}
     steps:
@@ -560,6 +564,11 @@ jobs:
             }
           }
 
+      - name: Generate SLSA provenance attestation
+        if: steps.check-packages.outputs.has-packages == 'true'
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: './nuget-packages/*.nupkg'
 
       - name: Upload NuGet packages
         uses: actions/upload-artifact@v7

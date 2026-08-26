@@ -24,6 +24,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   iterations. Verified the gate actually fails and reports a
   reproducible seed — temporarily broke one property's assertion,
   confirmed `CsCheckException` with a seed, reverted.
+- `docs/ALLOCATION-POLICY.md`: documents that no public method is
+  zero-alloc by design (every method is an async/iterator state
+  machine, and `ChunkAsync`'s array allocation is its whole point), and
+  points to the existing `[MemoryDiagnoser]` BDN trend as the ongoing
+  allocation-regression signal instead of a half-implemented zero-byte
+  gate (#242).
 - `tests/AotSmoke`: Native AOT / trim compatibility smoke test. A console
   consumer exercises every public method on `IAsyncEnumerableExtensions`
   and asserts real results; `aot-smoke.yaml` publishes it
@@ -48,6 +54,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+- `release.yaml`: SLSA build-provenance attestation via
+  `actions/attest-build-provenance`, binding each published `.nupkg` to
+  the exact workflow run/commit/repo that produced it — closes the
+  supply-chain-hardening loop alongside the CycloneDX SBOM generation
+  already in place. `SECURITY.md` documents `gh attestation verify` for
+  consumers. Package signing (a third, complementary layer) stays
+  tracked separately in #289, blocked on a code-signing certificate
+  (#234).
 - `workflow-security.yaml`: zizmor + actionlint run on any PR/push touching
   `.github/workflows/**`, catching workflow-level vulnerabilities (untrusted
   `run:`-block injection, missing `permissions:`, unpinned actions) that
