@@ -573,6 +573,46 @@ jobs:
             }
           }
 
+      - name: Generate reproducible-build manifest
+        if: steps.check-packages.outputs.has-packages == 'true'
+        shell: pwsh
+        run: |
+          # Hash the per-TFM ASSEMBLY, not the .nupkg — a zip's central
+          # directory embeds per-entry timestamps, so two byte-identical
+          # DLLs still produce different .nupkg hashes. The assembly
+          # itself is the reproducible unit (Deterministic + CI-build +
+          # SourceLink make it byte-identical given the same toolchain).
+          #
+          # $_.Directory.Name (no backslash char-class) for the same
+          # reason as reproducible-build.yaml — see that file's comment.
+          $packageId = 'Wolfgang.Extensions.IAsyncEnumerable'
+          $assemblies = Get-ChildItem -Path "src/$packageId/bin/Release" -Recurse -Filter "$packageId.dll" |
+            Where-Object { $_.Directory.Name -ne 'ref' }
+
+          $manifest = [ordered]@{
+            packageId = $packageId
+            version   = (Select-Xml -Path "src/$packageId/$packageId.csproj" -XPath '//Version').Node.InnerText
+            generatedAtUtc = (Get-Date).ToUniversalTime().ToString('o')
+            toolchain = @{
+              dotnetSdk = (dotnet --version)
+              runner    = $env:RUNNER_OS
+            }
+            assemblies = @(
+              $assemblies | Sort-Object { $_.Directory.Name } | ForEach-Object {
+                [ordered]@{
+                  tfm    = $_.Directory.Name
+                  file   = $_.Name
+                  sha256 = (Get-FileHash -Path $_.FullName -Algorithm SHA256).Hash
+                }
+              }
+            )
+          }
+
+          $manifestPath = Join-Path $PWD 'nuget-packages' 'reproducible-build-manifest.json'
+          $manifest | ConvertTo-Json -Depth 5 | Out-File -FilePath $manifestPath -Encoding utf8
+          Write-Host "✅ Wrote $manifestPath" -ForegroundColor Green
+          Get-Content $manifestPath
+
       - name: Generate SLSA provenance attestation
         if: steps.check-packages.outputs.has-packages == 'true'
         uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
@@ -798,5 +838,6 @@ jobs:
             ./nuget-packages/*.nupkg
             ./nuget-packages/*.snupkg
             ./nuget-packages/*.bom.json
+            ./nuget-packages/reproducible-build-manifest.json
             release-coverage.zip
 
