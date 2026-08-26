@@ -18,6 +18,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   ships in the NuGet package alongside `README.md`. Verified locally:
   the gate passes against the real allowlist and fails (non-zero exit)
   against a deliberately restrictive one (#243).
+- `docs/migrations/TEMPLATE-major-version-migration.md` establishing the
+  migration-guide convention for future major-version releases (#244).
 
 ### Changed
 
@@ -28,6 +30,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 ### Security
+
+- `scorecard.yaml`: weekly + push-to-main OSSF Scorecard scan, SARIF
+  uploaded to the Security tab, badge added to `README.md`, 7.5 score
+  floor documented in `SECURITY.md` (#247).
 
 ## [0.5.2] - 2026-07-06
 
