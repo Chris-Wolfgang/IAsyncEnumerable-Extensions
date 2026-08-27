@@ -29,7 +29,7 @@ jobs:
         include:
           # One entry per shipped package under src/. TFM picked per
           # package: the main package uses net10.0 (its newest, most
-          # commonly-debugged TFM). Polyfill targets only net462/
+          # commonly-debugged TFM). Legacy targets only net462/
           # netstandard2.0 — net462 build is unreliable on ubuntu-latest
           # (see pr.yaml's Linux-stage TFM filter, which excludes net4.x
           # entirely), so netstandard2.0 is used instead. It still
@@ -38,7 +38,7 @@ jobs:
           # Linux/net4.x friction.
           - packageId: Wolfgang.Extensions.IAsyncEnumerable
             tfm: net10.0
-          - packageId: Wolfgang.Extensions.IAsyncEnumerable.Polyfill
+          - packageId: Wolfgang.Extensions.IAsyncEnumerable.Legacy
             tfm: netstandard2.0
 
     steps:
