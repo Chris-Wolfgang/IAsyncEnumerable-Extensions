@@ -1,0 +1,25 @@
+<wpf:ResourceDictionary xml:space="preserve" xmlns:s="clr-namespace:System;assembly=mscorlib" xmlns:ss="urn:shemas-jetbrains-com:settings-storage-xaml" xmlns:wpf="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+	<!--
+	Noise-floor profile for the "ReSharper InspectCode" required check (#266).
+
+	RS0016/RS0036/RS0037 are Microsoft.CodeAnalysis.PublicApiAnalyzers rules —
+	this repo's own PublicApiAnalyzer package already gates the exact same
+	findings at build time via PublicAPI.Shipped.txt/PublicAPI.Unshipped.txt.
+	InspectCode bundles the same analyzer and re-reports every finding a
+	second time, so leaving these enabled here is pure duplicate noise, not
+	an additional signal. Confirmed locally: these three IDs accounted for
+	300 of 349 total InspectCode findings on a clean main.
+
+	Everything else stays at its default severity — those are genuine
+	InspectCode-only findings (dead code, redundant casts, possible multiple
+	enumeration, etc.) not covered by any other analyzer in the pipeline, and
+	are visible in Security → Code scanning at warning severity without
+	failing the build. Address them incrementally; only raise this job's gate
+	from error-only to warning-inclusive once that backlog is clear.
+	-->
+	<s:String x:Key="/Default/CodeInspection/Highlighting/InspectionSeverities/=RS0016/@EntryIndexedValue">DO_NOT_SHOW</s:String>
+	<s:String x:Key="/Default/CodeInspection/Highlighting/InspectionSeverities/=RS0036/@EntryIndexedValue">DO_NOT_SHOW</s:String>
+	<s:String x:Key="/Default/CodeInspection/Highlighting/InspectionSeverities/=RS0037/@EntryIndexedValue">DO_NOT_SHOW</s:String>
+
+</wpf:ResourceDictionary>

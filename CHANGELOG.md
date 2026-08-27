@@ -18,6 +18,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   on the very first `MoveNextAsync()`/action invocation instead, so the
   source is provably never touched. Mutation score: 92.06% → 100%, 0
   survivors (#304).
+- `IAsyncEnumerable Extensions.slnx.DotSettings`: ReSharper InspectCode
+  noise-floor profile, silencing the `RS0016`/`RS0036`/`RS0037`
+  (PublicApiAnalyzer) findings InspectCode duplicates from this repo's own
+  PublicApiAnalyzer gate. Dropped InspectCode's findings on a clean main
+  from 349 to 40, with no change to the error-only merge gate (all 349 were
+  already warning-severity). `*.DotSettings` added to `pr.yaml`'s protected
+  configuration files, closing the gap where a PR could edit it without
+  triggering the maintainer-review guard (#266).
 
 ### Changed
 
