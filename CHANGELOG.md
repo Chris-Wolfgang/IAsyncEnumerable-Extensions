@@ -26,6 +26,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   already warning-severity). `*.DotSettings` added to `pr.yaml`'s protected
   configuration files, closing the gap where a PR could edit it without
   triggering the maintainer-review guard (#266).
+- `EnablePackageValidation` + `PackageValidationBaselineVersion` (0.5.3) on
+  the src csproj — protects consumers against an unintentional
+  binary-breaking change at the next release. Verified locally: `dotnet
+  pack` reports zero compatibility breaks against the published 0.5.3
+  baseline (#286).
 
 ### Changed
 
