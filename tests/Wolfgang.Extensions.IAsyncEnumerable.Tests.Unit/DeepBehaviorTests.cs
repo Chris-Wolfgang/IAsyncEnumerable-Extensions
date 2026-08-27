@@ -339,11 +339,6 @@ public sealed class DeepBehaviorTests
                     throw exception;
                 }
 
-                if (_index >= 100_000)  // hard cap for the indefinite case so test process can't hang
-                {
-                    return false;
-                }
-
                 Current = _index;
                 return true;
             }
