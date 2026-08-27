@@ -725,11 +725,31 @@ jobs:
           Write-Host "Documentation built successfully - release may proceed"
 
   # Publish to NuGet (only if validation passed)
+  #
+  # NuGet Trusted Publishing (OIDC) — issue #279. This job exchanges the
+  # GitHub OIDC token for an ephemeral (~1-hour) NuGet push key via
+  # NuGet/login@v1. No long-lived NUGET_API_KEY secret is stored on the
+  # repo or referenced here; every release mints its own push credential
+  # scoped to the trusted-publisher policy configured on nuget.org for
+  # the Wolfgang.Extensions.IAsyncEnumerable package.
+  #
+  # If OIDC exchange fails at release time, the trusted-publisher policy
+  # on nuget.org is either missing or misconfigured. Check:
+  #   nuget.org → Manage → Trusted Publishing → policy for owner
+  #   Chris-Wolfgang, repo IAsyncEnumerable-Extensions, workflow
+  #   .github/workflows/release.yaml.
   publish-nuget:
     name: Publish to NuGet.org
     needs: [pack-and-validate, verify-docs-build]
     if: needs.pack-and-validate.outputs.has-packages == 'true'
     runs-on: windows-latest
+    permissions:
+      # id-token: write is what allows NuGet/login to exchange the GitHub
+      # OIDC token for an ephemeral push key. contents: read is inherited
+      # from the workflow-level default but restated here for clarity —
+      # explicit permission blocks tighten the job's scope.
+      id-token: write
+      contents: read
     steps:
       - name: Setup .NET
         uses: actions/setup-dotnet@v6
@@ -749,22 +769,18 @@ jobs:
           name: nuget-packages
           path: ./packages
 
-      - name: Validate NuGet API key
-        shell: pwsh
-        env:
-          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
-        run: |
-          if ([string]::IsNullOrEmpty($env:NUGET_API_KEY)) {
-            Write-Error "❌ NUGET_API_KEY secret not configured!"
-            Write-Host "Please add it in: Repository Settings → Secrets and variables → Actions → New repository secret"
-            exit 1
-          }
-          Write-Host "✅ NUGET_API_KEY is configured" -ForegroundColor Green
+      - name: Login to NuGet via Trusted Publishing (OIDC)
+        id: nuget-login
+        uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841 # v1
+        with:
+          user: Chris-Wolfgang
 
       - name: Publish to NuGet
         shell: pwsh
         env:
-          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+          # STEP OUTPUT from NuGet/login (ephemeral), NOT secrets.NUGET_API_KEY.
+          # Scoped to this workflow run; expires ~1 hour after issue.
+          NUGET_API_KEY: ${{ steps.nuget-login.outputs.NUGET_API_KEY }}
         run: |
           $packages = Get-ChildItem -Path './packages' -Filter '*.nupkg' -ErrorAction SilentlyContinue
           

@@ -34,6 +34,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- `release.yaml`: migrated NuGet publishing from a long-lived
+  `NUGET_API_KEY` secret to Trusted Publishing (OIDC) via `NuGet/login@v1`
+  — every release now exchanges the workflow's GitHub OIDC token for an
+  ephemeral (~1-hour) push key, so there's no standing credential to leak,
+  phish, or rotate. Matches the other 9 fleet repos already on this
+  pattern. **Requires a one-time nuget.org Trusted Publishing policy for
+  this repo before the next release** — see the job comment in
+  `release.yaml` (#279).
+
 ### Deprecated
 
 ### Removed
