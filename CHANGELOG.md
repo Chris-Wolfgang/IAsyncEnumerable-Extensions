@@ -9,6 +9,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## [0.5.4] - 2026-08-27
+
+No public API changes — a follow-on maintenance / infrastructure release
+closing out the CI/CD hardening backlog: real test coverage on the test
+assemblies themselves (found and fixed 3 genuine gaps), the last Stryker
+mutation survivors, PackageValidation and NuGet Trusted Publishing gates,
+a documented incident-response appendix, and a supply-chain pin sweep
+across every workflow.
+
+### Added
+
 - `ChunkAsyncTests`, `DoAsyncTests`, `ForEachAsyncTests`: 5 new tests isolating
   each pre-loop `ThrowIfCancellationRequested()` guard from the matching
   in-loop check, killing the 5 Stryker survivors tracked in #304. The
@@ -388,7 +409,8 @@ plus a fix for a Release-build blocker.
   without an explicit maintainer admin-bypass.
 - `persist-credentials: false` on the gitleaks / stryker checkouts.
 
-[Unreleased]: https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/compare/v0.5.3...HEAD
+[Unreleased]: https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/compare/v0.5.4...HEAD
+[0.5.4]: https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/compare/v0.5.3...v0.5.4
 [0.5.3]: https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/compare/v0.5.2...v0.5.3
 [0.5.2]: https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/compare/v0.5.1...v0.5.2
 [0.5.1]: https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/compare/v0.5.0...v0.5.1
