@@ -20,7 +20,7 @@
 		<PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<EnablePackageValidation>True</EnablePackageValidation>
-		<PackageValidationBaselineVersion>0.5.3</PackageValidationBaselineVersion>
+		<PackageValidationBaselineVersion>0.5.4</PackageValidationBaselineVersion>
 		<SignAssembly>False</SignAssembly>
 		<ApplicationIcon>icon.ico</ApplicationIcon>
 		<PackageIcon>icon_128x128.png</PackageIcon>
