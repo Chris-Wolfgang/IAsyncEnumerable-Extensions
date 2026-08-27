@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<coverage version="1.0" date="2026-07-12_01-34-21" tag="">
+  <assembly name="Wolfgang.Extensions.IAsyncEnumerable">
+    <class name="Wolfgang.Extensions.IAsyncEnumerable.IAsyncEnumerableExtensions" coveredlines="98" coverablelines="98" totallines="484" coveredbranches="48" totalbranches="48" coveredcodeelements="12" fullcoveredcodeelements="12" totalcodeelements="12" />
+  </assembly>
+</coverage>

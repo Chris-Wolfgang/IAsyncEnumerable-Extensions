@@ -290,18 +290,56 @@ var assemblies = [
   {
     "name": "Wolfgang.Extensions.IAsyncEnumerable",
     "classes": [
-      { "name": "Wolfgang.Extensions.IAsyncEnumerable.IAsyncEnumerableExtensions", "rp": "Wolfgang.Extensions.IAsyncEnumerable_IAsyncEnumerableExtensions.html", "cl": 98, "ucl": 0, "cal": 98, "tl": 484, "cb": 48, "tb": 48, "cm": 0, "fcm": 0, "tm": 0, "lch": [100], "bch": [100], "mch": [], "mfch": [], "hc": [{ "et": "7/12/2026 - 1:34:21 AM", "cl": 98, "ucl": 0, "cal": 98, "tl": 484, "lcq": 100, "cb": 48, "tb": 48, "bcq": 100, "cm": 0, "fcm": 0, "tm": 0, "mcq": 0, "mfcq": 0 }, { "et": "8/26/2026 - 4:19:19 PM", "cl": 98, "ucl": 0, "cal": 98, "tl": 484, "lcq": 100, "cb": 48, "tb": 48, "bcq": 100, "cm": 0, "fcm": 0, "tm": 0, "mcq": 0, "mfcq": 0 }], "metrics": { } },
+      { "name": "Wolfgang.Extensions.IAsyncEnumerable.IAsyncEnumerableExtensions", "rp": "Wolfgang.Extensions.IAsyncEnumerable_IAsyncEnumerableExtensions.html", "cl": 98, "ucl": 0, "cal": 98, "tl": 484, "cb": 48, "tb": 48, "cm": 0, "fcm": 0, "tm": 0, "lch": [100], "bch": [100], "mch": [], "mfch": [], "hc": [{ "et": "7/12/2026 - 1:34:21 AM", "cl": 98, "ucl": 0, "cal": 98, "tl": 484, "lcq": 100, "cb": 48, "tb": 48, "bcq": 100, "cm": 0, "fcm": 0, "tm": 0, "mcq": 0, "mfcq": 0 }, { "et": "8/26/2026 - 4:19:19 PM", "cl": 98, "ucl": 0, "cal": 98, "tl": 484, "lcq": 100, "cb": 48, "tb": 48, "bcq": 100, "cm": 0, "fcm": 0, "tm": 0, "mcq": 0, "mfcq": 0 }, { "et": "8/27/2026 - 12:49:10 PM", "cl": 98, "ucl": 0, "cal": 98, "tl": 484, "lcq": 100, "cb": 48, "tb": 48, "bcq": 100, "cm": 0, "fcm": 0, "tm": 0, "mcq": 0, "mfcq": 0 }], "metrics": { } },
+    ]},
+  {
+    "name": "Wolfgang.Extensions.IAsyncEnumerable.Tests.Concurrency",
+    "classes": [
+      { "name": "Wolfgang.Extensions.IAsyncEnumerable.Tests.Concurrency.ConcurrencyStressTests", "rp": "Wolfgang.Extensions.IAsyncEnumerable.Tests.Concurrency_ConcurrencyStressTests.html", "cl": 90, "ucl": 0, "cal": 90, "tl": 194, "cb": 43, "tb": 50, "cm": 0, "fcm": 0, "tm": 0, "lch": [100], "bch": [86], "mch": [], "mfch": [], "hc": [{ "et": "8/27/2026 - 12:49:10 PM", "cl": 90, "ucl": 0, "cal": 90, "tl": 194, "lcq": 100, "cb": 43, "tb": 50, "bcq": 86, "cm": 0, "fcm": 0, "tm": 0, "mcq": 0, "mfcq": 0 }], "metrics": { } },
+    ]},
+  {
+    "name": "Wolfgang.Extensions.IAsyncEnumerable.Tests.DocExamples",
+    "classes": [
+      { "name": "Wolfgang.Extensions.IAsyncEnumerable.Tests.DocExamples.DocExample", "rp": "Wolfgang.Extensions.IAsyncEnumerable.Tests.DocExamples_DocExample.html", "cl": 21, "ucl": 0, "cal": 21, "tl": 209, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [100], "bch": [], "mch": [], "mfch": [], "hc": [{ "et": "8/27/2026 - 12:49:10 PM", "cl": 21, "ucl": 0, "cal": 21, "tl": 209, "lcq": 100, "cb": 0, "tb": 0, "bcq": 0, "cm": 0, "fcm": 0, "tm": 0, "mcq": 0, "mfcq": 0 }], "metrics": { } },
+      { "name": "Wolfgang.Extensions.IAsyncEnumerable.Tests.DocExamples.DocExampleCompiler", "rp": "Wolfgang.Extensions.IAsyncEnumerable.Tests.DocExamples_DocExampleCompiler.html", "cl": 38, "ucl": 0, "cal": 38, "tl": 120, "cb": 4, "tb": 4, "cm": 0, "fcm": 0, "tm": 0, "lch": [100], "bch": [100], "mch": [], "mfch": [], "hc": [{ "et": "8/27/2026 - 12:49:10 PM", "cl": 38, "ucl": 0, "cal": 38, "tl": 120, "lcq": 100, "cb": 4, "tb": 4, "bcq": 100, "cm": 0, "fcm": 0, "tm": 0, "mcq": 0, "mfcq": 0 }], "metrics": { } },
+      { "name": "Wolfgang.Extensions.IAsyncEnumerable.Tests.DocExamples.DocExampleSource", "rp": "Wolfgang.Extensions.IAsyncEnumerable.Tests.DocExamples_DocExampleSource.html", "cl": 45, "ucl": 0, "cal": 45, "tl": 209, "cb": 22, "tb": 24, "cm": 0, "fcm": 0, "tm": 0, "lch": [100], "bch": [91.6], "mch": [], "mfch": [], "hc": [{ "et": "8/27/2026 - 12:49:10 PM", "cl": 45, "ucl": 0, "cal": 45, "tl": 209, "lcq": 100, "cb": 22, "tb": 24, "bcq": 91.6, "cm": 0, "fcm": 0, "tm": 0, "mcq": 0, "mfcq": 0 }], "metrics": { } },
+      { "name": "Wolfgang.Extensions.IAsyncEnumerable.Tests.DocExamples.DocExampleTests", "rp": "Wolfgang.Extensions.IAsyncEnumerable.Tests.DocExamples_DocExampleTests.html", "cl": 32, "ucl": 1, "cal": 33, "tl": 106, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [96.9], "bch": [], "mch": [], "mfch": [], "hc": [{ "et": "8/27/2026 - 12:49:10 PM", "cl": 32, "ucl": 1, "cal": 33, "tl": 106, "lcq": 96.9, "cb": 0, "tb": 0, "bcq": 0, "cm": 0, "fcm": 0, "tm": 0, "mcq": 0, "mfcq": 0 }], "metrics": { } },
+    ]},
+  {
+    "name": "Wolfgang.Extensions.IAsyncEnumerable.Tests.Fuzz",
+    "classes": [
+      { "name": "Wolfgang.Extensions.IAsyncEnumerable.Tests.Fuzz.FuzzProperties", "rp": "Wolfgang.Extensions.IAsyncEnumerable.Tests.Fuzz_FuzzProperties.html", "cl": 69, "ucl": 2, "cal": 71, "tl": 156, "cb": 25, "tb": 34, "cm": 0, "fcm": 0, "tm": 0, "lch": [97.1], "bch": [73.5], "mch": [], "mfch": [], "hc": [{ "et": "8/27/2026 - 12:49:10 PM", "cl": 69, "ucl": 2, "cal": 71, "tl": 156, "lcq": 97.1, "cb": 25, "tb": 34, "bcq": 73.5, "cm": 0, "fcm": 0, "tm": 0, "mcq": 0, "mfcq": 0 }], "metrics": { } },
+    ]},
+  {
+    "name": "Wolfgang.Extensions.IAsyncEnumerable.Tests.Unit",
+    "classes": [
+      { "name": "Wolfgang.Extensions.IAsyncEnumerable.Tests.Unit.ChunkAsyncTests", "rp": "Wolfgang.Extensions.IAsyncEnumerable.Tests.Unit_ChunkAsyncTests.html", "cl": 99, "ucl": 0, "cal": 99, "tl": 219, "cb": 10, "tb": 10, "cm": 0, "fcm": 0, "tm": 0, "lch": [100], "bch": [100], "mch": [], "mfch": [], "hc": [{ "et": "8/27/2026 - 12:49:10 PM", "cl": 99, "ucl": 0, "cal": 99, "tl": 219, "lcq": 100, "cb": 10, "tb": 10, "bcq": 100, "cm": 0, "fcm": 0, "tm": 0, "mcq": 0, "mfcq": 0 }], "metrics": { } },
+      { "name": "Wolfgang.Extensions.IAsyncEnumerable.Tests.Unit.CultureInvarianceTests", "rp": "Wolfgang.Extensions.IAsyncEnumerable.Tests.Unit_CultureInvarianceTests.html", "cl": 68, "ucl": 0, "cal": 68, "tl": 156, "cb": 20, "tb": 22, "cm": 0, "fcm": 0, "tm": 0, "lch": [100], "bch": [90.9], "mch": [], "mfch": [], "hc": [{ "et": "8/27/2026 - 12:49:10 PM", "cl": 68, "ucl": 0, "cal": 68, "tl": 156, "lcq": 100, "cb": 20, "tb": 22, "bcq": 90.9, "cm": 0, "fcm": 0, "tm": 0, "mcq": 0, "mfcq": 0 }], "metrics": { } },
+      { "name": "Wolfgang.Extensions.IAsyncEnumerable.Tests.Unit.DeepBehaviorTests", "rp": "Wolfgang.Extensions.IAsyncEnumerable.Tests.Unit_DeepBehaviorTests.html", "cl": 135, "ucl": 0, "cal": 135, "tl": 353, "cb": 47, "tb": 52, "cm": 0, "fcm": 0, "tm": 0, "lch": [100], "bch": [90.3], "mch": [], "mfch": [], "hc": [{ "et": "8/27/2026 - 12:49:10 PM", "cl": 135, "ucl": 0, "cal": 135, "tl": 353, "lcq": 100, "cb": 47, "tb": 52, "bcq": 90.3, "cm": 0, "fcm": 0, "tm": 0, "mcq": 0, "mfcq": 0 }], "metrics": { } },
+      { "name": "Wolfgang.Extensions.IAsyncEnumerable.Tests.Unit.DoAsyncTests", "rp": "Wolfgang.Extensions.IAsyncEnumerable.Tests.Unit_DoAsyncTests.html", "cl": 239, "ucl": 2, "cal": 241, "tl": 501, "cb": 25, "tb": 30, "cm": 0, "fcm": 0, "tm": 0, "lch": [99.1], "bch": [83.3], "mch": [], "mfch": [], "hc": [{ "et": "8/27/2026 - 12:49:10 PM", "cl": 239, "ucl": 2, "cal": 241, "tl": 501, "lcq": 99.1, "cb": 25, "tb": 30, "bcq": 83.3, "cm": 0, "fcm": 0, "tm": 0, "mcq": 0, "mfcq": 0 }], "metrics": { } },
+      { "name": "Wolfgang.Extensions.IAsyncEnumerable.Tests.Unit.ForEachAsyncTests", "rp": "Wolfgang.Extensions.IAsyncEnumerable.Tests.Unit_ForEachAsyncTests.html", "cl": 180, "ucl": 6, "cal": 186, "tl": 349, "cb": 19, "tb": 28, "cm": 0, "fcm": 0, "tm": 0, "lch": [96.7], "bch": [67.8], "mch": [], "mfch": [], "hc": [{ "et": "8/27/2026 - 12:49:10 PM", "cl": 180, "ucl": 6, "cal": 186, "tl": 349, "lcq": 96.7, "cb": 19, "tb": 28, "bcq": 67.8, "cm": 0, "fcm": 0, "tm": 0, "mcq": 0, "mfcq": 0 }], "metrics": { } },
+      { "name": "Wolfgang.Extensions.IAsyncEnumerable.Tests.Unit.IsEmptyAsyncTests", "rp": "Wolfgang.Extensions.IAsyncEnumerable.Tests.Unit_IsEmptyAsyncTests.html", "cl": 30, "ucl": 0, "cal": 30, "tl": 79, "cb": 4, "tb": 4, "cm": 0, "fcm": 0, "tm": 0, "lch": [100], "bch": [100], "mch": [], "mfch": [], "hc": [{ "et": "8/27/2026 - 12:49:10 PM", "cl": 30, "ucl": 0, "cal": 30, "tl": 79, "lcq": 100, "cb": 4, "tb": 4, "bcq": 100, "cm": 0, "fcm": 0, "tm": 0, "mcq": 0, "mfcq": 0 }], "metrics": { } },
+      { "name": "Wolfgang.Extensions.IAsyncEnumerable.Tests.Unit.IsNullOrEmptyAsyncTests", "rp": "Wolfgang.Extensions.IAsyncEnumerable.Tests.Unit_IsNullOrEmptyAsyncTests.html", "cl": 33, "ucl": 0, "cal": 33, "tl": 95, "cb": 4, "tb": 4, "cm": 0, "fcm": 0, "tm": 0, "lch": [100], "bch": [100], "mch": [], "mfch": [], "hc": [{ "et": "8/27/2026 - 12:49:10 PM", "cl": 33, "ucl": 0, "cal": 33, "tl": 95, "lcq": 100, "cb": 4, "tb": 4, "bcq": 100, "cm": 0, "fcm": 0, "tm": 0, "mcq": 0, "mfcq": 0 }], "metrics": { } },
+      { "name": "Wolfgang.Extensions.IAsyncEnumerable.Tests.Unit.NoneAsyncTests", "rp": "Wolfgang.Extensions.IAsyncEnumerable.Tests.Unit_NoneAsyncTests.html", "cl": 96, "ucl": 0, "cal": 96, "tl": 225, "cb": 9, "tb": 12, "cm": 0, "fcm": 0, "tm": 0, "lch": [100], "bch": [75], "mch": [], "mfch": [], "hc": [{ "et": "8/27/2026 - 12:49:10 PM", "cl": 96, "ucl": 0, "cal": 96, "tl": 225, "lcq": 100, "cb": 9, "tb": 12, "bcq": 75, "cm": 0, "fcm": 0, "tm": 0, "mcq": 0, "mfcq": 0 }], "metrics": { } },
     ]},
 ];
 
 var metrics = [{ "name": "Crap Score", "abbreviation": "crp", "explanationUrl": "https://googletesting.blogspot.de/2011/02/this-code-is-crap.html" }, { "name": "Cyclomatic complexity", "abbreviation": "cc", "explanationUrl": "https://en.wikipedia.org/wiki/Cyclomatic_complexity" }, { "name": "Line coverage", "abbreviation": "cov", "explanationUrl": "https://en.wikipedia.org/wiki/Code_coverage" }, { "name": "Branch coverage", "abbreviation": "bcov", "explanationUrl": "https://en.wikipedia.org/wiki/Code_coverage" }];
 
-var historicCoverageExecutionTimes = ["7/12/2026 - 1:34:21 AM"];
+var historicCoverageExecutionTimes = ["8/26/2026 - 4:19:19 PM", "7/12/2026 - 1:34:21 AM"];
 
 var riskHotspotMetrics = [
+      { "name": "Crap Score", "explanationUrl": "https://googletesting.blogspot.de/2011/02/this-code-is-crap.html" },
+      { "name": "Cyclomatic complexity", "explanationUrl": "https://en.wikipedia.org/wiki/Cyclomatic_complexity" },
 ];
 
 var riskHotspots = [
+  {
+    "assembly": "Wolfgang.Extensions.IAsyncEnumerable.Tests.Fuzz", "class": "Wolfgang.Extensions.IAsyncEnumerable.Tests.Fuzz.FuzzProperties", "reportPath": "Wolfgang.Extensions.IAsyncEnumerable.Tests.Fuzz_FuzzProperties.html", "methodName": "\u003CChunkAsync_concatenation_reproduces_original_sequence()", "methodShortName": "\u003CChunkAsync_concatenation_reproduces_original_sequence()", "fileIndex": 0, "line": 52,
+    "metrics": [
+      { "value": 18, "exceeded": false },
+      { "value": 16, "exceeded": true },
+    ]},
 ];
 
 var branchCoverageAvailable = true;
