@@ -31,6 +31,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   binary-breaking change at the next release. Verified locally: `dotnet
   pack` reports zero compatibility breaks against the published 0.5.3
   baseline (#286).
+- `coverlet.runsettings`: `IncludeTestAssembly` was never set (defaults to
+  `false`), so the coverage gate only ever measured `src/` — test-code dead
+  helpers and unused branches were invisible fleet-wide except on
+  ETL-SqlBulkCopy. Also: `Tests.Concurrency`, `Tests.DocExamples`, and
+  `Tests.Fuzz` were missing `coverlet.collector` entirely, so their
+  coverage collection silently no-op'd even once test-assembly
+  instrumentation was on. Fixed both; added 3 tests to
+  `DocExampleTests`/`DocExampleSource` covering branches only reachable
+  with a synthetic (not real) doc example, and removed one dead
+  100,000-iteration safety cap in `DeepBehaviorTests`' `ThrowingAsyncEnumerable`
+  fake that no test path could ever reach. Merged line coverage across all
+  4 test projects + src: 99.1% (`Tests.Concurrency`/`DocExamples.Source`/
+  `DocExamples.Compiler` now 100%). The remaining ~0.9% is exclusively
+  delegate bodies a test provably never invokes by design (e.g.
+  "empty source executes no actions"), fuzz-property counter-example
+  branches only reachable if the code under test were actually broken, and
+  compiler-generated async-lambda state-machine bookkeeping — none
+  fixable without defeating the test's own purpose (#292).
 
 ### Changed
 
