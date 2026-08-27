@@ -10,7 +10,10 @@ on:
     branches:
       - main
     paths:
-      - 'src/**'
+      # Scoped to the main package, not 'src/**' — benchmarks only cover
+      # Wolfgang.Extensions.IAsyncEnumerable's hot-path operators, so a
+      # Polyfill-only change shouldn't trigger this workflow.
+      - 'src/Wolfgang.Extensions.IAsyncEnumerable/**'
       - 'benchmarks/**'
 
 concurrency:

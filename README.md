@@ -21,6 +21,17 @@ dotnet add package Wolfgang.Extensions.IAsyncEnumerable
 
 **NuGet Package:** [Wolfgang.Extensions.IAsyncEnumerable](https://www.nuget.org/packages/Wolfgang.Extensions.IAsyncEnumerable)
 
+On net462 / netstandard2.0, where `System.Linq.AsyncEnumerable` isn't available, add the companion polyfill package for terminal operators (`CountAsync`, `AnyAsync`, `FirstAsync`, `FirstOrDefaultAsync`, `ToListAsync`):
+
+```bash
+dotnet add package Wolfgang.Extensions.IAsyncEnumerable.Polyfill
+```
+
+[![NuGet](https://img.shields.io/nuget/v/Wolfgang.Extensions.IAsyncEnumerable.Polyfill.svg?logo=nuget&label=NuGet)](https://www.nuget.org/packages/Wolfgang.Extensions.IAsyncEnumerable.Polyfill)
+[![NuGet downloads](https://img.shields.io/nuget/dt/Wolfgang.Extensions.IAsyncEnumerable.Polyfill.svg?logo=nuget&label=downloads)](https://www.nuget.org/packages/Wolfgang.Extensions.IAsyncEnumerable.Polyfill)
+
+**NuGet Package:** [Wolfgang.Extensions.IAsyncEnumerable.Polyfill](https://www.nuget.org/packages/Wolfgang.Extensions.IAsyncEnumerable.Polyfill)
+
 ---
 
 ## 📄 License
@@ -59,6 +70,19 @@ All nine extensions live on `IAsyncEnumerableExtensions` (`namespace Wolfgang.Ex
 | `NoneAsync<T>(source, ct)` | `true` if the stream yields zero elements (same shape as `IsEmptyAsync`, different naming). |
 | `NoneAsync<T>(source, predicate, ct)` | `true` if no element satisfies the predicate. Short-circuits on the first match. |
 
+### Terminal operators (`Wolfgang.Extensions.IAsyncEnumerable.Polyfill`, net462 / netstandard2.0 only)
+
+These live on `IAsyncEnumerablePolyfillExtensions` (same `Wolfgang.Extensions.IAsyncEnumerable` namespace, separate assembly). They exist only for TFMs where `System.Linq.AsyncEnumerable` isn't available — on net8.0+, use the BCL versions instead.
+
+| Method | Purpose |
+|---|---|
+| `CountAsync<T>(source, ct)` | Counts the elements in the stream. |
+| `AnyAsync<T>(source, ct)` | `true` if the stream yields any elements. Short-circuits on the first element. |
+| `AnyAsync<T>(source, predicate, ct)` | `true` if any element satisfies the predicate. Short-circuits on the first match. |
+| `FirstAsync<T>(source, ct)` | The first element; throws `InvalidOperationException` if the stream is empty. |
+| `FirstOrDefaultAsync<T>(source, ct)` | The first element, or `default(T)` if the stream is empty. |
+| `ToListAsync<T>(source, ct)` | Materializes the stream into a `List<T>`. |
+
 ---
 
 ## 🚀 Quick Start
@@ -79,13 +103,18 @@ await foreach (var batch in source
 
 ## 🎯 Supported Frameworks
 
-This library targets:
+**Wolfgang.Extensions.IAsyncEnumerable** targets:
 
 - **.NET Framework:** 4.6.2
 - **.NET Standard:** 2.0
 - **.NET:** 8.0, 10.0
 
-See the [NuGet package page](https://www.nuget.org/packages/Wolfgang.Extensions.IAsyncEnumerable/) for the authoritative per-TFM compatibility matrix.
+**Wolfgang.Extensions.IAsyncEnumerable.Polyfill** targets:
+
+- **.NET Framework:** 4.6.2
+- **.NET Standard:** 2.0
+
+See each package's NuGet page ([main](https://www.nuget.org/packages/Wolfgang.Extensions.IAsyncEnumerable/), [Polyfill](https://www.nuget.org/packages/Wolfgang.Extensions.IAsyncEnumerable.Polyfill/)) for the authoritative per-TFM compatibility matrix.
 
 ## 🔍 Code Quality
 

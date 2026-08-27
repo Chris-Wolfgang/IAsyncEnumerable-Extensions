@@ -45,10 +45,24 @@ jobs:
         # dotnet-project-licenses targets net7.0; ubuntu-latest no longer ships an
         # EOL net7.0 runtime, so the tool needs roll-forward to launch on
         # whatever runtime the image actually has (net8.0+).
+        # One invocation per shipped package under src/ — the repo may
+        # ship more than one independently-versioned package.
         env:
           DOTNET_ROLL_FORWARD: LatestMajor
-        run: >
-          dotnet-project-licenses
-          --input src/Wolfgang.Extensions.IAsyncEnumerable/Wolfgang.Extensions.IAsyncEnumerable.csproj
-          --allowed-license-types licenses/allowed-licenses.json
-          --log-level Information
+        run: |
+          failed=0
+          for proj in src/*/*.csproj; do
+            echo "::group::Auditing $proj"
+            if ! dotnet-project-licenses \
+              --input "$proj" \
+              --allowed-license-types licenses/allowed-licenses.json \
+              --log-level Information; then
+              echo "::error::License audit failed for $proj"
+              failed=1
+            fi
+            echo "::endgroup::"
+          done
+
+          if [ "$failed" -eq 1 ]; then
+            exit 1
+          fi

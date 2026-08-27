@@ -585,31 +585,42 @@ jobs:
           #
           # $_.Directory.Name (no backslash char-class) for the same
           # reason as reproducible-build.yaml — see that file's comment.
-          $packageId = 'Wolfgang.Extensions.IAsyncEnumerable'
-          $assemblies = Get-ChildItem -Path "src/$packageId/bin/Release" -Recurse -Filter "$packageId.dll" |
-            Where-Object { $_.Directory.Name -ne 'ref' }
+          #
+          # One manifest entry per package under src/ — the repo may ship
+          # more than one independently-versioned package.
+          $srcProjects = Get-ChildItem -Path 'src' -Recurse -Filter '*.csproj'
+
+          $packages = foreach ($proj in $srcProjects) {
+            $packageId = $proj.BaseName
+            $assemblies = Get-ChildItem -Path "src/$packageId/bin/Release" -Recurse -Filter "$packageId.dll" |
+              Where-Object { $_.Directory.Name -ne 'ref' }
+
+            [ordered]@{
+              packageId = $packageId
+              version   = (Select-Xml -Path $proj.FullName -XPath '//Version').Node.InnerText
+              assemblies = @(
+                $assemblies | Sort-Object { $_.Directory.Name } | ForEach-Object {
+                  [ordered]@{
+                    tfm    = $_.Directory.Name
+                    file   = $_.Name
+                    sha256 = (Get-FileHash -Path $_.FullName -Algorithm SHA256).Hash
+                  }
+                }
+              )
+            }
+          }
 
           $manifest = [ordered]@{
-            packageId = $packageId
-            version   = (Select-Xml -Path "src/$packageId/$packageId.csproj" -XPath '//Version').Node.InnerText
             generatedAtUtc = (Get-Date).ToUniversalTime().ToString('o')
             toolchain = @{
               dotnetSdk = (dotnet --version)
               runner    = $env:RUNNER_OS
             }
-            assemblies = @(
-              $assemblies | Sort-Object { $_.Directory.Name } | ForEach-Object {
-                [ordered]@{
-                  tfm    = $_.Directory.Name
-                  file   = $_.Name
-                  sha256 = (Get-FileHash -Path $_.FullName -Algorithm SHA256).Hash
-                }
-              }
-            )
+            packages = @($packages)
           }
 
           $manifestPath = Join-Path $PWD 'nuget-packages' 'reproducible-build-manifest.json'
-          $manifest | ConvertTo-Json -Depth 5 | Out-File -FilePath $manifestPath -Encoding utf8
+          $manifest | ConvertTo-Json -Depth 6 | Out-File -FilePath $manifestPath -Encoding utf8
           Write-Host "✅ Wrote $manifestPath" -ForegroundColor Green
           Get-Content $manifestPath
 

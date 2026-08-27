@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- New package `Wolfgang.Extensions.IAsyncEnumerable.Polyfill` (net462;netstandard2.0
+  only): terminal operator extension methods (`CountAsync`, `AnyAsync` (2 overloads),
+  `FirstAsync`, `FirstOrDefaultAsync`, `ToListAsync`) for `IAsyncEnumerable<T>` on
+  TFMs where `System.Linq.AsyncEnumerable` isn't available (#124). Scoped to
+  exactly the TFMs the BCL doesn't cover, so there's no ambiguous-call risk with
+  `System.Linq.AsyncEnumerable` on net8.0+ — the package simply doesn't apply
+  there. Independently versioned starting at 0.1.0.
+
 ### Changed
 
 ### Deprecated

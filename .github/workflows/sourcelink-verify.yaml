@@ -21,8 +21,25 @@ permissions:
 
 jobs:
   verify:
-    name: "Verify embedded SourceLink URLs resolve"
+    name: "Verify embedded SourceLink URLs resolve (${{ matrix.packageId }})"
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # One entry per shipped package under src/. TFM picked per
+          # package: the main package uses net10.0 (its newest, most
+          # commonly-debugged TFM). Polyfill targets only net462/
+          # netstandard2.0 — net462 build is unreliable on ubuntu-latest
+          # (see pr.yaml's Linux-stage TFM filter, which excludes net4.x
+          # entirely), so netstandard2.0 is used instead. It still
+          # produces a PDB with the same embedded SourceLink metadata,
+          # so it verifies the mechanism just as well without the
+          # Linux/net4.x friction.
+          - packageId: Wolfgang.Extensions.IAsyncEnumerable
+            tfm: net10.0
+          - packageId: Wolfgang.Extensions.IAsyncEnumerable.Polyfill
+            tfm: netstandard2.0
 
     steps:
       - name: Checkout repository
@@ -35,8 +52,8 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
-      - name: Build (Release, net10.0)
-        run: dotnet build src/Wolfgang.Extensions.IAsyncEnumerable/Wolfgang.Extensions.IAsyncEnumerable.csproj --configuration Release --framework net10.0
+      - name: Build (Release, ${{ matrix.tfm }})
+        run: dotnet build "src/${{ matrix.packageId }}/${{ matrix.packageId }}.csproj" --configuration Release --framework ${{ matrix.tfm }}
 
       - name: Install sourcelink tool
         run: dotnet tool install --global sourcelink
@@ -44,7 +61,7 @@ jobs:
       - name: Print SourceLink-mapped URLs
         id: urls
         run: |
-          pdb="src/Wolfgang.Extensions.IAsyncEnumerable/bin/Release/net10.0/Wolfgang.Extensions.IAsyncEnumerable.pdb"
+          pdb="src/${{ matrix.packageId }}/bin/Release/${{ matrix.tfm }}/${{ matrix.packageId }}.pdb"
           if [ ! -f "$pdb" ]; then
             echo "::error::PDB not found at $pdb"
             exit 1
