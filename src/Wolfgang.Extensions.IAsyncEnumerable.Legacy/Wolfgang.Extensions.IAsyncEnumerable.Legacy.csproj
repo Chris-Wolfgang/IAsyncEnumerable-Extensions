@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<TargetFrameworks>net462;netstandard2.0</TargetFrameworks>
 		<LangVersion>14</LangVersion>
-		<Version>0.5.5</Version>
+		<Version>0.5.4</Version>
 		<!-- New net462-targeting library during 0.x: derive AssemblyVersion from
 		     Version's minor (SemVer's breaking position pre-1.0) so a breaking
 		     0.x release changes netfx binding identity and gives consumers a

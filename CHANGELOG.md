@@ -15,9 +15,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   TFMs where `System.Linq.AsyncEnumerable` isn't available (#124). Scoped to
   exactly the TFMs the BCL doesn't cover, so there's no ambiguous-call risk with
   `System.Linq.AsyncEnumerable` on net8.0+ — the package simply doesn't apply
-  there. Independently versioned starting at 0.5.5 — the next version not
-  already spent by a git tag, since `v0.5.4` was tagged for the main package
-  earlier the same day and tag names are permanent.
+  there. Version synced to `0.5.4` to match the main package for now — not
+  released standalone. Ships (and gets its first real release) alongside the
+  main package at whichever version comes next (0.5.5 or 0.6), lockstep.
 
 ### Changed
 
