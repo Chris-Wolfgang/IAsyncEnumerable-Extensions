@@ -51,6 +51,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+- `SECURITY.md`: added a "Release path & compromise scope" appendix
+  documenting the OIDC release identity, the (nonexistent) fallback if
+  Trusted Publishing is compromised, and the package coordinates for
+  unlisting — the load-bearing facts a maintainer would need during an
+  incident, without duplicating GitHub's/NuGet's own generic
+  incident-response docs (#246).
+
 ## [0.5.3] - 2026-08-26
 
 No public API changes. This release is a maintenance / infrastructure
