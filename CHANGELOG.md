@@ -69,6 +69,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+- Pinned 42 action references that zizmor flagged as unpinned (High
+  severity) across 7 workflow files — `benchmarks.yaml`,
+  `build-all-versions.yaml`, `codeql.yaml`, `docfx.yaml`, `pr.yaml`,
+  `release.yaml`, `stryker.yaml` — reusing the exact commit SHA already
+  pinned elsewhere in the repo for each action, for consistency.
+  Pre-existing debt, not introduced by this cycle's PRs. Also documented a
+  `# zizmor: ignore[dangerous-triggers]` suppression on `pr.yaml`'s
+  `pull_request_target` trigger — deliberate and already mitigated by the
+  existing trusted-config-fetch + protected-file-change-detection steps
+  (see `docs/WORKFLOW_SECURITY.md`), not an oversight. `zizmor`/`actionlint`
+  both clean after the fix (0 High findings; the 5 remaining are
+  Informational false-positive-shaped: trusted step-outcome interpolation
+  and one style suggestion).
+
 - `SECURITY.md`: added a "Release path & compromise scope" appendix
   documenting the OIDC release identity, the (nonexistent) fallback if
   Trusted Publishing is compromised, and the package coordinates for
