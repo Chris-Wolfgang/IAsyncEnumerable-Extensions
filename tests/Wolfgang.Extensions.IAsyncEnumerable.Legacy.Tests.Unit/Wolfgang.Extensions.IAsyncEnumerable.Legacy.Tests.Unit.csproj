@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-	<!-- net462 exercises the Polyfill package's net462 build directly; net10.0
+	<!-- net462 exercises the Legacy package's net462 build directly; net10.0
 	     has no exact match in the package's net462;netstandard2.0 TargetFrameworks
 	     so it resolves via NuGet fallback to the netstandard2.0 build — between
 	     the two, both compiled surfaces of the package are exercised. -->
@@ -63,7 +63,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\..\src\Wolfgang.Extensions.IAsyncEnumerable.Polyfill\Wolfgang.Extensions.IAsyncEnumerable.Polyfill.csproj" />
+	  <ProjectReference Include="..\..\src\Wolfgang.Extensions.IAsyncEnumerable.Legacy\Wolfgang.Extensions.IAsyncEnumerable.Legacy.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>

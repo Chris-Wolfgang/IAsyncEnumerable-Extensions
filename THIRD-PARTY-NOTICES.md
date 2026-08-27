@@ -17,7 +17,7 @@ dependency graph changes.
 > `IAsyncDisposable` interfaces for netstandard2.0/net462; it is not pulled
 > in on net8.0+, where these types are part of the framework.
 
-## Wolfgang.Extensions.IAsyncEnumerable.Polyfill
+## Wolfgang.Extensions.IAsyncEnumerable.Legacy
 
 | Package | Version | License |
 |---------|---------|---------|
@@ -35,7 +35,7 @@ Microsoft.Bcl.AsyncInterfaces — © Microsoft Corporation. All rights reserved.
 Generated from:
 ```
 dotnet-project-licenses --input src/Wolfgang.Extensions.IAsyncEnumerable/Wolfgang.Extensions.IAsyncEnumerable.csproj
-dotnet-project-licenses --input src/Wolfgang.Extensions.IAsyncEnumerable.Polyfill/Wolfgang.Extensions.IAsyncEnumerable.Polyfill.csproj
+dotnet-project-licenses --input src/Wolfgang.Extensions.IAsyncEnumerable.Legacy/Wolfgang.Extensions.IAsyncEnumerable.Legacy.csproj
 ```
 against each src project's shipped (non-analyzer, non-test) dependency
 graph. Analyzer packages (`Roslynator.Analyzers`, `Meziantou.Analyzer`,

@@ -10,7 +10,7 @@ namespace Wolfgang.Extensions.IAsyncEnumerable;
 /// net462 / netstandard2.0 where System.Linq.AsyncEnumerable is not available.
 /// </summary>
 // ReSharper disable once InconsistentNaming
-public static class IAsyncEnumerablePolyfillExtensions
+public static class IAsyncEnumerableLegacyExtensions
 {
 
     /// <summary>

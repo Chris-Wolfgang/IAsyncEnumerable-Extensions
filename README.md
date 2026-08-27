@@ -21,16 +21,16 @@ dotnet add package Wolfgang.Extensions.IAsyncEnumerable
 
 **NuGet Package:** [Wolfgang.Extensions.IAsyncEnumerable](https://www.nuget.org/packages/Wolfgang.Extensions.IAsyncEnumerable)
 
-On net462 / netstandard2.0, where `System.Linq.AsyncEnumerable` isn't available, add the companion polyfill package for terminal operators (`CountAsync`, `AnyAsync`, `FirstAsync`, `FirstOrDefaultAsync`, `ToListAsync`):
+On net462 / netstandard2.0, where `System.Linq.AsyncEnumerable` isn't available, add the companion legacy package for terminal operators (`CountAsync`, `AnyAsync`, `FirstAsync`, `FirstOrDefaultAsync`, `ToListAsync`):
 
 ```bash
-dotnet add package Wolfgang.Extensions.IAsyncEnumerable.Polyfill
+dotnet add package Wolfgang.Extensions.IAsyncEnumerable.Legacy
 ```
 
-[![NuGet](https://img.shields.io/nuget/v/Wolfgang.Extensions.IAsyncEnumerable.Polyfill.svg?logo=nuget&label=NuGet)](https://www.nuget.org/packages/Wolfgang.Extensions.IAsyncEnumerable.Polyfill)
-[![NuGet downloads](https://img.shields.io/nuget/dt/Wolfgang.Extensions.IAsyncEnumerable.Polyfill.svg?logo=nuget&label=downloads)](https://www.nuget.org/packages/Wolfgang.Extensions.IAsyncEnumerable.Polyfill)
+[![NuGet](https://img.shields.io/nuget/v/Wolfgang.Extensions.IAsyncEnumerable.Legacy.svg?logo=nuget&label=NuGet)](https://www.nuget.org/packages/Wolfgang.Extensions.IAsyncEnumerable.Legacy)
+[![NuGet downloads](https://img.shields.io/nuget/dt/Wolfgang.Extensions.IAsyncEnumerable.Legacy.svg?logo=nuget&label=downloads)](https://www.nuget.org/packages/Wolfgang.Extensions.IAsyncEnumerable.Legacy)
 
-**NuGet Package:** [Wolfgang.Extensions.IAsyncEnumerable.Polyfill](https://www.nuget.org/packages/Wolfgang.Extensions.IAsyncEnumerable.Polyfill)
+**NuGet Package:** [Wolfgang.Extensions.IAsyncEnumerable.Legacy](https://www.nuget.org/packages/Wolfgang.Extensions.IAsyncEnumerable.Legacy)
 
 ---
 
@@ -70,9 +70,9 @@ All nine extensions live on `IAsyncEnumerableExtensions` (`namespace Wolfgang.Ex
 | `NoneAsync<T>(source, ct)` | `true` if the stream yields zero elements (same shape as `IsEmptyAsync`, different naming). |
 | `NoneAsync<T>(source, predicate, ct)` | `true` if no element satisfies the predicate. Short-circuits on the first match. |
 
-### Terminal operators (`Wolfgang.Extensions.IAsyncEnumerable.Polyfill`, net462 / netstandard2.0 only)
+### Terminal operators (`Wolfgang.Extensions.IAsyncEnumerable.Legacy`, net462 / netstandard2.0 only)
 
-These live on `IAsyncEnumerablePolyfillExtensions` (same `Wolfgang.Extensions.IAsyncEnumerable` namespace, separate assembly). They exist only for TFMs where `System.Linq.AsyncEnumerable` isn't available — on net8.0+, use the BCL versions instead.
+These live on `IAsyncEnumerableLegacyExtensions` (same `Wolfgang.Extensions.IAsyncEnumerable` namespace, separate assembly). They exist only for TFMs where `System.Linq.AsyncEnumerable` isn't available — on net8.0+, use the BCL versions instead.
 
 | Method | Purpose |
 |---|---|
@@ -109,12 +109,12 @@ await foreach (var batch in source
 - **.NET Standard:** 2.0
 - **.NET:** 8.0, 10.0
 
-**Wolfgang.Extensions.IAsyncEnumerable.Polyfill** targets:
+**Wolfgang.Extensions.IAsyncEnumerable.Legacy** targets:
 
 - **.NET Framework:** 4.6.2
 - **.NET Standard:** 2.0
 
-See each package's NuGet page ([main](https://www.nuget.org/packages/Wolfgang.Extensions.IAsyncEnumerable/), [Polyfill](https://www.nuget.org/packages/Wolfgang.Extensions.IAsyncEnumerable.Polyfill/)) for the authoritative per-TFM compatibility matrix.
+See each package's NuGet page ([main](https://www.nuget.org/packages/Wolfgang.Extensions.IAsyncEnumerable/), [Legacy](https://www.nuget.org/packages/Wolfgang.Extensions.IAsyncEnumerable.Legacy/)) for the authoritative per-TFM compatibility matrix.
 
 ## 🔍 Code Quality
 

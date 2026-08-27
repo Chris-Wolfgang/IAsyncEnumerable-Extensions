@@ -14,7 +14,7 @@ provenance instead of a local file path).
 
 `reproducible-build.yaml` verifies this weekly (+ on demand): it builds
 every package under `src/` (`Wolfgang.Extensions.IAsyncEnumerable` and
-`Wolfgang.Extensions.IAsyncEnumerable.Polyfill`) on both `ubuntu-latest`
+`Wolfgang.Extensions.IAsyncEnumerable.Legacy`) on both `ubuntu-latest`
 and `windows-latest` and SHA-256-hashes the per-TFM assembly from each.
 The hashes must match exactly.
 
