@@ -41,6 +41,7 @@ A malicious PR could modify these files to disable security checks.
 - `BannedSymbols.txt` - Banned API usage rules
 - `*.globalconfig` - Global analyzer configuration
 - `*.ruleset` - Code analysis rulesets
+- `*.DotSettings` - ReSharper InspectCode noise-floor profile
 - `.github/workflows/*.yml` and `.github/workflows/*.yaml` - Workflow definitions
 
 In addition to the overwrite step, a separate "Detect protected configuration file changes" step in `pr.yaml` causes the PR to fail if any of these files differ from `main`, signalling that a maintainer must manually review the change. Dependabot is exempted (its bumps to `Directory.Build.props` are legitimate).
@@ -62,6 +63,7 @@ In addition to the overwrite step, a separate "Detect protected configuration fi
       "BannedSymbols.txt"
       "*.globalconfig"
       "*.ruleset"
+      "*.DotSettings"
       ".github/workflows/*.yml"
       ".github/workflows/*.yaml"
     )

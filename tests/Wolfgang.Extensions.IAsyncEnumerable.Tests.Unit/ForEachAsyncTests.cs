@@ -84,6 +84,29 @@ public sealed class ForEachAsyncTests
 
 
     [Fact]
+    public async Task ForEachAsync_Action_with_pre_canceled_token_never_invokes_action()
+    {
+        // The pre-loop ThrowIfCancellationRequested() must fire before the source is
+        // ever enumerated. Asserting only the exception type would still pass if that
+        // check were removed, since the in-loop check (after the first action call)
+        // fires on this same pre-canceled token — so assert the action never ran too.
+        using var tokenSource = new CancellationTokenSource();
+        tokenSource.Cancel();
+
+        var source = CreateSource(1, 2, 3);
+        var invoked = false;
+
+        await Assert.ThrowsAsync<OperationCanceledException>
+        (
+            () => source.ForEachAsync(_ => invoked = true, tokenSource.Token)
+        );
+
+        Assert.False(invoked);
+    }
+
+
+
+    [Fact]
     public async Task ForEachAsync_Action_when_cancellation_requested_during_enumeration_throws_OperationCanceledException()
     {
         using var tokenSource = new CancellationTokenSource();
@@ -221,6 +244,31 @@ public sealed class ForEachAsyncTests
         (
             () => source.ForEachAsync(_ => Task.CompletedTask, tokenSource.Token)
         );
+    }
+
+
+
+    [Fact]
+    public async Task ForEachAsync_Func_with_pre_canceled_token_never_invokes_action()
+    {
+        // Same isolation as the Action overload's pre-loop check — assert the async
+        // action never ran, not just that some OperationCanceledException surfaced.
+        using var tokenSource = new CancellationTokenSource();
+        tokenSource.Cancel();
+
+        var source = CreateSource(1, 2, 3);
+        var invoked = false;
+
+        await Assert.ThrowsAsync<OperationCanceledException>
+        (
+            () => source.ForEachAsync(_ =>
+            {
+                invoked = true;
+                return Task.CompletedTask;
+            }, tokenSource.Token)
+        );
+
+        Assert.False(invoked);
     }
 
 

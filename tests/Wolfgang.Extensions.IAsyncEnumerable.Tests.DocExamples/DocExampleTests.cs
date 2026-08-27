@@ -42,6 +42,54 @@ public sealed class DocExampleTests
 
 
     [Fact]
+    public void Example_compiles_when_code_contains_yield_uses_async_iterator_signature()
+    {
+        // Exercises BuildWrapperSource's "yield" branch directly — none of
+        // the 8 real XML-doc examples happen to be async iterators, so this
+        // branch is otherwise unreachable through the Theory above.
+        var example = new DocExample("synthetic.cs", 1, "yield return \"ok\";");
+
+        var errors = DocExampleCompiler.Compile(example);
+
+        Assert.Empty(errors);
+    }
+
+
+
+    [Fact]
+    public void Example_compiles_when_code_has_no_await_or_yield_uses_sync_void_signature()
+    {
+        // Exercises BuildWrapperSource's synchronous "void RunAsync()" branch
+        // directly — every real XML-doc example uses await, so this branch is
+        // otherwise unreachable through the Theory above.
+        var example = new DocExample("synthetic.cs", 1, "var x = 1 + 1;");
+
+        var errors = DocExampleCompiler.Compile(example);
+
+        Assert.Empty(errors);
+    }
+
+
+
+    [Fact]
+    public void FindSrcDirectory_when_no_ancestor_has_a_src_directory_throws_DirectoryNotFoundException()
+    {
+        // A fresh temp subdirectory has no src/Wolfgang.Extensions.IAsyncEnumerable/
+        // anywhere in its ancestor chain, unlike AppContext.BaseDirectory in every
+        // real test run — this is the only way to reach the not-found path.
+        var isolatedStart = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"));
+
+        var ex = Assert.Throws<DirectoryNotFoundException>
+        (
+            () => DocExampleSource.FindSrcDirectory(isolatedStart)
+        );
+
+        Assert.Contains(isolatedStart, ex.Message, StringComparison.Ordinal);
+    }
+
+
+
+    [Fact]
     public void ExtractAll_when_examples_exist_finds_at_least_the_known_count()
     {
         // Floor guard: if the extractor's <example>/<code> line-matching

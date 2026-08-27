@@ -19,6 +19,98 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+## [0.5.4] - 2026-08-27
+
+No public API changes — a follow-on maintenance / infrastructure release
+closing out the CI/CD hardening backlog: real test coverage on the test
+assemblies themselves (found and fixed 3 genuine gaps), the last Stryker
+mutation survivors, PackageValidation and NuGet Trusted Publishing gates,
+a documented incident-response appendix, and a supply-chain pin sweep
+across every workflow.
+
+### Added
+
+- `ChunkAsyncTests`, `DoAsyncTests`, `ForEachAsyncTests`: 5 new tests isolating
+  each pre-loop `ThrowIfCancellationRequested()` guard from the matching
+  in-loop check, killing the 5 Stryker survivors tracked in #304. The
+  existing pre-canceled-token tests drained the whole sequence, so a
+  pre-canceled token also tripped the in-loop check on the second
+  `MoveNextAsync()` — masking a removed pre-loop check. The new tests assert
+  on the very first `MoveNextAsync()`/action invocation instead, so the
+  source is provably never touched. Mutation score: 92.06% → 100%, 0
+  survivors (#304).
+- `IAsyncEnumerable Extensions.slnx.DotSettings`: ReSharper InspectCode
+  noise-floor profile, silencing the `RS0016`/`RS0036`/`RS0037`
+  (PublicApiAnalyzer) findings InspectCode duplicates from this repo's own
+  PublicApiAnalyzer gate. Dropped InspectCode's findings on a clean main
+  from 349 to 40, with no change to the error-only merge gate (all 349 were
+  already warning-severity). `*.DotSettings` added to `pr.yaml`'s protected
+  configuration files, closing the gap where a PR could edit it without
+  triggering the maintainer-review guard (#266).
+- `EnablePackageValidation` + `PackageValidationBaselineVersion` (0.5.3) on
+  the src csproj — protects consumers against an unintentional
+  binary-breaking change at the next release. Verified locally: `dotnet
+  pack` reports zero compatibility breaks against the published 0.5.3
+  baseline (#286).
+- `coverlet.runsettings`: `IncludeTestAssembly` was never set (defaults to
+  `false`), so the coverage gate only ever measured `src/` — test-code dead
+  helpers and unused branches were invisible fleet-wide except on
+  ETL-SqlBulkCopy. Also: `Tests.Concurrency`, `Tests.DocExamples`, and
+  `Tests.Fuzz` were missing `coverlet.collector` entirely, so their
+  coverage collection silently no-op'd even once test-assembly
+  instrumentation was on. Fixed both; added 3 tests to
+  `DocExampleTests`/`DocExampleSource` covering branches only reachable
+  with a synthetic (not real) doc example, and removed one dead
+  100,000-iteration safety cap in `DeepBehaviorTests`' `ThrowingAsyncEnumerable`
+  fake that no test path could ever reach. Merged line coverage across all
+  4 test projects + src: 99.1% (`Tests.Concurrency`/`DocExamples.Source`/
+  `DocExamples.Compiler` now 100%). The remaining ~0.9% is exclusively
+  delegate bodies a test provably never invokes by design (e.g.
+  "empty source executes no actions"), fuzz-property counter-example
+  branches only reachable if the code under test were actually broken, and
+  compiler-generated async-lambda state-machine bookkeeping — none
+  fixable without defeating the test's own purpose (#292).
+
+### Changed
+
+- `release.yaml`: migrated NuGet publishing from a long-lived
+  `NUGET_API_KEY` secret to Trusted Publishing (OIDC) via `NuGet/login@v1`
+  — every release now exchanges the workflow's GitHub OIDC token for an
+  ephemeral (~1-hour) push key, so there's no standing credential to leak,
+  phish, or rotate. Matches the other 9 fleet repos already on this
+  pattern. **Requires a one-time nuget.org Trusted Publishing policy for
+  this repo before the next release** — see the job comment in
+  `release.yaml` (#279).
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+- Pinned 42 action references that zizmor flagged as unpinned (High
+  severity) across 7 workflow files — `benchmarks.yaml`,
+  `build-all-versions.yaml`, `codeql.yaml`, `docfx.yaml`, `pr.yaml`,
+  `release.yaml`, `stryker.yaml` — reusing the exact commit SHA already
+  pinned elsewhere in the repo for each action, for consistency.
+  Pre-existing debt, not introduced by this cycle's PRs. Also documented a
+  `# zizmor: ignore[dangerous-triggers]` suppression on `pr.yaml`'s
+  `pull_request_target` trigger — deliberate and already mitigated by the
+  existing trusted-config-fetch + protected-file-change-detection steps
+  (see `docs/WORKFLOW_SECURITY.md`), not an oversight. `zizmor`/`actionlint`
+  both clean after the fix (0 High findings; the 5 remaining are
+  Informational false-positive-shaped: trusted step-outcome interpolation
+  and one style suggestion).
+
+- `SECURITY.md`: added a "Release path & compromise scope" appendix
+  documenting the OIDC release identity, the (nonexistent) fallback if
+  Trusted Publishing is compromised, and the package coordinates for
+  unlisting — the load-bearing facts a maintainer would need during an
+  incident, without duplicating GitHub's/NuGet's own generic
+  incident-response docs (#246).
+
 ## [0.5.3] - 2026-08-26
 
 No public API changes. This release is a maintenance / infrastructure
@@ -317,7 +409,8 @@ plus a fix for a Release-build blocker.
   without an explicit maintainer admin-bypass.
 - `persist-credentials: false` on the gitleaks / stryker checkouts.
 
-[Unreleased]: https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/compare/v0.5.3...HEAD
+[Unreleased]: https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/compare/v0.5.4...HEAD
+[0.5.4]: https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/compare/v0.5.3...v0.5.4
 [0.5.3]: https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/compare/v0.5.2...v0.5.3
 [0.5.2]: https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/compare/v0.5.1...v0.5.2
 [0.5.1]: https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/compare/v0.5.0...v0.5.1

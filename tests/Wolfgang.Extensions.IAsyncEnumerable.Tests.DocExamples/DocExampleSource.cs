@@ -105,9 +105,19 @@ public static class DocExampleSource
     /// resolves to a deterministic-build placeholder (e.g. <c>/_/...</c>)
     /// under CI, not a real filesystem path.
     /// </summary>
-    private static string FindSrcDirectory()
+    private static string FindSrcDirectory() => FindSrcDirectory(AppContext.BaseDirectory);
+
+
+
+    /// <summary>
+    /// Starting-directory overload, split out purely so the not-found path
+    /// is directly testable with a synthetic starting directory instead of
+    /// depending on the real <see cref="AppContext.BaseDirectory"/> ever
+    /// lacking a <c>src/</c> ancestor.
+    /// </summary>
+    internal static string FindSrcDirectory(string startDirectory)
     {
-        var dir = new DirectoryInfo(AppContext.BaseDirectory);
+        var dir = new DirectoryInfo(startDirectory);
 
         while (dir is not null)
         {
@@ -121,7 +131,7 @@ public static class DocExampleSource
         }
 
         throw new DirectoryNotFoundException(
-            $"Could not locate src/{LibraryDirectoryName}/ by walking up from '{AppContext.BaseDirectory}'.");
+            $"Could not locate src/{LibraryDirectoryName}/ by walking up from '{startDirectory}'.");
     }
 
 
