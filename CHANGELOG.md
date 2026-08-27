@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `ChunkAsyncTests`, `DoAsyncTests`, `ForEachAsyncTests`: 5 new tests isolating
+  each pre-loop `ThrowIfCancellationRequested()` guard from the matching
+  in-loop check, killing the 5 Stryker survivors tracked in #304. The
+  existing pre-canceled-token tests drained the whole sequence, so a
+  pre-canceled token also tripped the in-loop check on the second
+  `MoveNextAsync()` — masking a removed pre-loop check. The new tests assert
+  on the very first `MoveNextAsync()`/action invocation instead, so the
+  source is provably never touched. Mutation score: 92.06% → 100%, 0
+  survivors (#304).
+
 ### Changed
 
 ### Deprecated

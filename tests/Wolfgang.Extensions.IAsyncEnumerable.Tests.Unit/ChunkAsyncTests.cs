@@ -122,6 +122,30 @@ public sealed class ChunkAsyncTests
     }
 
     [Fact]
+    public async Task ChunkAsync_WithPreCanceledToken_NeverEnumeratesSource()
+    {
+        // The pre-loop ThrowIfCancellationRequested() must fire before the source is
+        // ever touched. A source with enough items to fill a full chunk would otherwise
+        // let the in-loop check (after the first yield) catch the same pre-canceled
+        // token, masking a removed pre-loop check.
+        using var tokenSource = new CancellationTokenSource();
+        tokenSource.Cancel();
+
+        var source = new TrackingAsyncEnumerable(1, 2, 3);
+
+        var chunked = source.ChunkAsync(2, tokenSource.Token);
+
+        await Assert.ThrowsAsync<OperationCanceledException>
+        (
+            async () => await chunked.GetAsyncEnumerator().MoveNextAsync()
+        );
+
+        Assert.False(source.EnumerationStarted);
+    }
+
+
+
+    [Fact]
     public async Task ChunkAsync_WhenCancellationRequestedDuringEnumeration_ThrowsOperationCanceledException()
     {
         using var tokenSource = new CancellationTokenSource();
