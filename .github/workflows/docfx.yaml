@@ -50,10 +50,20 @@ on:
 permissions:
   contents: read  # Default to read-only; the build-and-deploy job overrides with write
 
+# Serialize gh-pages deploys: a workflow_dispatch docs run racing a
+# release-triggered deploy would have the loser fail on a non-fast-forward
+# push to gh-pages. One fixed group (not per-ref) because every run pushes
+# to the same branch; never cancel — a half-deployed docs site is worse
+# than a queued rebuild.
+concurrency:
+  group: docfx-gh-pages-deploy
+  cancel-in-progress: false
+
 jobs:
   build-and-deploy:
     name: Build & Deploy Documentation
     runs-on: windows-latest
+    timeout-minutes: 30
 
     permissions:
       contents: write # Allow write access for gh-pages branch

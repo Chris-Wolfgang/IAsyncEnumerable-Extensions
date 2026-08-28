@@ -10,7 +10,10 @@ on:
     branches:
       - main
     paths:
-      - 'src/**'
+      # Scoped to the main package, not 'src/**' — benchmarks only cover
+      # Wolfgang.Extensions.IAsyncEnumerable's hot-path operators, so a
+      # Legacy-only change shouldn't trigger this workflow.
+      - 'src/Wolfgang.Extensions.IAsyncEnumerable/**'
       - 'benchmarks/**'
 
 concurrency:
@@ -24,6 +27,7 @@ jobs:
   pr-benchmarks:
     name: "Compare PR head vs base branch"
     runs-on: ubuntu-latest
+    timeout-minutes: 90
     permissions:
       contents: read
       pull-requests: write  # to post/update the delta-table comment
@@ -85,9 +89,25 @@ jobs:
       - name: Compare and render delta table
         id: compare
         run: |
+          # Exit-code contract with compare-pr-benchmarks.py:
+          #   0 = no regression, 3 = allocation regression beyond tolerance,
+          #   anything else = the script itself crashed. Distinguishing 3 from
+          #   generic failure matters: previously any crash (bad JSON, schema
+          #   drift) exited 1 and was treated as a "regression" — waivable via
+          #   the perf-impact-acknowledged label, silently masking a broken
+          #   comparison pipeline.
           set +e
           python3 head/benchmarks/compare-pr-benchmarks.py head-report.json base-report.json delta.md
-          echo "regressed=$?" >> "$GITHUB_OUTPUT"
+          rc=$?
+          set -e
+          case "$rc" in
+            0) echo "regressed=0" >> "$GITHUB_OUTPUT" ;;
+            3) echo "regressed=1" >> "$GITHUB_OUTPUT" ;;
+            *)
+              echo "::error::compare-pr-benchmarks.py failed (exit $rc) — script failure, not a benchmark regression."
+              exit "$rc"
+              ;;
+          esac
 
       - name: Post/update PR comment
         env:

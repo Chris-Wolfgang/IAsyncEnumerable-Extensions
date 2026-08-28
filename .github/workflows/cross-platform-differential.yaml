@@ -31,6 +31,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
 
     steps:
       - name: Checkout repository
@@ -67,6 +68,7 @@ jobs:
     name: "Diff results across platforms"
     needs: test
     runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     steps:
       - name: Download all normalized results
