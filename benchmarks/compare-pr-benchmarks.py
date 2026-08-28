@@ -5,11 +5,15 @@ a markdown delta table for a PR comment (#249).
 Usage:
     python3 compare-pr-benchmarks.py <head-report.json> <base-report.json> <output.md>
 
-Exit code 0 if every benchmark is within tolerance, 1 if any regressed
-beyond TIME_TOLERANCE or ALLOC_TOLERANCE. The caller (pr-benchmarks.yaml)
-is responsible for treating a non-zero exit as advisory-only when the PR
-carries the `perf-impact-acknowledged` label — this script only computes
-and reports, it doesn't know about labels.
+Exit codes: 0 = every benchmark's allocations are within tolerance,
+3 = at least one benchmark's allocation regressed beyond ALLOC_TOLERANCE,
+anything else (e.g. 2 for usage errors, or an uncaught exception) = crash.
+Only allocation regressions gate; time regressions beyond TIME_TOLERANCE
+are advisory-only — flagged in the table but never affect the exit code
+(shared-runner wall-clock is too noisy to gate on). The caller
+(pr-benchmarks.yaml) is responsible for treating exit 3 as advisory-only
+when the PR carries the `perf-impact-acknowledged` label — this script
+only computes and reports, it doesn't know about labels.
 """
 
 from __future__ import annotations
@@ -27,7 +31,7 @@ def load(path: str) -> dict[str, dict[str, float]]:
 
     results = {}
     for benchmark in data.get("Benchmarks", []):
-        name = benchmark.get("FullName", benchmark["Method"])
+        name = benchmark.get("FullName") or benchmark.get("Method") or "?"
         stats = benchmark.get("Statistics", {}) or {}
         memory = benchmark.get("Memory", {}) or {}
         results[name] = {
@@ -62,7 +66,10 @@ def main() -> int:
         b = base.get(name)
 
         if h is None:
-            rows.append(f"| `{name}` | _removed_ | {format_ns(b['meanNanoseconds'])} | — | {b['allocatedBytes']:.0f} B | — |")
+            # Benchmark exists only in the base run. The table's alloc column
+            # is head-side, so show the base time in the base column and em
+            # dashes for the head-side cells rather than misfiling base data.
+            rows.append(f"| `{name}` | _removed_ | {format_ns(b['meanNanoseconds'])} | — | — | — |")
             continue
         if b is None:
             rows.append(f"| `{name}` | {format_ns(h['meanNanoseconds'])} | _new_ | — | {h['allocatedBytes']:.0f} B | — |")
@@ -103,7 +110,9 @@ def main() -> int:
     # workflow posts as the PR comment.
     print(f"Wrote {output_path}: {'REGRESSION' if any_regression else 'within tolerance'}")
 
-    return 1 if any_regression else 0
+    # 3 (not 1) so the caller can tell "allocation regression beyond
+    # tolerance" apart from a crash: 0 = clean, 3 = regression, other = crash.
+    return 3 if any_regression else 0
 
 
 if __name__ == "__main__":

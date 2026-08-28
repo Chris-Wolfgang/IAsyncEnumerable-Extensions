@@ -73,21 +73,36 @@ if ($Repository) {
     if ($Repository.EndsWith('.git')) { $Repository = $Repository.Substring(0, $Repository.Length - 4) }
 }
 
-# Determine repository
-if ($Repository -eq "{{GITHUB_USERNAME}}/{{REPO_NAME}}" -or -not $Repository) {
+# Determine repository. The default value is a template placeholder that
+# setup.ps1 normally substitutes; if it (or any partial "{{...}}" remnant) is
+# still present, fall back to auto-detection like Setup-Labels.ps1 does.
+$isPlaceholder = $Repository -and $Repository.Contains('{{')
+if ($isPlaceholder -or -not $Repository) {
     Write-Host "Detecting current repository..." -ForegroundColor Cyan
+    $detected = $null
     try {
-        $repoInfo = gh repo view --json nameWithOwner | ConvertFrom-Json
-        $Repository = $repoInfo.nameWithOwner
-        Write-Host "Using repository: $Repository" -ForegroundColor Green
+        # gh failures don't throw in PowerShell (non-zero exit, stderr text),
+        # so check $LASTEXITCODE explicitly — a try/catch alone would sail
+        # past a failed detection with $Repository silently left null.
+        $repoJson = gh repo view --json nameWithOwner 2>$null
+        if ($LASTEXITCODE -eq 0 -and $repoJson) {
+            $detected = ($repoJson | ConvertFrom-Json).nameWithOwner
+        }
     } catch {
-        if ($Repository -eq "{{GITHUB_USERNAME}}/{{REPO_NAME}}") {
-            Write-Error "Could not detect repository. Please run the setup script first to replace placeholders, or specify -Repository parameter."
+        $detected = $null
+    }
+
+    if (-not $detected) {
+        if ($isPlaceholder) {
+            Write-Error "Could not detect repository (the -Repository default is an unexpanded template placeholder). Run the setup script first to replace placeholders, run from within a git repository with a GitHub remote, or specify -Repository owner/repo."
         } else {
             Write-Error "Could not detect repository. Please run from within a git repository or specify -Repository parameter."
         }
         exit 1
     }
+
+    $Repository = $detected
+    Write-Host "Using repository: $Repository" -ForegroundColor Green
 } else {
     Write-Host "Using specified repository: $Repository" -ForegroundColor Green
 }

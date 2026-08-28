@@ -89,6 +89,14 @@ if ($LASTEXITCODE -ne 0) {
     Write-Host "ApiCompat.Tool install returned non-zero (may already be installed) — continuing." -ForegroundColor Yellow
 }
 
+# The install failure above is tolerated only because the tool may already be
+# present. Verify it actually resolves before proceeding — otherwise the loop
+# below dies later with a raw CommandNotFound that obscures the real problem.
+if (-not (Get-Command apicompat -ErrorAction SilentlyContinue)) {
+    Write-Error "apicompat was not found on PATH after 'dotnet tool install --global Microsoft.DotNet.ApiCompat.Tool'. Ensure the dotnet global tools directory (e.g. ~/.dotnet/tools) is on PATH and the install succeeded, then re-run."
+    exit 1
+}
+
 $allUnsuppressedBreaks = @()
 
 foreach ($srcProject in $srcProjects) {
@@ -106,6 +114,18 @@ foreach ($srcProject in $srcProjects) {
     }
     $currentVersion = $currentVersionRaw.Trim()
     Write-Host "Current version: $currentVersion" -ForegroundColor Cyan
+
+    # TFMs the project currently targets — used to distinguish a deliberately
+    # removed TFM (a breaking change) from a merely-not-yet-built one.
+    $targetFrameworksRaw = $projectXml.Project.PropertyGroup.TargetFrameworks | Where-Object { $_ } | Select-Object -First 1
+    if (-not $targetFrameworksRaw) {
+        $targetFrameworksRaw = $projectXml.Project.PropertyGroup.TargetFramework | Where-Object { $_ } | Select-Object -First 1
+    }
+    $targetFrameworks = @(
+        ([string]$targetFrameworksRaw) -split ';' |
+            ForEach-Object { $_.Trim() } |
+            Where-Object { $_ }
+    )
 
     $previousVersion = Get-PreviousVersion -PackageId $packageId -BelowVersion $currentVersion
 
@@ -136,8 +156,34 @@ foreach ($srcProject in $srcProjects) {
         $currentDll = Join-Path $srcProject.DirectoryName 'bin' $Configuration $tfm "$packageId.dll"
 
         if (-not (Test-Path $currentDll)) {
-            Write-Warning "No built assembly found for $tfm at $currentDll — skipping (build all TFMs before running this script)."
-            continue
+            if ($targetFrameworks -notcontains $tfm) {
+                # The TFM was shipped in the previous package but the csproj no
+                # longer targets it at all — that IS a breaking change for
+                # consumers on that framework, not something to skip past.
+                $breakMessage = "$packageId ($tfm): TargetFramework $tfm was shipped in $previousVersion but is no longer targeted - dropping a TFM is a breaking change"
+
+                $isSuppressed = $false
+                foreach ($entry in $suppressionLines) {
+                    if ($breakMessage.Contains($entry)) {
+                        $isSuppressed = $true
+                        break
+                    }
+                }
+
+                if ($isSuppressed) {
+                    Write-Host "  [suppressed] $breakMessage" -ForegroundColor DarkYellow
+                } else {
+                    Write-Host "  [BREAK] $breakMessage" -ForegroundColor Red
+                    $allUnsuppressedBreaks += $breakMessage
+                }
+                continue
+            }
+
+            # TFM is still in <TargetFrameworks> but has no build output — a
+            # partial build. Skipping here would silently weaken the gate, so
+            # fail hard and tell the caller to build everything first.
+            Write-Error "No built assembly for $packageId ($tfm) at $currentDll, but $tfm is still listed in <TargetFrameworks>. Build all TFMs first (dotnet build -c $Configuration) and re-run — a partial build must not weaken the ABI gate."
+            exit 1
         }
 
         Write-Host "`n=== Comparing $packageId ($tfm) ===" -ForegroundColor Cyan
@@ -155,7 +201,10 @@ foreach ($srcProject in $srcProjects) {
         foreach ($line in $output) {
             $isSuppressed = $false
             foreach ($entry in $suppressionLines) {
-                if ($line -like "*$entry*") {
+                # Literal substring match (case-sensitive). -like would treat
+                # wildcard chars (* ? [ ]) inside the suppression entry as
+                # patterns, silently widening or breaking the match.
+                if (([string]$line).Contains($entry)) {
                     $isSuppressed = $true
                     break
                 }
