@@ -5,7 +5,7 @@ public sealed class DoAsyncTests
     [Fact]
     public async Task DoAsync_Action_when_source_has_items_executes_action_on_each()
     {
-        var source = CreateSource(1, 2, 3);
+        var source = TestSources.Create(1, 2, 3);
         var observed = new List<int>();
 
         var result = await CollectAsync(source.DoAsync(x => observed.Add(x)));
@@ -19,7 +19,7 @@ public sealed class DoAsyncTests
     [Fact]
     public async Task DoAsync_Action_when_source_is_empty_executes_no_actions()
     {
-        var source = CreateSource();
+        var source = TestSources.Create<int>();
         var observed = new List<int>();
 
         var result = await CollectAsync(source.DoAsync(x => observed.Add(x)));
@@ -46,7 +46,7 @@ public sealed class DoAsyncTests
     [Fact]
     public async Task DoAsync_Action_when_action_is_null_throws_ArgumentNullException()
     {
-        var source = CreateSource(1, 2, 3);
+        var source = TestSources.Create(1, 2, 3);
 
         await Assert.ThrowsAsync<ArgumentNullException>
         (
@@ -59,7 +59,7 @@ public sealed class DoAsyncTests
     [Fact]
     public async Task DoAsync_Action_yields_original_items_unchanged()
     {
-        var source = CreateSource(10, 20, 30);
+        var source = TestSources.Create(10, 20, 30);
 
         var result = await CollectAsync(source.DoAsync(_ => { }));
 
@@ -71,7 +71,7 @@ public sealed class DoAsyncTests
     [Fact]
     public async Task DoAsync_Action_preserves_ordering()
     {
-        var source = CreateSource(5, 3, 1, 4, 2);
+        var source = TestSources.Create(5, 3, 1, 4, 2);
         var observed = new List<int>();
 
         var result = await CollectAsync(source.DoAsync(x => observed.Add(x)));
@@ -104,7 +104,7 @@ public sealed class DoAsyncTests
         using var tokenSource = new CancellationTokenSource();
         tokenSource.Cancel();
 
-        var source = CreateSource(1, 2, 3);
+        var source = TestSources.Create(1, 2, 3);
 
         await Assert.ThrowsAsync<OperationCanceledException>
         (
@@ -143,7 +143,7 @@ public sealed class DoAsyncTests
     {
         using var tokenSource = new CancellationTokenSource();
 
-        var source = CreateDelayedSource(TimeSpan.FromMilliseconds(10), 1, 2, 3, 4);
+        var source = TestSources.CreateDelayed(TimeSpan.FromMilliseconds(10), 1, 2, 3, 4);
 
         var tapped = source.DoAsync(_ => { }, tokenSource.Token);
 
@@ -164,18 +164,21 @@ public sealed class DoAsyncTests
     [Fact]
     public async Task DoAsync_Action_when_action_throws_propagates_exception()
     {
-        var source = CreateSource(1, 2, 3);
+        var source = TestSources.Create(1, 2, 3);
+        var sentinel = new InvalidOperationException("test");
 
-        await Assert.ThrowsAsync<InvalidOperationException>
+        var actual = await Assert.ThrowsAsync<InvalidOperationException>
         (
             () => CollectAsync(source.DoAsync(x =>
             {
                 if (x == 2)
                 {
-                    throw new InvalidOperationException("test");
+                    throw sentinel;
                 }
             }))
         );
+
+        Assert.Same(sentinel, actual);
     }
 
 
@@ -183,7 +186,7 @@ public sealed class DoAsyncTests
     [Fact]
     public async Task DoAsync_Action_executes_action_before_yielding_item()
     {
-        var source = CreateSource(1, 2, 3);
+        var source = TestSources.Create(1, 2, 3);
         var log = new List<string>();
 
         await foreach (var item in source.DoAsync(x => log.Add($"action:{x}")))
@@ -203,7 +206,7 @@ public sealed class DoAsyncTests
     [Fact]
     public async Task DoAsync_Func_when_source_has_items_executes_async_action_on_each()
     {
-        var source = CreateSource(1, 2, 3);
+        var source = TestSources.Create(1, 2, 3);
         var observed = new List<int>();
 
         var result = await CollectAsync(source.DoAsync(async x =>
@@ -221,7 +224,7 @@ public sealed class DoAsyncTests
     [Fact]
     public async Task DoAsync_Func_when_source_is_empty_executes_no_actions()
     {
-        var source = CreateSource();
+        var source = TestSources.Create<int>();
         var observed = new List<int>();
 
         var result = await CollectAsync(source.DoAsync(async x =>
@@ -252,7 +255,7 @@ public sealed class DoAsyncTests
     [Fact]
     public async Task DoAsync_Func_when_action_is_null_throws_ArgumentNullException()
     {
-        var source = CreateSource(1, 2, 3);
+        var source = TestSources.Create(1, 2, 3);
 
         await Assert.ThrowsAsync<ArgumentNullException>
         (
@@ -265,7 +268,7 @@ public sealed class DoAsyncTests
     [Fact]
     public async Task DoAsync_Func_yields_original_items_unchanged()
     {
-        var source = CreateSource(10, 20, 30);
+        var source = TestSources.Create(10, 20, 30);
 
         var result = await CollectAsync(source.DoAsync(_ => Task.CompletedTask));
 
@@ -277,7 +280,7 @@ public sealed class DoAsyncTests
     [Fact]
     public async Task DoAsync_Func_preserves_ordering()
     {
-        var source = CreateSource(5, 3, 1, 4, 2);
+        var source = TestSources.Create(5, 3, 1, 4, 2);
         var observed = new List<int>();
 
         var result = await CollectAsync(source.DoAsync(x =>
@@ -314,7 +317,7 @@ public sealed class DoAsyncTests
         using var tokenSource = new CancellationTokenSource();
         tokenSource.Cancel();
 
-        var source = CreateSource(1, 2, 3);
+        var source = TestSources.Create(1, 2, 3);
 
         await Assert.ThrowsAsync<OperationCanceledException>
         (
@@ -352,7 +355,7 @@ public sealed class DoAsyncTests
     {
         using var tokenSource = new CancellationTokenSource();
 
-        var source = CreateDelayedSource(TimeSpan.FromMilliseconds(10), 1, 2, 3, 4);
+        var source = TestSources.CreateDelayed(TimeSpan.FromMilliseconds(10), 1, 2, 3, 4);
 
         var tapped = source.DoAsync(_ => Task.CompletedTask, tokenSource.Token);
 
@@ -373,20 +376,23 @@ public sealed class DoAsyncTests
     [Fact]
     public async Task DoAsync_Func_when_action_throws_propagates_exception()
     {
-        var source = CreateSource(1, 2, 3);
+        var source = TestSources.Create(1, 2, 3);
+        var sentinel = new InvalidOperationException("test");
 
-        await Assert.ThrowsAsync<InvalidOperationException>
+        var actual = await Assert.ThrowsAsync<InvalidOperationException>
         (
             () => CollectAsync(source.DoAsync(x =>
             {
                 if (x == 2)
                 {
-                    throw new InvalidOperationException("test");
+                    throw sentinel;
                 }
 
                 return Task.CompletedTask;
             }))
         );
+
+        Assert.Same(sentinel, actual);
     }
 
 
@@ -394,7 +400,7 @@ public sealed class DoAsyncTests
     [Fact]
     public async Task DoAsync_Func_executes_action_before_yielding_item()
     {
-        var source = CreateSource(1, 2, 3);
+        var source = TestSources.Create(1, 2, 3);
         var log = new List<string>();
 
         await foreach (var item in source.DoAsync(x =>
@@ -418,7 +424,7 @@ public sealed class DoAsyncTests
     [Fact]
     public async Task DoAsync_Action_can_chain_with_ChunkAsync()
     {
-        var source = CreateSource(1, 2, 3, 4, 5, 6);
+        var source = TestSources.Create(1, 2, 3, 4, 5, 6);
         var observed = new List<int>();
 
         var chunks = new List<ICollection<int>>();
@@ -438,7 +444,7 @@ public sealed class DoAsyncTests
     [Fact]
     public async Task DoAsync_Func_can_chain_with_ChunkAsync()
     {
-        var source = CreateSource(1, 2, 3, 4, 5, 6);
+        var source = TestSources.Create(1, 2, 3, 4, 5, 6);
         var observed = new List<int>();
 
         var chunks = new List<ICollection<int>>();
@@ -459,24 +465,6 @@ public sealed class DoAsyncTests
 
 
 
-    private static async IAsyncEnumerable<int> CreateSource(params int[] values)
-    {
-        foreach (var value in values)
-        {
-            await Task.Yield();
-            yield return value;
-        }
-    }
-
-    private static async IAsyncEnumerable<int> CreateDelayedSource(TimeSpan delay, params int[] values)
-    {
-        foreach (var value in values)
-        {
-            await Task.Delay(delay);
-            yield return value;
-        }
-    }
-
     private static async Task<List<int>> CollectAsync(IAsyncEnumerable<int> source)
     {
         var result = new List<int>();
@@ -486,16 +474,5 @@ public sealed class DoAsyncTests
         }
 
         return result;
-    }
-
-    private sealed class TrackingAsyncEnumerable(params int[] values) : IAsyncEnumerable<int>
-    {
-        public bool EnumerationStarted { get; private set; }
-
-        public IAsyncEnumerator<int> GetAsyncEnumerator(CancellationToken cancellationToken = default)
-        {
-            EnumerationStarted = true;
-            return CreateSource(values).GetAsyncEnumerator(cancellationToken);
-        }
     }
 }

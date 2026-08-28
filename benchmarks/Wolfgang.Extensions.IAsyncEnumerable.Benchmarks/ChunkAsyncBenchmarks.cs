@@ -36,12 +36,6 @@ public class ChunkAsyncBenchmarks
 
 
 
-    //[Benchmark]
-    //public async Task<int> ChunkAsyncV2()
-    //    => await ConsumeAsync(static (source, size, token) => source.ChunkAsyncV2(size, token));
-
-
-
     private async Task<int> ConsumeAsync
     (
         Func<IAsyncEnumerable<int>, int, CancellationToken, IAsyncEnumerable<ICollection<int>>> chunker

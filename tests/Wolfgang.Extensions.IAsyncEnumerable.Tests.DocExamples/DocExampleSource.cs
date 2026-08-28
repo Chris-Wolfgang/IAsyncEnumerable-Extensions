@@ -70,27 +70,36 @@ public sealed class DocExample : IXunitSerializable
 
 
 /// <summary>
-/// Locates the library's source directory and extracts every XML-doc
+/// Locates the repository's src packages and extracts every XML-doc
 /// &lt;example&gt;&lt;code&gt; block for compilation.
 /// </summary>
 public static class DocExampleSource
 {
     private const string LibraryDirectoryName = "Wolfgang.Extensions.IAsyncEnumerable";
 
+    private const string LegacyLibraryDirectoryName = "Wolfgang.Extensions.IAsyncEnumerable.Legacy";
+
 
 
     /// <summary>
-    /// Extracts every &lt;example&gt;&lt;code&gt; block from every .cs file under the
-    /// library's src directory.
+    /// Extracts every &lt;example&gt;&lt;code&gt; block from every .cs file under
+    /// both packages' src directories (the main library and the Legacy
+    /// terminal-operator package).
     /// </summary>
     public static IReadOnlyList<DocExample> ExtractAll()
     {
-        var srcDir = FindSrcDirectory();
+        // The main package directory is the walk-up anchor; the Legacy package
+        // sits next to it under the same src/ root.
+        var mainDir = FindSrcDirectory();
+        var srcRoot = Path.GetDirectoryName(mainDir)!;
         var examples = new List<DocExample>();
 
-        foreach (var file in Directory.EnumerateFiles(srcDir, "*.cs", SearchOption.TopDirectoryOnly))
+        foreach (var packageDir in new[] { mainDir, Path.Combine(srcRoot, LegacyLibraryDirectoryName) })
         {
-            examples.AddRange(ExtractFromFile(file));
+            foreach (var file in Directory.EnumerateFiles(packageDir, "*.cs", SearchOption.TopDirectoryOnly))
+            {
+                examples.AddRange(ExtractFromFile(file));
+            }
         }
 
         return examples;

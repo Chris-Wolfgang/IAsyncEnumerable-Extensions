@@ -41,7 +41,7 @@ public sealed class CultureInvarianceTests
         await RunUnderCultureAsync(culture, async () =>
         {
             var chunks = new List<int[]>();
-            await foreach (var chunk in CreateSource(1, 37).ChunkAsync(10))
+            await foreach (var chunk in CreateRange(1, 37).ChunkAsync(10))
             {
                 chunks.Add([.. chunk]);
             }
@@ -61,7 +61,7 @@ public sealed class CultureInvarianceTests
         {
             var seen = new List<int>();
             var yielded = new List<int>();
-            await foreach (var item in CreateSource(1, 5).DoAsync(x => seen.Add(x)))
+            await foreach (var item in CreateRange(1, 5).DoAsync(x => seen.Add(x)))
             {
                 yielded.Add(item);
             }
@@ -80,7 +80,7 @@ public sealed class CultureInvarianceTests
         await RunUnderCultureAsync(culture, async () =>
         {
             var sum = 0;
-            await CreateSource(1, 5).ForEachAsync(x => sum += x);
+            await CreateRange(1, 5).ForEachAsync(x => sum += x);
             Assert.Equal(15, sum);
         });
     }
@@ -93,8 +93,8 @@ public sealed class CultureInvarianceTests
     {
         await RunUnderCultureAsync(culture, async () =>
         {
-            Assert.True(await CreateSource().IsEmptyAsync());
-            Assert.False(await CreateSource(1).IsEmptyAsync());
+            Assert.True(await TestSources.Create<int>().IsEmptyAsync());
+            Assert.False(await TestSources.Create(1).IsEmptyAsync());
         });
     }
 
@@ -106,8 +106,8 @@ public sealed class CultureInvarianceTests
     {
         await RunUnderCultureAsync(culture, async () =>
         {
-            Assert.True(await CreateSource(1, 2, 3).NoneAsync(x => x > 100));
-            Assert.False(await CreateSource(1, 2, 3).NoneAsync(x => x == 2));
+            Assert.True(await TestSources.Create(1, 2, 3).NoneAsync(x => x > 100));
+            Assert.False(await TestSources.Create(1, 2, 3).NoneAsync(x => x == 2));
         });
     }
 
@@ -134,18 +134,7 @@ public sealed class CultureInvarianceTests
 
 
 
-    private static async IAsyncEnumerable<int> CreateSource(params int[] items)
-    {
-        foreach (var item in items)
-        {
-            await Task.Yield();
-            yield return item;
-        }
-    }
-
-
-
-    private static async IAsyncEnumerable<int> CreateSource(int start, int end)
+    private static async IAsyncEnumerable<int> CreateRange(int start, int end)
     {
         for (var i = start; i <= end; i++)
         {

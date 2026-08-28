@@ -1,4 +1,4 @@
-namespace Wolfgang.Extensions.IAsyncEnumerable.Tests.Unit;
+namespace Wolfgang.Extensions.IAsyncEnumerable.Legacy.Tests.Unit;
 
 public sealed class FirstOrDefaultAsyncTests
 {
@@ -18,7 +18,7 @@ public sealed class FirstOrDefaultAsyncTests
     [Fact]
     public async Task FirstOrDefaultAsync_when_source_is_empty_returns_default()
     {
-        var source = CreateSource<int>();
+        var source = TestSources.Create<int>();
 
         var result = await source.FirstOrDefaultAsync();
 
@@ -30,7 +30,19 @@ public sealed class FirstOrDefaultAsyncTests
     [Fact]
     public async Task FirstOrDefaultAsync_when_source_is_empty_reference_type_returns_null()
     {
-        var source = CreateSource<string>();
+        var source = TestSources.Create<string>();
+
+        var result = await source.FirstOrDefaultAsync();
+
+        Assert.Null(result);
+    }
+
+
+
+    [Fact]
+    public async Task FirstOrDefaultAsync_when_source_is_empty_nullable_value_type_returns_null()
+    {
+        var source = TestSources.Create<int?>();
 
         var result = await source.FirstOrDefaultAsync();
 
@@ -42,7 +54,7 @@ public sealed class FirstOrDefaultAsyncTests
     [Fact]
     public async Task FirstOrDefaultAsync_when_source_has_items_returns_first_item()
     {
-        var source = CreateSource(5, 6, 7);
+        var source = TestSources.Create(5, 6, 7);
 
         var result = await source.FirstOrDefaultAsync();
 
@@ -55,7 +67,7 @@ public sealed class FirstOrDefaultAsyncTests
     public async Task FirstOrDefaultAsync_only_enumerates_first_item()
     {
         var enumerated = new List<int>();
-        var source = CreateTrackingSource(enumerated, 1, 2, 3);
+        var source = TestSources.CreateTracking(enumerated, 1, 2, 3);
 
         await source.FirstOrDefaultAsync();
 
@@ -70,35 +82,12 @@ public sealed class FirstOrDefaultAsyncTests
         using var tokenSource = new CancellationTokenSource();
         tokenSource.Cancel();
 
-        var source = CreateSource(1, 2, 3);
+        var source = TestSources.Create(1, 2, 3);
 
         await Assert.ThrowsAsync<OperationCanceledException>
         (
             () => source.FirstOrDefaultAsync(tokenSource.Token).AsTask()
         );
-    }
-
-
-
-    private static async IAsyncEnumerable<T> CreateSource<T>(params T[] values)
-    {
-        foreach (var value in values)
-        {
-            await Task.Yield();
-            yield return value;
-        }
-    }
-
-
-
-    private static async IAsyncEnumerable<int> CreateTrackingSource(List<int> tracker, params int[] values)
-    {
-        foreach (var value in values)
-        {
-            await Task.Yield();
-            tracker.Add(value);
-            yield return value;
-        }
     }
 
 }

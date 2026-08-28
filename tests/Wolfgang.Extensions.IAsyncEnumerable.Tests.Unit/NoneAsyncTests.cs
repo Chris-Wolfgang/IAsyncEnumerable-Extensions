@@ -18,7 +18,7 @@ public sealed class NoneAsyncTests
     [Fact]
     public async Task NoneAsync_when_source_is_empty_returns_true()
     {
-        var source = CreateSource();
+        var source = TestSources.Create<int>();
 
         var result = await source.NoneAsync();
 
@@ -30,7 +30,7 @@ public sealed class NoneAsyncTests
     [Fact]
     public async Task NoneAsync_when_source_has_items_returns_false()
     {
-        var source = CreateSource(1, 2, 3);
+        var source = TestSources.Create(1, 2, 3);
 
         var result = await source.NoneAsync();
 
@@ -45,7 +45,7 @@ public sealed class NoneAsyncTests
         using var tokenSource = new CancellationTokenSource();
         tokenSource.Cancel();
 
-        var source = CreateSource(1, 2, 3);
+        var source = TestSources.Create(1, 2, 3);
 
         await Assert.ThrowsAsync<OperationCanceledException>
         (
@@ -71,7 +71,7 @@ public sealed class NoneAsyncTests
     [Fact]
     public async Task NoneAsync_predicate_when_predicate_is_null_throws_ArgumentNullException()
     {
-        var source = CreateSource(1, 2, 3);
+        var source = TestSources.Create(1, 2, 3);
 
         await Assert.ThrowsAsync<ArgumentNullException>
         (
@@ -84,7 +84,7 @@ public sealed class NoneAsyncTests
     [Fact]
     public async Task NoneAsync_predicate_when_all_items_match_returns_false()
     {
-        var source = CreateSource(3, 6, 9, 12);
+        var source = TestSources.Create(3, 6, 9, 12);
 
         var result = await source.NoneAsync(n => n % 3 == 0);
 
@@ -96,7 +96,7 @@ public sealed class NoneAsyncTests
     [Fact]
     public async Task NoneAsync_predicate_when_some_items_match_returns_false()
     {
-        var source = CreateSource(1, 2, 3, 4);
+        var source = TestSources.Create(1, 2, 3, 4);
 
         var result = await source.NoneAsync(n => n % 3 == 0);
 
@@ -108,7 +108,7 @@ public sealed class NoneAsyncTests
     [Fact]
     public async Task NoneAsync_predicate_when_no_items_match_returns_true()
     {
-        var source = CreateSource(1, 2, 4, 5);
+        var source = TestSources.Create(1, 2, 4, 5);
 
         var result = await source.NoneAsync(n => n % 3 == 0);
 
@@ -120,7 +120,7 @@ public sealed class NoneAsyncTests
     [Fact]
     public async Task NoneAsync_predicate_when_source_is_empty_returns_true()
     {
-        var source = CreateSource();
+        var source = TestSources.Create<int>();
 
         var result = await source.NoneAsync(n => n % 3 == 0);
 
@@ -135,7 +135,7 @@ public sealed class NoneAsyncTests
         using var tokenSource = new CancellationTokenSource();
         tokenSource.Cancel();
 
-        var source = CreateSource(1, 2, 3);
+        var source = TestSources.Create(1, 2, 3);
 
         await Assert.ThrowsAsync<OperationCanceledException>
         (
@@ -149,7 +149,7 @@ public sealed class NoneAsyncTests
     public async Task NoneAsync_predicate_short_circuits_on_first_match()
     {
         var enumerated = new List<int>();
-        var source = CreateTrackingSource(enumerated, 1, 2, 3, 4, 5);
+        var source = TestSources.CreateTracking(enumerated, 1, 2, 3, 4, 5);
 
         var result = await source.NoneAsync(n => n == 2);
 
@@ -162,7 +162,7 @@ public sealed class NoneAsyncTests
     [Fact]
     public async Task NoneAsync_predicate_when_predicate_throws_exception_propagates()
     {
-        var source = CreateSource(1, 2, 3);
+        var source = TestSources.Create(1, 2, 3);
         var sentinel = new InvalidOperationException("predicate boom");
 
         var actual = await Assert.ThrowsAsync<InvalidOperationException>
@@ -179,11 +179,10 @@ public sealed class NoneAsyncTests
     public async Task NoneAsync_predicate_when_token_canceled_mid_iteration_throws_OperationCanceledException()
     {
         // Token starts uncanceled, so the upfront ThrowIfCancellationRequested passes.
-        // The first predicate invocation cancels the token; the post-predicate
-        // ThrowIfCancellationRequested (NoneAsync predicate-overload, source line 467)
-        // is what we're exercising.
+        // The first predicate invocation cancels the token; the post-predicate token
+        // check in the NoneAsync predicate overload is what we're exercising.
         using var tokenSource = new CancellationTokenSource();
-        var source = CreateSource(1, 2, 3);
+        var source = TestSources.Create(1, 2, 3);
 
         await Assert.ThrowsAsync<OperationCanceledException>
         (
@@ -200,26 +199,5 @@ public sealed class NoneAsyncTests
     }
 
 
-
-    private static async IAsyncEnumerable<int> CreateSource(params int[] values)
-    {
-        foreach (var value in values)
-        {
-            await Task.Yield();
-            yield return value;
-        }
-    }
-
-
-
-    private static async IAsyncEnumerable<int> CreateTrackingSource(List<int> tracker, params int[] values)
-    {
-        foreach (var value in values)
-        {
-            await Task.Yield();
-            tracker.Add(value);
-            yield return value;
-        }
-    }
 
 }
