@@ -1,0 +1,55 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFrameworks>net462;netstandard2.0</TargetFrameworks>
+		<LangVersion>14</LangVersion>
+		<Version>0.5.4</Version>
+		<!-- New net462-targeting library during 0.x: derive AssemblyVersion from
+		     Version's minor (SemVer's breaking position pre-1.0) so a breaking
+		     0.x release changes netfx binding identity and gives consumers a
+		     load-time signal instead of a silent MissingMethodException. Switch
+		     to a fixed Major.0.0.0 pin at 1.0. -->
+		<AssemblyVersion>0.$([System.Version]::Parse($(Version.Split('-')[0])).Minor).0.0</AssemblyVersion>
+		<FileVersion>$([System.Text.RegularExpressions.Regex]::Replace("$(Version)", "[-+].*$", "")).0</FileVersion>
+		<Title>$(AssemblyName)</Title>
+		<Description>Terminal operator extension methods (CountAsync, AnyAsync, FirstAsync, FirstOrDefaultAsync, ToListAsync) for IAsyncEnumerable{T} on net462 and netstandard2.0, where System.Linq.AsyncEnumerable is not available.</Description>
+		<PackageProjectUrl>https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions.git</RepositoryUrl>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+		<GenerateDocumentationFile>True</GenerateDocumentationFile>
+		<EnablePackageValidation>True</EnablePackageValidation>
+		<SignAssembly>False</SignAssembly>
+		<ApplicationIcon>icon.ico</ApplicationIcon>
+		<PackageIcon>icon_128x128.png</PackageIcon>
+
+	</PropertyGroup>
+
+	<ItemGroup>
+	  <Content Include="icon.ico" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Include="..\..\assets\icon_128x128.png">
+	    <Pack>True</Pack>
+	    <PackagePath>\</PackagePath>
+	  </None>
+	  <None Include="..\..\README.md">
+	    <Pack>True</Pack>
+	    <PackagePath>\</PackagePath>
+	  </None>
+	  <None Include="..\..\THIRD-PARTY-NOTICES.md">
+	    <Pack>True</Pack>
+	    <PackagePath>\</PackagePath>
+	  </None>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="10.0.11" />
+	</ItemGroup>
+
+	<!-- Analyzer PackageReferences are centralized in Directory.Build.props -->
+
+
+</Project>
