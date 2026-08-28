@@ -255,13 +255,18 @@ fi
 echo ""
 echo "5. Checking for stale DocFX root artifacts..."
 
-# The 'public/' directory is a known DocFX build artifact that should never
-# appear at the gh-pages root; its presence indicates a previous deploy did
-# not clean up properly.
-STALE_PATTERNS=("public")
+# Root entries that older deploys left behind by accident. NOTE: 'public/'
+# used to be flagged here as a stale DocFX build artifact, but docfx.yaml now
+# deliberately deploys public/version-picker.js to the gh-pages root, so
+# 'public' is an EXPECTED root entry and must not be listed as stale (every
+# healthy deploy would warn otherwise). Add future known-stale root entries
+# to this array.
+STALE_PATTERNS=()
 found_stale=false
 
-for p in "${STALE_PATTERNS[@]}"; do
+# ${arr[@]+...} expansion keeps 'set -u' happy when the array is empty on
+# bash < 4.4 (e.g. macOS's bash 3.2), where "${arr[@]}" alone would error.
+for p in ${STALE_PATTERNS[@]+"${STALE_PATTERNS[@]}"}; do
   if [ -e "$WORK_DIR/$p" ]; then
     check_warn "Potentially stale artifact found at root: '$p'"
     found_stale=true

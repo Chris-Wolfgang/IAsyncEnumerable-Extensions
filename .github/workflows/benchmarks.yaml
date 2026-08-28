@@ -30,6 +30,7 @@ jobs:
   benchmark:
     name: Run BenchmarkDotNet & publish chart
     runs-on: ubuntu-latest
+    timeout-minutes: 60
 
     permissions:
       contents: write
