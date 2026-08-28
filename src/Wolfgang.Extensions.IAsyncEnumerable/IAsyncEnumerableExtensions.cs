@@ -23,6 +23,11 @@ public static class IAsyncEnumerableExtensions
     /// <returns>An IAsyncEnumerable{ICollection{T}} representing the chunks.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="source"/> is null.</exception>
     /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="maxChunkSize"/> is less than one.</exception>
+    /// <exception cref="OperationCanceledException">
+    /// Thrown when <paramref name="token"/> is canceled. Observed at enumeration
+    /// time (surfaced through the consuming <c>await foreach</c>), checked at
+    /// chunk boundaries rather than per element.
+    /// </exception>
     public static IAsyncEnumerable<ICollection<T>> ChunkAsync<T>
     (
         this IAsyncEnumerable<T> source,
@@ -72,6 +77,12 @@ public static class IAsyncEnumerableExtensions
                 if (index == maxChunkSize)
                 {
                     yield return array;
+                    // Deliberately checked at chunk boundaries only, not per
+                    // element — the token is also passed to GetAsyncEnumerator
+                    // above, so a well-behaved source observes it inside
+                    // MoveNextAsync between elements. A per-element check here
+                    // would buy little beyond the boundary check while adding a
+                    // volatile read to the hot path.
                     token.ThrowIfCancellationRequested();
                     array = new T[maxChunkSize];
                     index = 0;
@@ -112,6 +123,10 @@ public static class IAsyncEnumerableExtensions
     /// <typeparam name="T">The type of elements in the IAsyncEnumerable{T}.</typeparam>
     /// <returns>An IAsyncEnumerable{T} that yields the original elements after executing the action.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="source"/> or <paramref name="action"/> is null.</exception>
+    /// <exception cref="OperationCanceledException">
+    /// Thrown when <paramref name="token"/> is canceled. Observed at enumeration
+    /// time, surfaced through the consuming <c>await foreach</c>.
+    /// </exception>
     /// <example>
     /// <code>
     /// await foreach (var item in source.DoAsync(x =&gt; Console.WriteLine($"Processing: {x}")))
@@ -146,12 +161,23 @@ public static class IAsyncEnumerableExtensions
     /// Executes an asynchronous side-effect action on each element of an IAsyncEnumerable{T}
     /// without transforming the elements. The original items are yielded unchanged.
     /// </summary>
+    /// <remarks>
+    /// Exceptions thrown by <paramref name="action"/> propagate to the consuming
+    /// <c>await foreach</c> and terminate the enumeration. The cancellation token is
+    /// observed between elements (after each <c>yield return</c>), not while the action
+    /// is running — wrap long-running actions in their own cancellation if mid-action
+    /// cancellation is required.
+    /// </remarks>
     /// <param name="source">The source IAsyncEnumerable{T}.</param>
     /// <param name="action">The asynchronous action to execute on each element.</param>
     /// <param name="token">A cancellation token to cancel the operation.</param>
     /// <typeparam name="T">The type of elements in the IAsyncEnumerable{T}.</typeparam>
     /// <returns>An IAsyncEnumerable{T} that yields the original elements after executing the action.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="source"/> or <paramref name="action"/> is null.</exception>
+    /// <exception cref="OperationCanceledException">
+    /// Thrown when <paramref name="token"/> is canceled. Observed at enumeration
+    /// time, surfaced through the consuming <c>await foreach</c>.
+    /// </exception>
     /// <example>
     /// <code>
     /// await foreach (var item in source.DoAsync(async x =&gt; await logger.LogAsync($"Processing: {x}")))
@@ -236,7 +262,12 @@ public static class IAsyncEnumerableExtensions
     /// <param name="action">The synchronous action to execute on each element.</param>
     /// <param name="token">A cancellation token to cancel the operation.</param>
     /// <typeparam name="T">The type of elements in the IAsyncEnumerable{T}.</typeparam>
+    /// <returns>A task that completes when every element has been processed.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="source"/> or <paramref name="action"/> is null.</exception>
+    /// <exception cref="OperationCanceledException">
+    /// Thrown when <paramref name="token"/> is canceled before or during enumeration.
+    /// Delivered through the returned <see cref="Task"/>.
+    /// </exception>
     /// <example>
     /// <code>
     /// await source.ForEachAsync(x =&gt; Console.WriteLine($"Processing: {x}"));
@@ -282,7 +313,12 @@ public static class IAsyncEnumerableExtensions
     /// <param name="action">The asynchronous action to execute on each element.</param>
     /// <param name="token">A cancellation token to cancel the operation.</param>
     /// <typeparam name="T">The type of elements in the IAsyncEnumerable{T}.</typeparam>
+    /// <returns>A task that completes when every element has been processed.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="source"/> or <paramref name="action"/> is null.</exception>
+    /// <exception cref="OperationCanceledException">
+    /// Thrown when <paramref name="token"/> is canceled before or during enumeration.
+    /// Delivered through the returned <see cref="Task"/>.
+    /// </exception>
     /// <example>
     /// <code>
     /// await source.ForEachAsync(async x =&gt; await logger.LogAsync($"Processing: {x}"));
@@ -330,6 +366,10 @@ public static class IAsyncEnumerableExtensions
     /// true if the source sequence contains no elements; otherwise, false.
     /// </returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="source"/> is null.</exception>
+    /// <exception cref="OperationCanceledException">
+    /// Thrown when <paramref name="token"/> is canceled before or during enumeration.
+    /// Delivered through the returned <see cref="Task{TResult}"/>.
+    /// </exception>
     /// <example>
     /// <code>
     /// if (await source.IsEmptyAsync())
@@ -375,6 +415,10 @@ public static class IAsyncEnumerableExtensions
     /// <returns>
     /// true if the source sequence is null or contains no elements; otherwise, false.
     /// </returns>
+    /// <exception cref="OperationCanceledException">
+    /// Thrown when <paramref name="token"/> is canceled before or during enumeration
+    /// of a non-null source. Delivered through the returned <see cref="Task{TResult}"/>.
+    /// </exception>
     /// <example>
     /// <code>
     /// if (await source.IsNullOrEmptyAsync())
@@ -390,9 +434,16 @@ public static class IAsyncEnumerableExtensions
     )
     {
         return source is null
-            ? Task.FromResult(true)
+            ? CachedTrueTask
             : IsEmptyAsync(source, token);
     }
+
+
+
+    // Task.FromResult(true) is cached by the runtime on net8.0+ but allocates a
+    // fresh Task<bool> per call on net462/netstandard2.0 — the null-source fast
+    // path shouldn't allocate anywhere.
+    private static readonly Task<bool> CachedTrueTask = Task.FromResult(true);
 
 
 
@@ -410,6 +461,10 @@ public static class IAsyncEnumerableExtensions
     /// <typeparam name="T">The type of elements in the IAsyncEnumerable{T}.</typeparam>
     /// <returns>true if the source sequence contains no elements; otherwise, false.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="source"/> is null.</exception>
+    /// <exception cref="OperationCanceledException">
+    /// Thrown when <paramref name="token"/> is canceled before or during enumeration.
+    /// Delivered through the returned <see cref="Task{TResult}"/>.
+    /// </exception>
     /// <example>
     /// <code>
     /// if (await source.NoneAsync())
@@ -438,6 +493,10 @@ public static class IAsyncEnumerableExtensions
     /// <typeparam name="T">The type of elements in the IAsyncEnumerable{T}.</typeparam>
     /// <returns>true if no elements in the source sequence pass the test in the specified predicate; otherwise, false.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="source"/> or <paramref name="predicate"/> is null.</exception>
+    /// <exception cref="OperationCanceledException">
+    /// Thrown when <paramref name="token"/> is canceled before or during enumeration.
+    /// Delivered through the returned <see cref="Task{TResult}"/>.
+    /// </exception>
     /// <example>
     /// <code>
     /// if (await source.NoneAsync(x =&gt; x &gt; 100))

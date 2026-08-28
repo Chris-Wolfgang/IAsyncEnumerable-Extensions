@@ -21,17 +21,35 @@ public static class IAsyncEnumerableLegacyExtensions
     /// <typeparam name="T">The type of elements in the IAsyncEnumerable{T}.</typeparam>
     /// <returns>The number of elements in the source sequence.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="source"/> is null.</exception>
-    public static async ValueTask<int> CountAsync<T>
+    /// <exception cref="OperationCanceledException">
+    /// Thrown when <paramref name="token"/> is canceled before or during enumeration.
+    /// Delivered through the returned <see cref="ValueTask{TResult}"/>.
+    /// </exception>
+    public static ValueTask<int> CountAsync<T>
     (
         this IAsyncEnumerable<T> source,
         CancellationToken token = default
     )
     {
+        // Validate eagerly, before the async state machine is created, so the
+        // ArgumentNullException surfaces at call time rather than at await time
+        // — matching BCL System.Linq.AsyncEnumerable semantics.
         if (source is null)
         {
             throw new ArgumentNullException(nameof(source));
         }
 
+        return CountCoreAsync(source, token);
+    }
+
+
+
+    private static async ValueTask<int> CountCoreAsync<T>
+    (
+        IAsyncEnumerable<T> source,
+        CancellationToken token
+    )
+    {
         token.ThrowIfCancellationRequested();
 
         var count = 0;
@@ -59,7 +77,11 @@ public static class IAsyncEnumerableLegacyExtensions
     /// <typeparam name="T">The type of elements in the IAsyncEnumerable{T}.</typeparam>
     /// <returns>true if the source sequence contains any elements; otherwise, false.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="source"/> is null.</exception>
-    public static async ValueTask<bool> AnyAsync<T>
+    /// <exception cref="OperationCanceledException">
+    /// Thrown when <paramref name="token"/> is canceled before or during enumeration.
+    /// Delivered through the returned <see cref="ValueTask{TResult}"/>.
+    /// </exception>
+    public static ValueTask<bool> AnyAsync<T>
     (
         this IAsyncEnumerable<T> source,
         CancellationToken token = default
@@ -70,13 +92,7 @@ public static class IAsyncEnumerableLegacyExtensions
             throw new ArgumentNullException(nameof(source));
         }
 
-        token.ThrowIfCancellationRequested();
-
-        var enumerator = source.GetAsyncEnumerator(token);
-        await using (enumerator.ConfigureAwait(false))
-        {
-            return await enumerator.MoveNextAsync().ConfigureAwait(false);
-        }
+        return AnyCoreAsync(source, token);
     }
 
 
@@ -90,7 +106,11 @@ public static class IAsyncEnumerableLegacyExtensions
     /// <typeparam name="T">The type of elements in the IAsyncEnumerable{T}.</typeparam>
     /// <returns>true if any elements in the source sequence pass the test in the specified predicate; otherwise, false.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="source"/> or <paramref name="predicate"/> is null.</exception>
-    public static async ValueTask<bool> AnyAsync<T>
+    /// <exception cref="OperationCanceledException">
+    /// Thrown when <paramref name="token"/> is canceled before or during enumeration.
+    /// Delivered through the returned <see cref="ValueTask{TResult}"/>.
+    /// </exception>
+    public static ValueTask<bool> AnyAsync<T>
     (
         this IAsyncEnumerable<T> source,
         Func<T, bool> predicate,
@@ -107,6 +127,35 @@ public static class IAsyncEnumerableLegacyExtensions
             throw new ArgumentNullException(nameof(predicate));
         }
 
+        return AnyCoreAsync(source, predicate, token);
+    }
+
+
+
+    private static async ValueTask<bool> AnyCoreAsync<T>
+    (
+        IAsyncEnumerable<T> source,
+        CancellationToken token
+    )
+    {
+        token.ThrowIfCancellationRequested();
+
+        var enumerator = source.GetAsyncEnumerator(token);
+        await using (enumerator.ConfigureAwait(false))
+        {
+            return await enumerator.MoveNextAsync().ConfigureAwait(false);
+        }
+    }
+
+
+
+    private static async ValueTask<bool> AnyCoreAsync<T>
+    (
+        IAsyncEnumerable<T> source,
+        Func<T, bool> predicate,
+        CancellationToken token
+    )
+    {
         token.ThrowIfCancellationRequested();
 
         var enumerator = source.GetAsyncEnumerator(token);
@@ -137,7 +186,11 @@ public static class IAsyncEnumerableLegacyExtensions
     /// <returns>The first element in the source sequence.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="source"/> is null.</exception>
     /// <exception cref="InvalidOperationException">Thrown when the source sequence contains no elements.</exception>
-    public static async ValueTask<T> FirstAsync<T>
+    /// <exception cref="OperationCanceledException">
+    /// Thrown when <paramref name="token"/> is canceled before or during enumeration.
+    /// Delivered through the returned <see cref="ValueTask{TResult}"/>.
+    /// </exception>
+    public static ValueTask<T> FirstAsync<T>
     (
         this IAsyncEnumerable<T> source,
         CancellationToken token = default
@@ -148,6 +201,17 @@ public static class IAsyncEnumerableLegacyExtensions
             throw new ArgumentNullException(nameof(source));
         }
 
+        return FirstCoreAsync(source, token);
+    }
+
+
+
+    private static async ValueTask<T> FirstCoreAsync<T>
+    (
+        IAsyncEnumerable<T> source,
+        CancellationToken token
+    )
+    {
         token.ThrowIfCancellationRequested();
 
         var enumerator = source.GetAsyncEnumerator(token);
@@ -155,7 +219,9 @@ public static class IAsyncEnumerableLegacyExtensions
         {
             if (!await enumerator.MoveNextAsync().ConfigureAwait(false))
             {
-                throw new InvalidOperationException("Sequence contains no elements.");
+                // Message matches the BCL's System.Linq exception text exactly
+                // (no trailing period).
+                throw new InvalidOperationException("Sequence contains no elements");
             }
 
             return enumerator.Current;
@@ -176,7 +242,11 @@ public static class IAsyncEnumerableLegacyExtensions
     /// if the sequence contains no elements.
     /// </returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="source"/> is null.</exception>
-    public static async ValueTask<T?> FirstOrDefaultAsync<T>
+    /// <exception cref="OperationCanceledException">
+    /// Thrown when <paramref name="token"/> is canceled before or during enumeration.
+    /// Delivered through the returned <see cref="ValueTask{TResult}"/>.
+    /// </exception>
+    public static ValueTask<T?> FirstOrDefaultAsync<T>
     (
         this IAsyncEnumerable<T> source,
         CancellationToken token = default
@@ -187,6 +257,17 @@ public static class IAsyncEnumerableLegacyExtensions
             throw new ArgumentNullException(nameof(source));
         }
 
+        return FirstOrDefaultCoreAsync(source, token);
+    }
+
+
+
+    private static async ValueTask<T?> FirstOrDefaultCoreAsync<T>
+    (
+        IAsyncEnumerable<T> source,
+        CancellationToken token
+    )
+    {
         token.ThrowIfCancellationRequested();
 
         var enumerator = source.GetAsyncEnumerator(token);
@@ -208,7 +289,11 @@ public static class IAsyncEnumerableLegacyExtensions
     /// <typeparam name="T">The type of elements in the IAsyncEnumerable{T}.</typeparam>
     /// <returns>A List{T} containing every element of the source sequence, in enumeration order.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="source"/> is null.</exception>
-    public static async ValueTask<List<T>> ToListAsync<T>
+    /// <exception cref="OperationCanceledException">
+    /// Thrown when <paramref name="token"/> is canceled before or during enumeration.
+    /// Delivered through the returned <see cref="ValueTask{TResult}"/>.
+    /// </exception>
+    public static ValueTask<List<T>> ToListAsync<T>
     (
         this IAsyncEnumerable<T> source,
         CancellationToken token = default
@@ -219,6 +304,17 @@ public static class IAsyncEnumerableLegacyExtensions
             throw new ArgumentNullException(nameof(source));
         }
 
+        return ToListCoreAsync(source, token);
+    }
+
+
+
+    private static async ValueTask<List<T>> ToListCoreAsync<T>
+    (
+        IAsyncEnumerable<T> source,
+        CancellationToken token
+    )
+    {
         token.ThrowIfCancellationRequested();
 
         var list = new List<T>();
