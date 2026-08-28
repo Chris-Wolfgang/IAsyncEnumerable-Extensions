@@ -10,6 +10,13 @@ string comparison, no numeric parsing. Every one of the 9 public methods
 structurally: enumerate the source, invoke a caller-supplied delegate,
 batch into arrays, count. None of that touches culture.
 
+The same holds for the Legacy package's 6 methods on
+`IAsyncEnumerableLegacyExtensions` (`CountAsync`, `AnyAsync` × 2,
+`FirstAsync`, `FirstOrDefaultAsync`, `ToListAsync`): they perform no string
+formatting or parsing at all. The only string in the package is
+`FirstAsync`'s "Sequence contains no elements" exception message, a
+culture-invariant literal.
+
 ## Allowlist of intentionally culture-sensitive methods
 
 **None.** Every public method is culture-invariant by construction, not by

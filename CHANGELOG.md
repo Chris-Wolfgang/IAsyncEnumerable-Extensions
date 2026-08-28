@@ -21,6 +21,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Code-review fixes: eager argument validation in the Legacy package's
+  wrapper methods, PublicAPI nullability annotations,
+  `Microsoft.Bcl.AsyncInterfaces` conditioned to net462/netstandard2.0
+  (net8.0+ consumers no longer pull it), `PackageRequireLicenseAcceptance`
+  removed, `PackageTags` added, and `icon.ico` no longer packed as content.
+
 ### Deprecated
 
 ### Removed
@@ -309,11 +315,12 @@ source or public-API changes.
   uploaded to the Security tab, badge added to `README.md`, 7.5 score
   floor documented in `SECURITY.md` (#247).
 
-## [0.5.2] - 2026-07-06
+## [0.5.2] - 2026-07-11
 
 ### Changed
 
 - Dependabot bump: dotnet-dependencies group (2 packages).
+
 ## [0.5.1] - 2026-06-06
 
 No public API changes. This release is a maintenance / infrastructure refresh
@@ -419,8 +426,62 @@ plus a fix for a Release-build blocker.
   without an explicit maintainer admin-bypass.
 - `persist-credentials: false` on the gitleaks / stryker checkouts.
 
+## [0.5.0] - 2026-04-27
+
+### Added
+
+- `scripts/build-pr.ps1` to replicate the PR CI checks locally, and
+  `SECURITY.md` for responsible vulnerability disclosure.
+- `netcoreapp3.1` added to the test target frameworks.
+- Release-tag-matches-csproj-version validation in `release.yaml`, and
+  `.github/workflows/*` added to protected-file detection in `pr.yaml`.
+
+### Changed
+
+- Internal core methods renamed with the `Async` suffix (VSTHRD200);
+  analyzer `PackageReference`s moved from `Directory.Build.props` to
+  individual csproj files; dependency bumps.
+
+## [0.4.0] - 2026-03-24
+
+### Added
+
+- `ForEachAsync` (sync + async action overloads), `IsEmptyAsync`,
+  `IsNullOrEmptyAsync`, and `NoneAsync` (with and without predicate)
+  extension methods.
+
+## [0.3.0] - 2026-03-24
+
+### Added
+
+- `DoAsync` extension method (sync + async action overloads).
+- Project / package icons.
+
+### Changed
+
+- Dependency bumps and documentation updates.
+
+## [0.2.0] - 2026-03-13
+
+### Changed
+
+- Workflows re-synced from `repo-template`, including the
+  `pull_request_target` → `pull_request` security fix in `pr.yaml`.
+- README / docfx link fixes and dependency bumps.
+
+## [0.1.0] - 2026-02-03
+
+### Added
+
+- Initial release: `ChunkAsync` extension method for `IAsyncEnumerable<T>`.
+
 [Unreleased]: https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/compare/v0.5.4...HEAD
 [0.5.4]: https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/compare/v0.5.3...v0.5.4
 [0.5.3]: https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/compare/v0.5.2...v0.5.3
 [0.5.2]: https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/compare/v0.5.1...v0.5.2
 [0.5.1]: https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/compare/v0.5.0...v0.5.1
+[0.5.0]: https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/compare/v0.4.0...v0.5.0
+[0.4.0]: https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/compare/v0.3.0...v0.4.0
+[0.3.0]: https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/compare/v0.2.0...v0.3.0
+[0.2.0]: https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/compare/v0.1.0...v0.2.0
+[0.1.0]: https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/releases/tag/v0.1.0
