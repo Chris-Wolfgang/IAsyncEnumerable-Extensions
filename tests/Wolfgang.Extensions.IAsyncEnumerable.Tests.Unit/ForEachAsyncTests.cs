@@ -5,7 +5,7 @@ public sealed class ForEachAsyncTests
     [Fact]
     public async Task ForEachAsync_Action_when_source_has_items_executes_action_on_each()
     {
-        var source = CreateSource(1, 2, 3);
+        var source = TestSources.Create(1, 2, 3);
         var observed = new List<int>();
 
         await source.ForEachAsync(x => observed.Add(x));
@@ -18,7 +18,7 @@ public sealed class ForEachAsyncTests
     [Fact]
     public async Task ForEachAsync_Action_when_source_is_empty_executes_no_actions()
     {
-        var source = CreateSource();
+        var source = TestSources.Create<int>();
         var observed = new List<int>();
 
         await source.ForEachAsync(x => observed.Add(x));
@@ -44,7 +44,7 @@ public sealed class ForEachAsyncTests
     [Fact]
     public async Task ForEachAsync_Action_when_action_is_null_throws_ArgumentNullException()
     {
-        var source = CreateSource(1, 2, 3);
+        var source = TestSources.Create(1, 2, 3);
 
         await Assert.ThrowsAsync<ArgumentNullException>
         (
@@ -57,7 +57,7 @@ public sealed class ForEachAsyncTests
     [Fact]
     public async Task ForEachAsync_Action_preserves_ordering()
     {
-        var source = CreateSource(5, 3, 1, 4, 2);
+        var source = TestSources.Create(5, 3, 1, 4, 2);
         var observed = new List<int>();
 
         await source.ForEachAsync(x => observed.Add(x));
@@ -73,7 +73,7 @@ public sealed class ForEachAsyncTests
         using var tokenSource = new CancellationTokenSource();
         tokenSource.Cancel();
 
-        var source = CreateSource(1, 2, 3);
+        var source = TestSources.Create(1, 2, 3);
 
         await Assert.ThrowsAsync<OperationCanceledException>
         (
@@ -93,7 +93,7 @@ public sealed class ForEachAsyncTests
         using var tokenSource = new CancellationTokenSource();
         tokenSource.Cancel();
 
-        var source = CreateSource(1, 2, 3);
+        var source = TestSources.Create(1, 2, 3);
         var invoked = false;
 
         await Assert.ThrowsAsync<OperationCanceledException>
@@ -111,7 +111,7 @@ public sealed class ForEachAsyncTests
     {
         using var tokenSource = new CancellationTokenSource();
 
-        var source = CreateDelayedSource(TimeSpan.FromMilliseconds(10), 1, 2, 3, 4);
+        var source = TestSources.CreateDelayed(TimeSpan.FromMilliseconds(10), 1, 2, 3, 4);
         var observed = new List<int>();
 
         await Assert.ThrowsAsync<OperationCanceledException>
@@ -132,6 +132,10 @@ public sealed class ForEachAsyncTests
                 );
             }
         );
+
+        // The action cancels on the first item, and the post-action token check
+        // throws before a second item is ever requested — so exactly [1] is observed.
+        Assert.Equal([1], observed);
     }
 
 
@@ -139,18 +143,21 @@ public sealed class ForEachAsyncTests
     [Fact]
     public async Task ForEachAsync_Action_when_action_throws_propagates_exception()
     {
-        var source = CreateSource(1, 2, 3);
+        var source = TestSources.Create(1, 2, 3);
+        var sentinel = new InvalidOperationException("test");
 
-        await Assert.ThrowsAsync<InvalidOperationException>
+        var actual = await Assert.ThrowsAsync<InvalidOperationException>
         (
             () => source.ForEachAsync(x =>
             {
                 if (x == 2)
                 {
-                    throw new InvalidOperationException("test");
+                    throw sentinel;
                 }
             })
         );
+
+        Assert.Same(sentinel, actual);
     }
 
 
@@ -158,7 +165,7 @@ public sealed class ForEachAsyncTests
     [Fact]
     public async Task ForEachAsync_Func_when_source_has_items_executes_async_action_on_each()
     {
-        var source = CreateSource(1, 2, 3);
+        var source = TestSources.Create(1, 2, 3);
         var observed = new List<int>();
 
         await source.ForEachAsync(async x =>
@@ -175,7 +182,7 @@ public sealed class ForEachAsyncTests
     [Fact]
     public async Task ForEachAsync_Func_when_source_is_empty_executes_no_actions()
     {
-        var source = CreateSource();
+        var source = TestSources.Create<int>();
         var observed = new List<int>();
 
         await source.ForEachAsync(async x =>
@@ -205,7 +212,7 @@ public sealed class ForEachAsyncTests
     [Fact]
     public async Task ForEachAsync_Func_when_action_is_null_throws_ArgumentNullException()
     {
-        var source = CreateSource(1, 2, 3);
+        var source = TestSources.Create(1, 2, 3);
 
         await Assert.ThrowsAsync<ArgumentNullException>
         (
@@ -218,7 +225,7 @@ public sealed class ForEachAsyncTests
     [Fact]
     public async Task ForEachAsync_Func_preserves_ordering()
     {
-        var source = CreateSource(5, 3, 1, 4, 2);
+        var source = TestSources.Create(5, 3, 1, 4, 2);
         var observed = new List<int>();
 
         await source.ForEachAsync(x =>
@@ -238,7 +245,7 @@ public sealed class ForEachAsyncTests
         using var tokenSource = new CancellationTokenSource();
         tokenSource.Cancel();
 
-        var source = CreateSource(1, 2, 3);
+        var source = TestSources.Create(1, 2, 3);
 
         await Assert.ThrowsAsync<OperationCanceledException>
         (
@@ -256,7 +263,7 @@ public sealed class ForEachAsyncTests
         using var tokenSource = new CancellationTokenSource();
         tokenSource.Cancel();
 
-        var source = CreateSource(1, 2, 3);
+        var source = TestSources.Create(1, 2, 3);
         var invoked = false;
 
         await Assert.ThrowsAsync<OperationCanceledException>
@@ -278,7 +285,7 @@ public sealed class ForEachAsyncTests
     {
         using var tokenSource = new CancellationTokenSource();
 
-        var source = CreateDelayedSource(TimeSpan.FromMilliseconds(10), 1, 2, 3, 4);
+        var source = TestSources.CreateDelayed(TimeSpan.FromMilliseconds(10), 1, 2, 3, 4);
         var observed = new List<int>();
 
         await Assert.ThrowsAsync<OperationCanceledException>
@@ -301,6 +308,10 @@ public sealed class ForEachAsyncTests
                 );
             }
         );
+
+        // The action cancels on the first item, and the post-action token check
+        // throws before a second item is ever requested — so exactly [1] is observed.
+        Assert.Equal([1], observed);
     }
 
 
@@ -308,42 +319,25 @@ public sealed class ForEachAsyncTests
     [Fact]
     public async Task ForEachAsync_Func_when_action_throws_propagates_exception()
     {
-        var source = CreateSource(1, 2, 3);
+        var source = TestSources.Create(1, 2, 3);
+        var sentinel = new InvalidOperationException("test");
 
-        await Assert.ThrowsAsync<InvalidOperationException>
+        var actual = await Assert.ThrowsAsync<InvalidOperationException>
         (
             () => source.ForEachAsync(x =>
             {
                 if (x == 2)
                 {
-                    throw new InvalidOperationException("test");
+                    throw sentinel;
                 }
 
                 return Task.CompletedTask;
             })
         );
+
+        Assert.Same(sentinel, actual);
     }
 
 
-
-    private static async IAsyncEnumerable<int> CreateSource(params int[] values)
-    {
-        foreach (var value in values)
-        {
-            await Task.Yield();
-            yield return value;
-        }
-    }
-
-
-
-    private static async IAsyncEnumerable<int> CreateDelayedSource(TimeSpan delay, params int[] values)
-    {
-        foreach (var value in values)
-        {
-            await Task.Delay(delay);
-            yield return value;
-        }
-    }
 
 }

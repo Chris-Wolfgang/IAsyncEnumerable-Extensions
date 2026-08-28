@@ -1,4 +1,4 @@
-namespace Wolfgang.Extensions.IAsyncEnumerable.Tests.Unit;
+namespace Wolfgang.Extensions.IAsyncEnumerable.Legacy.Tests.Unit;
 
 public sealed class CountAsyncTests
 {
@@ -18,7 +18,7 @@ public sealed class CountAsyncTests
     [Fact]
     public async Task CountAsync_when_source_is_empty_returns_zero()
     {
-        var source = CreateSource();
+        var source = TestSources.Create<int>();
 
         var result = await source.CountAsync();
 
@@ -28,9 +28,21 @@ public sealed class CountAsyncTests
 
 
     [Fact]
+    public async Task CountAsync_when_source_has_one_item_returns_one()
+    {
+        var source = TestSources.Create(42);
+
+        var result = await source.CountAsync();
+
+        Assert.Equal(1, result);
+    }
+
+
+
+    [Fact]
     public async Task CountAsync_when_source_has_items_returns_item_count()
     {
-        var source = CreateSource(1, 2, 3, 4);
+        var source = TestSources.Create(1, 2, 3, 4);
 
         var result = await source.CountAsync();
 
@@ -45,7 +57,7 @@ public sealed class CountAsyncTests
         using var tokenSource = new CancellationTokenSource();
         tokenSource.Cancel();
 
-        var source = CreateSource(1, 2, 3);
+        var source = TestSources.Create(1, 2, 3);
 
         await Assert.ThrowsAsync<OperationCanceledException>
         (
@@ -59,35 +71,12 @@ public sealed class CountAsyncTests
     public async Task CountAsync_when_token_canceled_mid_iteration_throws_OperationCanceledException()
     {
         using var tokenSource = new CancellationTokenSource();
-        var source = CreateCancelingSource(tokenSource, 1, 2, 3);
+        var source = TestSources.CreateCanceling(tokenSource, 1, 2, 3);
 
         await Assert.ThrowsAsync<OperationCanceledException>
         (
             () => source.CountAsync(tokenSource.Token).AsTask()
         );
-    }
-
-
-
-    private static async IAsyncEnumerable<int> CreateSource(params int[] values)
-    {
-        foreach (var value in values)
-        {
-            await Task.Yield();
-            yield return value;
-        }
-    }
-
-
-
-    private static async IAsyncEnumerable<int> CreateCancelingSource(CancellationTokenSource tokenSource, params int[] values)
-    {
-        foreach (var value in values)
-        {
-            await Task.Yield();
-            yield return value;
-            tokenSource.Cancel();
-        }
     }
 
 }

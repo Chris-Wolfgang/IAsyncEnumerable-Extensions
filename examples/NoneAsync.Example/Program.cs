@@ -18,8 +18,6 @@ Console.WriteLine($"Populated stream has none: {await populatedStream.NoneAsync(
 Console.WriteLine();
 
 // NoneAsync(predicate) — check if no elements match
-var numbers = GenerateNumbers(10);
-
 Console.WriteLine($"None divisible by 3: {await GenerateNumbers(10).NoneAsync(n => n % 3 == 0)}");
 Console.WriteLine($"None greater than 100: {await GenerateNumbers(10).NoneAsync(n => n > 100)}");
 Console.WriteLine($"None negative: {await GenerateNumbers(10).NoneAsync(n => n < 0)}");

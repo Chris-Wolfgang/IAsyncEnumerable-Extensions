@@ -6,7 +6,6 @@
 	     so it resolves via NuGet fallback to the netstandard2.0 build — between
 	     the two, both compiled surfaces of the package are exercised. -->
 	<TargetFrameworks>net462;net10.0</TargetFrameworks>
-	<Version>0.5.4</Version>
 	<LangVersion>latest</LangVersion>
 	<ImplicitUsings>enable</ImplicitUsings>
 	<IsPackable>false</IsPackable>
@@ -68,6 +67,7 @@
 
 	<ItemGroup>
 		<Using Include="Xunit" />
+		<Using Include="Wolfgang.Extensions.IAsyncEnumerable" />
 	</ItemGroup>
 
   <!-- Analyzer PackageReferences are centralized in Directory.Build.props -->

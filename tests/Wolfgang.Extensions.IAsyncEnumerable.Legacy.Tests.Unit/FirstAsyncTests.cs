@@ -1,4 +1,4 @@
-namespace Wolfgang.Extensions.IAsyncEnumerable.Tests.Unit;
+namespace Wolfgang.Extensions.IAsyncEnumerable.Legacy.Tests.Unit;
 
 public sealed class FirstAsyncTests
 {
@@ -18,7 +18,7 @@ public sealed class FirstAsyncTests
     [Fact]
     public async Task FirstAsync_when_source_is_empty_throws_InvalidOperationException()
     {
-        var source = CreateSource();
+        var source = TestSources.Create<int>();
 
         await Assert.ThrowsAsync<InvalidOperationException>
         (
@@ -31,7 +31,7 @@ public sealed class FirstAsyncTests
     [Fact]
     public async Task FirstAsync_when_source_has_items_returns_first_item()
     {
-        var source = CreateSource(5, 6, 7);
+        var source = TestSources.Create(5, 6, 7);
 
         var result = await source.FirstAsync();
 
@@ -44,7 +44,7 @@ public sealed class FirstAsyncTests
     public async Task FirstAsync_only_enumerates_first_item()
     {
         var enumerated = new List<int>();
-        var source = CreateTrackingSource(enumerated, 1, 2, 3);
+        var source = TestSources.CreateTracking(enumerated, 1, 2, 3);
 
         await source.FirstAsync();
 
@@ -59,35 +59,12 @@ public sealed class FirstAsyncTests
         using var tokenSource = new CancellationTokenSource();
         tokenSource.Cancel();
 
-        var source = CreateSource(1, 2, 3);
+        var source = TestSources.Create(1, 2, 3);
 
         await Assert.ThrowsAsync<OperationCanceledException>
         (
             () => source.FirstAsync(tokenSource.Token).AsTask()
         );
-    }
-
-
-
-    private static async IAsyncEnumerable<int> CreateSource(params int[] values)
-    {
-        foreach (var value in values)
-        {
-            await Task.Yield();
-            yield return value;
-        }
-    }
-
-
-
-    private static async IAsyncEnumerable<int> CreateTrackingSource(List<int> tracker, params int[] values)
-    {
-        foreach (var value in values)
-        {
-            await Task.Yield();
-            tracker.Add(value);
-            yield return value;
-        }
     }
 
 }

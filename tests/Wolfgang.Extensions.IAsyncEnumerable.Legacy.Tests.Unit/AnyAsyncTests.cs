@@ -1,4 +1,4 @@
-namespace Wolfgang.Extensions.IAsyncEnumerable.Tests.Unit;
+namespace Wolfgang.Extensions.IAsyncEnumerable.Legacy.Tests.Unit;
 
 public sealed class AnyAsyncTests
 {
@@ -18,7 +18,7 @@ public sealed class AnyAsyncTests
     [Fact]
     public async Task AnyAsync_when_source_is_empty_returns_false()
     {
-        var source = CreateSource();
+        var source = TestSources.Create<int>();
 
         var result = await source.AnyAsync();
 
@@ -30,11 +30,25 @@ public sealed class AnyAsyncTests
     [Fact]
     public async Task AnyAsync_when_source_has_items_returns_true()
     {
-        var source = CreateSource(1, 2, 3);
+        var source = TestSources.Create(1, 2, 3);
 
         var result = await source.AnyAsync();
 
         Assert.True(result);
+    }
+
+
+
+    [Fact]
+    public async Task AnyAsync_only_enumerates_first_item()
+    {
+        var enumerated = new List<int>();
+        var source = TestSources.CreateTracking(enumerated, 1, 2, 3, 4, 5);
+
+        var result = await source.AnyAsync();
+
+        Assert.True(result);
+        Assert.Equal([1], enumerated);
     }
 
 
@@ -45,7 +59,7 @@ public sealed class AnyAsyncTests
         using var tokenSource = new CancellationTokenSource();
         tokenSource.Cancel();
 
-        var source = CreateSource(1, 2, 3);
+        var source = TestSources.Create(1, 2, 3);
 
         await Assert.ThrowsAsync<OperationCanceledException>
         (
@@ -71,7 +85,7 @@ public sealed class AnyAsyncTests
     [Fact]
     public async Task AnyAsync_predicate_when_predicate_is_null_throws_ArgumentNullException()
     {
-        var source = CreateSource(1, 2, 3);
+        var source = TestSources.Create(1, 2, 3);
 
         await Assert.ThrowsAsync<ArgumentNullException>
         (
@@ -81,38 +95,22 @@ public sealed class AnyAsyncTests
 
 
 
-    [Fact]
-    public async Task AnyAsync_predicate_when_source_is_empty_returns_false()
+    [Theory]
+    [InlineData(new[] { 1, 2, 3, 4 }, true)]
+    [InlineData(new[] { 1, 2, 4, 5 }, false)]
+    [InlineData(new int[0], false)]
+    public async Task AnyAsync_predicate_match_cases_return_expected(int[] values, bool expected)
     {
-        var source = CreateSource();
+        if (values is null)
+        {
+            throw new ArgumentNullException(nameof(values));
+        }
+
+        var source = TestSources.Create(values);
 
         var result = await source.AnyAsync(n => n % 3 == 0);
 
-        Assert.False(result);
-    }
-
-
-
-    [Fact]
-    public async Task AnyAsync_predicate_when_some_items_match_returns_true()
-    {
-        var source = CreateSource(1, 2, 3, 4);
-
-        var result = await source.AnyAsync(n => n % 3 == 0);
-
-        Assert.True(result);
-    }
-
-
-
-    [Fact]
-    public async Task AnyAsync_predicate_when_no_items_match_returns_false()
-    {
-        var source = CreateSource(1, 2, 4, 5);
-
-        var result = await source.AnyAsync(n => n % 3 == 0);
-
-        Assert.False(result);
+        Assert.Equal(expected, result);
     }
 
 
@@ -121,7 +119,7 @@ public sealed class AnyAsyncTests
     public async Task AnyAsync_predicate_short_circuits_on_first_match()
     {
         var enumerated = new List<int>();
-        var source = CreateTrackingSource(enumerated, 1, 2, 3, 4, 5);
+        var source = TestSources.CreateTracking(enumerated, 1, 2, 3, 4, 5);
 
         var result = await source.AnyAsync(n => n == 2);
 
@@ -134,7 +132,7 @@ public sealed class AnyAsyncTests
     [Fact]
     public async Task AnyAsync_predicate_when_predicate_throws_exception_propagates()
     {
-        var source = CreateSource(1, 2, 3);
+        var source = TestSources.Create(1, 2, 3);
         var sentinel = new InvalidOperationException("predicate boom");
 
         var actual = await Assert.ThrowsAsync<InvalidOperationException>
@@ -153,7 +151,7 @@ public sealed class AnyAsyncTests
         using var tokenSource = new CancellationTokenSource();
         tokenSource.Cancel();
 
-        var source = CreateSource(1, 2, 3);
+        var source = TestSources.Create(1, 2, 3);
 
         await Assert.ThrowsAsync<OperationCanceledException>
         (
@@ -167,7 +165,7 @@ public sealed class AnyAsyncTests
     public async Task AnyAsync_predicate_when_token_canceled_mid_iteration_throws_OperationCanceledException()
     {
         using var tokenSource = new CancellationTokenSource();
-        var source = CreateSource(1, 2, 3);
+        var source = TestSources.Create(1, 2, 3);
 
         await Assert.ThrowsAsync<OperationCanceledException>
         (
@@ -181,29 +179,6 @@ public sealed class AnyAsyncTests
                 tokenSource.Token
             ).AsTask()
         );
-    }
-
-
-
-    private static async IAsyncEnumerable<int> CreateSource(params int[] values)
-    {
-        foreach (var value in values)
-        {
-            await Task.Yield();
-            yield return value;
-        }
-    }
-
-
-
-    private static async IAsyncEnumerable<int> CreateTrackingSource(List<int> tracker, params int[] values)
-    {
-        foreach (var value in values)
-        {
-            await Task.Yield();
-            tracker.Add(value);
-            yield return value;
-        }
     }
 
 }

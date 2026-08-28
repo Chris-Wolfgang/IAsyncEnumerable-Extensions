@@ -1,4 +1,4 @@
-namespace Wolfgang.Extensions.IAsyncEnumerable.Tests.Unit;
+namespace Wolfgang.Extensions.IAsyncEnumerable.Legacy.Tests.Unit;
 
 public sealed class ToListAsyncTests
 {
@@ -18,7 +18,7 @@ public sealed class ToListAsyncTests
     [Fact]
     public async Task ToListAsync_when_source_is_empty_returns_empty_list()
     {
-        var source = CreateSource();
+        var source = TestSources.Create<int>();
 
         var result = await source.ToListAsync();
 
@@ -28,13 +28,38 @@ public sealed class ToListAsyncTests
 
 
     [Fact]
+    public async Task ToListAsync_when_source_has_one_item_returns_single_item_list()
+    {
+        var source = TestSources.Create(42);
+
+        var result = await source.ToListAsync();
+
+        Assert.Equal([42], result);
+    }
+
+
+
+    [Fact]
     public async Task ToListAsync_when_source_has_items_returns_items_in_order()
     {
-        var source = CreateSource(1, 2, 3, 4);
+        var source = TestSources.Create(1, 2, 3, 4);
 
         var result = await source.ToListAsync();
 
         Assert.Equal([1, 2, 3, 4], result);
+    }
+
+
+
+    [Fact]
+    public async Task ToListAsync_returns_independent_list_per_call()
+    {
+        var list1 = await TestSources.Create(1, 2, 3).ToListAsync();
+        var list2 = await TestSources.Create(1, 2, 3).ToListAsync();
+
+        Assert.NotSame(list1, list2);
+        Assert.Equal([1, 2, 3], list1);
+        Assert.Equal([1, 2, 3], list2);
     }
 
 
@@ -45,7 +70,7 @@ public sealed class ToListAsyncTests
         using var tokenSource = new CancellationTokenSource();
         tokenSource.Cancel();
 
-        var source = CreateSource(1, 2, 3);
+        var source = TestSources.Create(1, 2, 3);
 
         await Assert.ThrowsAsync<OperationCanceledException>
         (
@@ -59,35 +84,12 @@ public sealed class ToListAsyncTests
     public async Task ToListAsync_when_token_canceled_mid_iteration_throws_OperationCanceledException()
     {
         using var tokenSource = new CancellationTokenSource();
-        var source = CreateCancelingSource(tokenSource, 1, 2, 3);
+        var source = TestSources.CreateCanceling(tokenSource, 1, 2, 3);
 
         await Assert.ThrowsAsync<OperationCanceledException>
         (
             () => source.ToListAsync(tokenSource.Token).AsTask()
         );
-    }
-
-
-
-    private static async IAsyncEnumerable<int> CreateSource(params int[] values)
-    {
-        foreach (var value in values)
-        {
-            await Task.Yield();
-            yield return value;
-        }
-    }
-
-
-
-    private static async IAsyncEnumerable<int> CreateCancelingSource(CancellationTokenSource tokenSource, params int[] values)
-    {
-        foreach (var value in values)
-        {
-            await Task.Yield();
-            yield return value;
-            tokenSource.Cancel();
-        }
     }
 
 }
