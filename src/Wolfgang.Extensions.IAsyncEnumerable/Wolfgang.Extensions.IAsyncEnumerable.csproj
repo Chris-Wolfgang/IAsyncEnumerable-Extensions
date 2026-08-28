@@ -17,12 +17,14 @@
 		<RepositoryUrl>https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions.git</RepositoryUrl>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
-		<PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+		<!-- MIT needs no acceptance gate; requiring one adds install friction
+		     (an extra confirmation dialog) for a permissive license. -->
+		<PackageRequireLicenseAcceptance>False</PackageRequireLicenseAcceptance>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<EnablePackageValidation>True</EnablePackageValidation>
 		<PackageValidationBaselineVersion>0.5.4</PackageValidationBaselineVersion>
 		<SignAssembly>False</SignAssembly>
-		<ApplicationIcon>icon.ico</ApplicationIcon>
+		<PackageTags>async;iasyncenumerable;async-enumerable;async-streams;extensions;linq;chunk;batch;foreach;dotnet;netstandard</PackageTags>
 		<PackageIcon>icon_128x128.png</PackageIcon>
 
 	</PropertyGroup>
@@ -30,10 +32,6 @@
 	<PropertyGroup Condition="'$(TargetFramework)' == 'net8.0' OR '$(TargetFramework)' == 'net10.0'">
 		<ImplicitUsings>enable</ImplicitUsings>
 	</PropertyGroup>
-
-	<ItemGroup>
-	  <Content Include="icon.ico" />
-	</ItemGroup>
 
 	<ItemGroup>
 	  <None Include="..\..\assets\icon_128x128.png">
@@ -50,7 +48,10 @@
 	  </None>
 	</ItemGroup>
 
-	<ItemGroup>
+	<!-- Microsoft.Bcl.AsyncInterfaces provides IAsyncEnumerable<T> /
+	     IAsyncDisposable only where they aren't in-box. Conditioned so net8.0+
+	     consumers don't inherit a pointless dependency edge. -->
+	<ItemGroup Condition="'$(TargetFramework)' == 'net462' OR '$(TargetFramework)' == 'netstandard2.0'">
 	  <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="10.0.11" />
 	</ItemGroup>
 

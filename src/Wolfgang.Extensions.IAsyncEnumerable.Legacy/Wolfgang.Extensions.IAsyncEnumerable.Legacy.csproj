@@ -17,18 +17,16 @@
 		<RepositoryUrl>https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions.git</RepositoryUrl>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
-		<PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+		<!-- MIT needs no acceptance gate; requiring one adds install friction
+		     (an extra confirmation dialog) for a permissive license. -->
+		<PackageRequireLicenseAcceptance>False</PackageRequireLicenseAcceptance>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<EnablePackageValidation>True</EnablePackageValidation>
 		<SignAssembly>False</SignAssembly>
-		<ApplicationIcon>icon.ico</ApplicationIcon>
+		<PackageTags>async;iasyncenumerable;async-enumerable;async-streams;extensions;linq;terminal-operators;count;any;first;tolist;net462;netstandard20;polyfill</PackageTags>
 		<PackageIcon>icon_128x128.png</PackageIcon>
 
 	</PropertyGroup>
-
-	<ItemGroup>
-	  <Content Include="icon.ico" />
-	</ItemGroup>
 
 	<ItemGroup>
 	  <None Include="..\..\assets\icon_128x128.png">
