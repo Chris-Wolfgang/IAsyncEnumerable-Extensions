@@ -23,6 +23,7 @@ jobs:
   verify:
     name: "Verify embedded SourceLink URLs resolve (${{ matrix.packageId }})"
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     strategy:
       fail-fast: false
       matrix:
