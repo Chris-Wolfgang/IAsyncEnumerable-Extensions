@@ -40,7 +40,7 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Checkout code
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
@@ -56,21 +56,25 @@ jobs:
 
       - name: Setup .NET
         if: steps.detect.outputs.found == 'true'
-        uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
           dotnet-version: '10.0.x'
 
       # Build each src project (not the whole solution — benchmarks/examples may
-      # target older TFMs only, so `-f net10.0` at the solution level would fail).
+      # target older TFMs only). Build ALL of each project's TFMs rather than a
+      # hardcoded -f net10.0: packages in this repo ship different TFM sets
+      # (the Legacy package has no net10.0 at all), and every shipped TFM's PDB
+      # carries its own SourceLink map worth verifying. Framework TFMs (net462)
+      # build fine on Linux via the SDK's implicit reference assemblies.
       # ContinuousIntegrationBuild=true normalises source paths exactly as a
       # release does, so the PDB embeds the same SourceLink map the shipped
       # package carries.
-      - name: Build src projects (Release, net10.0)
+      - name: Build src projects (Release, all TFMs)
         if: steps.detect.outputs.found == 'true'
         run: |
           while IFS= read -r proj; do
             echo "== build $proj =="
-            dotnet build "$proj" -c Release -f net10.0 -p:ContinuousIntegrationBuild=true
+            dotnet build "$proj" -c Release -p:ContinuousIntegrationBuild=true
           done < <(git ls-files 'src/**/*.csproj' 'src/*.csproj')
 
       - name: Install sourcelink tool
@@ -82,9 +86,12 @@ jobs:
         run: |
           export PATH="$PATH:$HOME/.dotnet/tools"
           shopt -s globstar nullglob
-          pdbs=(src/**/bin/Release/net10.0/*.pdb)
+          # Every TFM directory under bin/Release — each shipped TFM's PDB is
+          # verified. The ref/ subdirectory holds reference assemblies with no
+          # PDBs, so the glob naturally skips it.
+          pdbs=(src/**/bin/Release/*/*.pdb)
           if [ ${#pdbs[@]} -eq 0 ]; then
-            echo "::error::No PDBs found under src/**/bin/Release/net10.0 — SourceLink cannot be verified."
+            echo "::error::No PDBs found under src/**/bin/Release — SourceLink cannot be verified."
             exit 1
           fi
           failed=0

@@ -23,6 +23,7 @@ jobs:
   validate-release:
     name: Validate Release Build
     runs-on: windows-latest
+    timeout-minutes: 60
     if: github.repository != 'Chris-Wolfgang/repo-template'
     steps:
       - name: Checkout code
@@ -76,11 +77,16 @@ jobs:
             exit 1
           }
 
-          if ($found.Version -contains $tagVersion) {
-            Write-Host "Release tag matches at least one src csproj version" -ForegroundColor Green
+          # Require EVERY shippable package to match the tag, not just one.
+          # The repo ships multiple packages in lockstep; an any-one-matches
+          # check would let a version-drifted sibling publish at whatever its
+          # own <Version> says without anything noticing.
+          $mismatched = @($found | Where-Object { $_.Version -ne $tagVersion })
+          if ($mismatched.Count -eq 0) {
+            Write-Host "Release tag matches every src csproj version" -ForegroundColor Green
           } else {
-            $allVersions = ($found.Version | Sort-Object -Unique) -join ', '
-            Write-Error "Release tag '$tagName' (version '$tagVersion') does not match any src csproj version. Found: $allVersions. Bump the csproj <Version> or correct the release tag before re-running."
+            $detail = ($mismatched | ForEach-Object { "$($_.Project)=$($_.Version)" }) -join ', '
+            Write-Error "Release tag '$tagName' (version '$tagVersion') does not match every src csproj version. Mismatched: $detail. Packages release in lockstep - bump every csproj <Version> (or correct the release tag) before re-running."
             exit 1
           }
 
@@ -350,6 +356,7 @@ jobs:
     name: Pack & Validate NuGet
     needs: validate-release
     runs-on: windows-latest
+    timeout-minutes: 30
     permissions:
       contents: read
       id-token: write       # required to mint the SLSA provenance attestation
@@ -644,6 +651,7 @@ jobs:
   verify-docs-build:
     name: Verify Documentation Builds
     runs-on: windows-latest
+    timeout-minutes: 30
     # Gate on the prior validation jobs so we don't burn ~5-10 min of Windows
     # runner time on a release that's already failing earlier in the pipeline.
     needs: [validate-release, pack-and-validate]
@@ -754,6 +762,7 @@ jobs:
     needs: [pack-and-validate, verify-docs-build]
     if: needs.pack-and-validate.outputs.has-packages == 'true'
     runs-on: windows-latest
+    timeout-minutes: 15
     permissions:
       # id-token: write is what allows NuGet/login to exchange the GitHub
       # OIDC token for an ephemeral push key. contents: read is inherited
@@ -839,6 +848,7 @@ jobs:
     needs: [validate-release, pack-and-validate, publish-nuget]
     if: needs.pack-and-validate.outputs.has-packages == 'true'
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
       contents: write  # Required to upload assets to the GitHub Release
     steps:

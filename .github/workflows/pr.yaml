@@ -48,6 +48,7 @@ jobs:
   secrets-scan:
     name: "Secrets Scan (gitleaks)"
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     if: github.repository != 'Chris-Wolfgang/repo-template'
     steps:
       - name: Checkout code
@@ -99,6 +100,7 @@ jobs:
   detect-projects:
     name: "Detect .NET Projects"
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     if: github.repository != 'Chris-Wolfgang/repo-template'
     outputs:
       has-projects: ${{ steps.check-projects.outputs.has-projects }}
@@ -312,6 +314,7 @@ jobs:
             "BannedSymbols.txt"
             "*.globalconfig"
             "*.ruleset"
+            "*.DotSettings"
             ".github/workflows/*.yml"
             ".github/workflows/*.yaml"
           )
@@ -347,7 +350,7 @@ jobs:
           echo "✅ Configuration files secured - using versions from main branch"
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
           dotnet-version: '10.0.x'
 
@@ -422,12 +425,61 @@ jobs:
             exit 1
           }
           Write-Host "✅ No error-severity InspectCode findings."
+
+  # ============================================================================
+  # APICOMPAT: Binary/ABI compatibility gate against the last published
+  # package. PublicApiAnalyzers (A1) catches signature adds/removes at build
+  # time, but not behavioural ABI breaks (default-value changes, nullability
+  # flips, binary-layout shifts). Previously this ran only in release.yaml's
+  # pack-and-validate — meaning an ABI break merged cleanly and only
+  # surfaced at release time. Running it per-PR catches the break where it's
+  # introduced. Runs parallel to the test stages (no needs: on a test job).
+  # ============================================================================
+  apicompat:
+    name: "ABI Compatibility (ApiCompat)"
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: detect-projects
+    if: github.repository != 'Chris-Wolfgang/repo-template' && needs.detect-projects.outputs.has-projects == 'true'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: refs/pull/${{ github.event.pull_request.number }}/head
+          persist-credentials: false
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: '10.0.x'
+
+      # Build only the src projects — the script compares their bin/Release
+      # output per TFM against the last published nupkg. Framework TFMs
+      # (net462) build fine on Linux via the SDK's implicit
+      # Microsoft.NETFramework.ReferenceAssemblies (proven weekly by
+      # reproducible-build.yaml doing exactly this).
+      - name: Build src projects (Release, all TFMs)
+        run: |
+          while IFS= read -r proj; do
+            echo "== build $proj =="
+            dotnet build "$proj" -c Release
+          done < <(git ls-files 'src/**/*.csproj')
+
+      - name: Check ABI compatibility (ApiCompat)
+        shell: pwsh
+        # -Command (not -File): apicompat's own exit code leaks through
+        # under -File and masks a real failure locally — same invocation
+        # style as release.yaml's pack-and-validate step.
+        run: pwsh -Command "./scripts/Check-ApiCompatibility.ps1 -Configuration Release"
+
   # ============================================================================
   # STAGE 1: Linux - .NET Core/5+ Tests with Coverage Gate
   # ============================================================================
   test-linux-core: 
     name: "Stage 1: Linux Tests (.NET 5.0-10.0) + Coverage Gate"
     runs-on:  ubuntu-latest
+    timeout-minutes: 45
     needs: detect-projects
     if: github.repository != 'Chris-Wolfgang/repo-template' && needs.detect-projects.outputs.has-projects == 'true'
     
@@ -457,6 +509,7 @@ jobs:
             "BannedSymbols.txt"
             "*.globalconfig"
             "*.ruleset"
+            "*.DotSettings"
             ".github/workflows/*.yml"
             ".github/workflows/*.yaml"
           )
@@ -657,7 +710,10 @@ jobs:
             exit 0
           fi
 
-          mapfile -d '' -t test_projects < <(find ./tests -type f \( -name "*.csproj" -o -name "*.vbproj" -o -name "*.fsproj" \) -not -name "*.Tests.Integration.*" -print0)
+          # `*Test*` filename filter matches release.yaml's discovery, so both
+          # pipelines agree on what counts as a test project (excludes e.g.
+          # tests/AotSmoke, a console smoke app with its own workflow).
+          mapfile -d '' -t test_projects < <(find ./tests -type f \( -name "*Test*.csproj" -o -name "*Test*.vbproj" -o -name "*Test*.fsproj" \) -not -name "*.Tests.Integration.*" -print0)
 
           if [ ${#test_projects[@]} -eq 0 ]; then
             if find ./src -type f \( -name "*.csproj" -o -name "*.vbproj" -o -name "*.fsproj" \) -print -quit 2>/dev/null | grep -q .; then
@@ -829,6 +885,7 @@ jobs:
   test-windows:
     name: "Stage 2: Windows Tests (.NET 5.0-10.0, Framework 4.6.2-4.8.1)"
     runs-on: windows-latest
+    timeout-minutes: 60
     needs: [detect-projects, test-linux-core]
     if: github.repository != 'Chris-Wolfgang/repo-template' && needs.detect-projects.outputs.has-projects == 'true'
     
@@ -872,7 +929,7 @@ jobs:
           }
           
           # Handle glob patterns for .globalconfig, .ruleset, and workflow files
-          $globPatterns = @("*.globalconfig", "*.ruleset", ".github/workflows/*.yml", ".github/workflows/*.yaml")
+          $globPatterns = @("*.globalconfig", "*.ruleset", "*.DotSettings", ".github/workflows/*.yml", ".github/workflows/*.yaml")
           foreach ($pattern in $globPatterns) {
             $files = git ls-tree -r --name-only main-branch | Select-String -Pattern $pattern.Replace("*", ".*")
             foreach ($file in $files) {
@@ -942,7 +999,10 @@ jobs:
             exit 0
           }
 
-          $testProjects = @(Get-ChildItem -Path './tests/*' -Recurse -File -Include '*.csproj','*.vbproj','*.fsproj')
+          # `*Test*` filename filter matches release.yaml's discovery, so both
+          # pipelines agree on what counts as a test project (excludes e.g.
+          # tests/AotSmoke, a console smoke app with its own workflow).
+          $testProjects = @(Get-ChildItem -Path './tests/*' -Recurse -File -Include '*Test*.csproj','*Test*.vbproj','*Test*.fsproj')
 
           if (@($testProjects).Count -eq 0) {
             if ($srcHasProjects) {
@@ -964,19 +1024,27 @@ jobs:
             Write-Host "Testing project: $($testProj.FullName)" -ForegroundColor Cyan
             Write-Host "==========================================" -ForegroundColor Cyan
             
-            # Extract target frameworks from the project file
-            # Support both <TargetFramework> (single) and <TargetFrameworks> (multiple)
-            $content = Get-Content $testProj.FullName -Raw
-            $tfmMatch = [regex]::Match($content, '<TargetFramework[s]?>([^<]+)</TargetFramework[s]?>')
-            
-            if (-not $tfmMatch.Success) {
+            # Extract target frameworks via MSBuild property evaluation, matching
+            # Stage 1/3. A raw-text regex is comment-fragile (an XML comment
+            # containing a <TargetFrameworks> tag would be matched first) and
+            # blind to TFMs inherited from Directory.Build.props — the exact
+            # silent-zero-tests mechanism seen fleet-wide.
+            # Falls back from <TargetFrameworks> (multiple) to <TargetFramework> (single).
+            $tfmRaw = (dotnet msbuild $testProj.FullName -noLogo -getProperty:TargetFrameworks 2>$null |
+              Where-Object { $_ -notmatch '^\s*$' } | Select-Object -Last 1) -replace '^TargetFrameworks[=:]\s*', '' -replace '\s', ''
+            if (-not $tfmRaw) {
+              $tfmRaw = (dotnet msbuild $testProj.FullName -noLogo -getProperty:TargetFramework 2>$null |
+                Where-Object { $_ -notmatch '^\s*$' } | Select-Object -Last 1) -replace '^TargetFramework[=:]\s*', '' -replace '\s', ''
+            }
+
+            if (-not $tfmRaw) {
               Write-Host "⊘ Skipping: No target frameworks found" -ForegroundColor Yellow
               Write-Host ""
               continue
             }
-            
+
             # Split by semicolon for multi-targeting projects
-            $frameworks = $tfmMatch.Groups[1].Value -split ';' | ForEach-Object { $_.Trim() } | Where-Object { $_ -match '^net(5\.0|6\.0|7\.0|8\.0|9\.0|10\.0|462|47|471|472|48|481|coreapp3\.1)$' }
+            $frameworks = $tfmRaw -split ';' | ForEach-Object { $_.Trim() } | Where-Object { $_ -match '^net(5\.0|6\.0|7\.0|8\.0|9\.0|10\.0|462|47|471|472|48|481|coreapp3\.1)$' }
             
             if ($frameworks.Count -eq 0) {
               Write-Host "⊘ Skipping: No compatible .NET 5.0-10.0 or Framework 4.6.2-4.8.1 target frameworks found" -ForegroundColor Yellow
@@ -1140,6 +1208,7 @@ jobs:
   test-macos-core:
     name: "Stage 3: macOS Tests (.NET 6.0-10.0)"
     runs-on: macos-latest
+    timeout-minutes: 45
     needs: [detect-projects, test-windows]
     if: github.repository != 'Chris-Wolfgang/repo-template' && needs.detect-projects.outputs.has-projects == 'true'
     
@@ -1169,6 +1238,7 @@ jobs:
             "BannedSymbols.txt"
             "*.globalconfig"
             "*.ruleset"
+            "*.DotSettings"
             ".github/workflows/*.yml"
             ".github/workflows/*.yaml"
           )
@@ -1353,7 +1423,7 @@ jobs:
           test_projects=()
           while IFS= read -r -d '' file; do
           test_projects+=("$file")
-          done < <(find ./tests -type f \( -name "*.csproj" -o -name "*.vbproj" -o -name "*.fsproj" \) -not -name "*.Tests.Integration.*" -print0)
+          done < <(find ./tests -type f \( -name "*Test*.csproj" -o -name "*Test*.vbproj" -o -name "*Test*.fsproj" \) -not -name "*.Tests.Integration.*" -print0)
 
           if [ ${#test_projects[@]} -eq 0 ]; then
             if find ./src -type f \( -name "*.csproj" -o -name "*.vbproj" -o -name "*.fsproj" \) -print -quit 2>/dev/null | grep -q .; then
@@ -1528,6 +1598,7 @@ jobs:
   security-scan:
     name: "Security Scan (DevSkim)"
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     if: github.repository != 'Chris-Wolfgang/repo-template'
     
     steps:
@@ -1556,6 +1627,7 @@ jobs:
             "BannedSymbols.txt"
             "*.globalconfig"
             "*.ruleset"
+            "*.DotSettings"
             ".github/workflows/*.yml"
             ".github/workflows/*.yaml"
           )
@@ -1615,6 +1687,19 @@ jobs:
             --ignore-rule-ids DS176209 \
             --ignore-globs "**/api/**,**/CoverageReport/**,**/TestResults/**"
 
+          # Second pass in SARIF purely for the severity gate below. The text
+          # output above stays for human-readable display; gating on it with a
+          # substring grep was a false-positive trap (a path or rule name
+          # containing "high" would fail the job). SARIF `level` is the
+          # standardized severity field, so the gate can't be fooled by text
+          # content.
+          devskim analyze \
+            --source-code . \
+            --file-format sarif \
+            --output-file devskim-results.sarif \
+            --ignore-rule-ids DS176209 \
+            --ignore-globs "**/api/**,**/CoverageReport/**,**/TestResults/**"
+
       - name: Display security scan results
         if: always()
         run: |
@@ -1624,16 +1709,19 @@ jobs:
             echo "=========================================="
             cat devskim-results.txt
             echo ""
-            
-            if grep -qi "error\|critical\|high" devskim-results.txt; then
-              echo "❌ Security issues detected - review required"
-              exit 1
-            else
-              echo "✅ No critical security issues found"
-            fi
-          else
-            echo "✅ No security issues found"
           fi
+
+          if [ ! -f devskim-results.sarif ]; then
+            echo "::error::devskim-results.sarif not produced — cannot evaluate the severity gate."
+            exit 1
+          fi
+
+          error_count=$(jq '[.runs[].results[]? | select(.level == "error")] | length' devskim-results.sarif)
+          if [ "$error_count" -gt 0 ]; then
+            echo "❌ $error_count error-severity DevSkim finding(s) detected - review required"
+            exit 1
+          fi
+          echo "✅ No error-severity DevSkim findings"
 
       - name: Upload security scan results
         if: always()
