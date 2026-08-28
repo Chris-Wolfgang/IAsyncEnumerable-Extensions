@@ -20,6 +20,20 @@ left to check isn't worth the maintenance weight. This is the documented
 method is intended to be zero-alloc (snapshot doc explaining why instead
 of half-implemented enforcement)."* This file is that snapshot.
 
+## The Legacy package (`Wolfgang.Extensions.IAsyncEnumerable.Legacy`)
+
+The same policy applies to `IAsyncEnumerableLegacyExtensions`. All 6 terminal
+operators (`CountAsync`, `AnyAsync` × 2, `FirstAsync`, `FirstOrDefaultAsync`,
+`ToListAsync`) compile to `async` state machines, and the package targets
+only net462/netstandard2.0 — TFMs with none of the cached-task /
+`IValueTaskSource` optimizations newer runtimes use — so none of them is
+zero-alloc, by design. `ToListAsync` additionally allocates the returned
+`List<T>`; that allocation is the method's purpose. Beyond the state machine
+and the enumerator the source itself provides, there are no other
+per-element allocations, and the eager-validation wrapper methods allocate
+nothing on the happy path (validation happens before any state machine is
+created).
+
 ## What's already in place instead
 
 `[MemoryDiagnoser]` is enabled on every `BenchmarkDotNet` benchmark class

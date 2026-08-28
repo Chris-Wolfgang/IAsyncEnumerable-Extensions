@@ -433,4 +433,6 @@ nuget-packages/
 # DocFX generated files
 docfx_project/_site/
 docfx_project/obj/
+docfx_project/api/*.yml
+docfx_project/api/.manifest
 

@@ -14,7 +14,7 @@ This library provides:
 - **High Performance**: Optimized implementations with minimal allocations
 - **Comprehensive Test Coverage**: Extensive unit tests ensure reliability
 - **Multi-Framework Support**: Works with .NET Framework 4.6.2, .NET Standard 2.0, .NET 8.0, and .NET 10.0
-- **Strict Code Quality**: Enforced through 7 specialized analyzers and async-first patterns
+- **Strict Code Quality**: Enforced through 8 specialized analyzers and async-first patterns
 
 ## Key Features
 
@@ -104,7 +104,7 @@ This library is built with an **async-first philosophy**:
 
 The library maintains exceptional code quality through:
 
-1. **7 Specialized Analyzers**: Including AsyncFixer, Roslynator, and SonarAnalyzer
+1. **8 Specialized Analyzers**: Including AsyncFixer, Roslynator, and SonarAnalyzer
 2. **Banned API Enforcement**: Prevents usage of synchronous and obsolete APIs
 3. **Comprehensive Testing**: High test coverage with both unit and integration tests
 4. **Strict Formatting**: Enforced through `.editorconfig` and `dotnet format`

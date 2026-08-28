@@ -49,7 +49,7 @@ You can contribute in several ways:
 
 This project maintains **extremely high code quality standards** through multiple layers of static analysis and automated enforcement.
 
-### The 7 Analyzers
+### The 8 Analyzers
 
 All code is analyzed by these tools during build:
 
@@ -87,6 +87,10 @@ All code is analyzed by these tools during build:
    - Security vulnerability detection
    - Code smell identification
 
+8. **Microsoft.CodeAnalysis.PublicApiAnalyzers**
+   - Public-API surface tracking via `PublicAPI.Shipped.txt` / `PublicAPI.Unshipped.txt`
+   - Any change to the public surface fails the build until the API files are updated
+
 ### Async-First Enforcement
 
 This library **prohibits synchronous blocking calls** via `BannedSymbols.txt`. The following APIs are **banned**:
@@ -108,12 +112,12 @@ await Task.WhenAll(tasks);
 // Banned
 File.ReadAllText(path);
 stream.Read(buffer, 0, count);
-streamReader.ReadLine();
+stream.CopyTo(destination);
 
 // Required
 await File.ReadAllTextAsync(path);
 await stream.ReadAsync(buffer, 0, count);
-await streamReader.ReadLineAsync();
+await stream.CopyToAsync(destination);
 ```
 
 #### ❌ Thread Blocking

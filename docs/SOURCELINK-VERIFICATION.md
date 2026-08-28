@@ -13,7 +13,11 @@ no headless way to simulate a developer's keypress and observe whether the
 debugger resolved real source vs. decompiled assembly. So this workflow
 verifies every *mechanical prerequisite* step-into depends on instead:
 
-1. Build the library (Release, net10.0).
+1. Build the library (Release). The workflow matrixes over both shipped
+   packages: `Wolfgang.Extensions.IAsyncEnumerable` at net10.0 and
+   `Wolfgang.Extensions.IAsyncEnumerable.Legacy` at netstandard2.0 (its
+   net462 slot doesn't build reliably on ubuntu-latest, and the
+   netstandard2.0 PDB embeds the same SourceLink metadata).
 2. Use the [`sourcelink`](https://github.com/dotnet/sourcelink) dotnet tool's
    `print-urls` command to read the PDB's embedded SourceLink JSON and list
    every source file's mapped URL (a commit-pinned

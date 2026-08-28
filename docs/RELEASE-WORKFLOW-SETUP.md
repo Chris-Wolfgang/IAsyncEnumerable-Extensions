@@ -15,25 +15,33 @@ The release workflow triggers when you **publish a GitHub Release** and implemen
 
 Complete the following one-time setup so that the workflow can publish releases:
 
-### Add NuGet API Key Secret
+### Configure NuGet Trusted Publishing (OIDC)
 
-**Location:** Settings → Secrets and variables → Actions → New repository secret
+Publishing uses [NuGet Trusted Publishing](https://learn.microsoft.com/en-us/nuget/nuget-org/trusted-publishing) via `NuGet/login@v1` in `release.yaml`. There is **no long-lived `NUGET_API_KEY` repository secret** — at release time the workflow exchanges its GitHub OIDC token for an ephemeral (~1 hour) push key, so there is no standing credential to rotate or leak.
 
-1. Click **"New repository secret"**
-2. **Name:** `NUGET_API_KEY`
-3. **Value:** Your NuGet.org API key
-   - Get your key from [NuGet.org Account → API Keys](https://www.nuget.org/account/apikeys)
-   - Recommended scopes: **Push new packages and package versions**
-   - Set expiration date (recommended: 1 year)
-4. Click **"Add secret"**
+**Location:** nuget.org → account `Chris-Wolfgang` → Manage → Trusted Publishing
 
-**What this does:** Allows the workflow to authenticate with NuGet.org and publish packages. The workflow validates this secret exists before attempting to publish.
+Create one policy **per package ID** (this repo ships two packages, so it needs two policies):
+
+- `Wolfgang.Extensions.IAsyncEnumerable`
+- `Wolfgang.Extensions.IAsyncEnumerable.Legacy`
+
+Each policy's fields:
+
+| Field | Value |
+|-------|-------|
+| Repository owner | `Chris-Wolfgang` |
+| Repository | `IAsyncEnumerable-Extensions` |
+| Workflow file | `release.yaml` |
+| Environment | *(blank)* |
+
+**What this does:** Authorizes this repository's `release.yaml` workflow — and only it — to push the named package. This is a one-time setup per package; nothing needs periodic renewal.
 
 ### Verify Branch Protection Rules
 
 **Location:** Settings → Branches → main (or Settings → Rules → Rulesets)
 
-> **Note:** Repos created from `repo-template` ship with `scripts/Setup-BranchRuleset.ps1`, which configures branch protection interactively (option `[1]` for single-developer mode, `[2]` for multi-developer mode). The script may not be present in older repos — if it is missing, configure the equivalent settings manually using the checklist below.
+> **Note:** This repo's `scripts/Fix-BranchRuleset.ps1` can update the ruleset's required status checks. For initial ruleset creation, configure the settings manually using the checklist below (Settings → Rules → Rulesets).
 
 Ensure the following settings are enabled:
 
@@ -83,9 +91,9 @@ The workflow triggers automatically when the release is published.
    - ✅ Auto-passes if packages are valid
 
 3. **Job 3: publish-nuget** (1-2 minutes)
-   - Validates NUGET_API_KEY secret
+   - Exchanges the workflow's OIDC token for an ephemeral (~1h) push key via `NuGet/login@v1`
    - Publishes packages to NuGet.org automatically
-   - ✅ Auto-completes if secret is valid
+   - ✅ Auto-completes if the Trusted Publishing policies are configured
 
 ### Monitoring the Workflow
 
@@ -95,13 +103,13 @@ The workflow triggers automatically when the release is published.
 
 ## Troubleshooting
 
-### "NUGET_API_KEY secret not configured" Error
+### OIDC Login / Push Fails in `publish-nuget`
 
-**Problem:** The `publish-nuget` job fails with secret validation error.
+**Problem:** The `NuGet/login@v1` step (or the subsequent push) fails.
 
-**Solution:**
-1. Verify the secret name is exactly `NUGET_API_KEY` (case-sensitive)
-2. Re-add the secret in Settings → Secrets → Actions
+**Solution:** A failed OIDC exchange means the Trusted Publishing policy is missing or misconfigured on nuget.org.
+1. Check nuget.org → account `Chris-Wolfgang` → Manage → Trusted Publishing
+2. Verify a policy exists for **each** package ID (`Wolfgang.Extensions.IAsyncEnumerable` and `Wolfgang.Extensions.IAsyncEnumerable.Legacy`) with owner `Chris-Wolfgang`, repository `IAsyncEnumerable-Extensions`, workflow file `release.yaml`, and a blank environment
 3. Re-run the workflow from the Actions tab (do not re-publish the release)
 
 ### Tests Fail on Specific Framework
@@ -189,7 +197,7 @@ Before creating a production GitHub Release (e.g., `v1.0.0`):
 ┌─────────────────────────────────────────────────────────────┐
 │  Job 3: publish-nuget (Windows)                             │
 │  • Download packages                                        │
-│  • Validate NUGET_API_KEY                                   │
+│  • OIDC login (NuGet/login@v1, ephemeral push key)          │
 │  • Publish to NuGet.org automatically                       │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -202,7 +210,7 @@ Before creating a production GitHub Release (e.g., `v1.0.0`):
 | **Code Coverage** | Not enforced | 90% threshold enforced |
 | **Package Validation** | None | Smoke test installation |
 | **Deployment** | Incomplete publish script | Automatic publishing after validation |
-| **Secret Validation** | None | Validates before publishing |
+| **Credentials** | Long-lived API key secret | Trusted Publishing (OIDC), ephemeral push key |
 | **GitHub Releases** | Not used as trigger | Workflow triggered by published release |
 | **Build Efficiency** | Duplicate builds in each job | Build once per job with dependencies |
 | **Test Logging** | No logger parameter | Console logging with verbosity |

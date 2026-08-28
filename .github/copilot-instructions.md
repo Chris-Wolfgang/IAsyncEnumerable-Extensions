@@ -5,9 +5,9 @@
 This is a .NET library project that provides extension methods for `IAsyncEnumerable<T>`. The library is designed to make working with async sequences easier and more efficient, with features like chunking, batching, and other utility methods.
 
 **Repository Type**: .NET Library Project  
-**Target Frameworks**: .NET Framework 4.6.2, .NET Standard 2.0, .NET 8.0, .NET 10.0  
+**Target Frameworks**: .NET Framework 4.6.2, .NET Standard 2.0, .NET 8.0, .NET 10.0 (main package); .NET Framework 4.6.2, .NET Standard 2.0 only (Legacy package)  
 **Primary Language**: C#  
-**Package Name**: Wolfgang.Extensions.IAsyncEnumerable  
+**Packages**: Wolfgang.Extensions.IAsyncEnumerable (main) and Wolfgang.Extensions.IAsyncEnumerable.Legacy (terminal operators for TFMs without System.Linq.AsyncEnumerable), both under `src/`  
 
 ## Build and Validation Instructions
 
@@ -65,9 +65,12 @@ This is a .NET library project that provides extension methods for `IAsyncEnumer
 root/
 ├── IAsyncEnumerable Extensions.slnx    # Solution file
 ├── src/                                # Library projects
-│   └── Wolfgang.Extensions.IAsyncEnumerable/
-│       ├── Wolfgang.Extensions.IAsyncEnumerable.csproj
-│       └── IAsyncEnumerableExtensions.cs
+│   ├── Wolfgang.Extensions.IAsyncEnumerable/
+│   │   ├── Wolfgang.Extensions.IAsyncEnumerable.csproj
+│   │   └── IAsyncEnumerableExtensions.cs
+│   └── Wolfgang.Extensions.IAsyncEnumerable.Legacy/
+│       ├── Wolfgang.Extensions.IAsyncEnumerable.Legacy.csproj
+│       └── IAsyncEnumerableLegacyExtensions.cs
 ├── tests/                              # Test projects
 │   └── Wolfgang.Extensions.IAsyncEnumerable.Tests.Unit/
 ├── benchmarks/                         # Performance benchmarks
@@ -85,7 +88,7 @@ root/
 
 ### GitHub Integration
 - **Workflows**: `.github/workflows/pr.yaml` - Comprehensive CI/CD pipeline
-- **Issue Templates**: Bug reports (YAML) and feature requests (Markdown)
+- **Issue Templates**: Bug reports, feature requests, and maintenance tasks (all YAML)
 - **PR Template**: Structured pull request template with checklists
 - **CODEOWNERS**: Default owner `@Chris-Wolfgang`, update usernames as needed
 - **Dependabot**: Configured for NuGet packages in all project directories
@@ -93,13 +96,13 @@ root/
 ### Continuous Integration Pipeline (`.github/workflows/pr.yaml`)
 The workflow runs on pull requests to `main` branch and includes:
 
-1. **Environment**: Ubuntu Latest with .NET 8.0.x
+1. **Environment**: Multi-stage pipeline (Linux, Windows, macOS) with .NET SDKs 3.1.x through 10.0.x
 2. **Build Steps**: Checkout → Setup .NET → Restore → Build → Test → Coverage → Security
 3. **Artifacts**: Coverage reports and DevSkim results uploaded
 4. **Branch Protection**: Configured to require this workflow to pass before merging
 
 ### Branch Protection Configuration
-Branch protection rules are configured by running the local PowerShell script `scripts/Setup-BranchRuleset.ps1`. The script prompts you to choose repository settings during setup.
+Branch protection rulesets are managed in GitHub (Settings → Rules → Rulesets). The local PowerShell script `scripts/Fix-BranchRuleset.ps1` updates the ruleset's required status checks; `scripts/Setup-Labels.ps1` provisions the repo's label set.
 
 **Single-Developer Configuration (Default):**
 - No PR approvals required (you can merge your own PRs)
@@ -119,11 +122,10 @@ Branch protection rules are configured by running the local PowerShell script `s
 **Branch Protection Setup Instructions:**
 1. Install GitHub CLI (gh) from https://cli.github.com/
 2. Authenticate: `gh auth login`
-3. From PowerShell 7+ (for example, using `pwsh`), run the branch protection setup script:
+3. Create/adjust the ruleset in GitHub (Settings → Rules → Rulesets), then keep its required status checks in sync with `pr.yaml` by running:
    ```powershell
-   pwsh -File ./scripts/Setup-BranchRuleset.ps1
+   pwsh -File ./scripts/Fix-BranchRuleset.ps1
    ```
-4. When prompted by the script, choose single-developer or multi-developer settings
 
 ## Key Files and Locations
 
