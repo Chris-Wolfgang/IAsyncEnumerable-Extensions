@@ -289,8 +289,8 @@ if (-not $SkipSecurity) {
         # Mirrors pr.yaml, which verifies the same pinned version's linux
         # asset. Bump these together with $version.
         $sha256 = @{
-            "gitleaks_${version}_windows_x64.zip"  = "dab91070b01feec49bd157375085c93a16fe85e13b3bff6916aaaa0a3b3b5fac"
-            "gitleaks_${version}_linux_x64.tar.gz" = "cb49b7de5ee986510fe8666ca0273a6cc15eb82571f2f14832c9e8920751f3a4"
+            "gitleaks_${version}_windows_x64.zip"  = "dab91070b01feec49bd157375085c93a16fe85e13b3bff6916aaaa0a3b3b5fac" # DevSkim: ignore DS173237 - integrity checksum, not a secret
+            "gitleaks_${version}_linux_x64.tar.gz" = "cb49b7de5ee986510fe8666ca0273a6cc15eb82571f2f14832c9e8920751f3a4" # DevSkim: ignore DS173237 - integrity checksum, not a secret
         }
 
         function Assert-GitleaksChecksum([string]$File, [string]$AssetName) {

@@ -193,7 +193,7 @@ public sealed class DeepBehaviorTests
     [InlineData(10_000, 256, 61)]
     public async Task ChunkAsync_property_concatenated_chunks_equal_source(int n, int chunkSize, int seed)
     {
-        var rng = new Random(seed);
+        var rng = new Random(seed); // DevSkim: ignore DS148264 - deterministic test-data generation, not cryptographic use
         var input = new int[n];
         for (var i = 0; i < n; i++)
         {
@@ -243,7 +243,7 @@ public sealed class DeepBehaviorTests
     public async Task NoneAsync_predicate_property_equals_inverse_of_any(int n, int seed)
     {
         // Property: NoneAsync(predicate) <=> source.All(x => !predicate(x))
-        var rng = new Random(seed);
+        var rng = new Random(seed); // DevSkim: ignore DS148264 - deterministic test-data generation, not cryptographic use
         var input = new int[n];
         for (var i = 0; i < n; i++)
         {
