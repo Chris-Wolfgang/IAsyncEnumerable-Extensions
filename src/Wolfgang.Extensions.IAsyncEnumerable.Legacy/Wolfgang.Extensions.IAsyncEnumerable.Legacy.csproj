@@ -22,6 +22,7 @@
 		<PackageRequireLicenseAcceptance>False</PackageRequireLicenseAcceptance>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<EnablePackageValidation>True</EnablePackageValidation>
+		<PackageValidationBaselineVersion>0.6.0</PackageValidationBaselineVersion>
 		<SignAssembly>False</SignAssembly>
 		<PackageTags>async;iasyncenumerable;async-enumerable;async-streams;extensions;linq;terminal-operators;count;any;first;tolist;net462;netstandard20;polyfill</PackageTags>
 		<PackageIcon>icon_128x128.png</PackageIcon>
