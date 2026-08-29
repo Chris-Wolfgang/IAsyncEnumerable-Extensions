@@ -1,45 +1,59 @@
 Summary
-  Generated on: 8/27/2026 - 12:49:10 PM
-  Coverage date: 8/27/2026 - 12:49:01 PM - 8/27/2026 - 12:49:06 PM
-  Parser: MultiReport (4x Cobertura)
-  Assemblies: 5
-  Classes: 15
-  Files: 14
-  Line coverage: 99.1%
-  Covered lines: 1273
-  Uncovered lines: 11
-  Coverable lines: 1284
-  Total lines: 3246
-  Branch coverage: 86.9% (280 of 322)
-  Covered branches: 280
-  Total branches: 322
-  Method coverage: 100% (216 of 216)
-  Full method coverage: 94.4% (204 of 216)
-  Covered methods: 216
-  Fully covered methods: 204
-  Total methods: 216
+  Generated on: 8/29/2026 - 12:38:11 AM
+  Coverage date: 8/29/2026 - 12:38:02 AM - 8/29/2026 - 12:38:06 AM
+  Parser: MultiReport (5x Cobertura)
+  Assemblies: 7
+  Classes: 25
+  Files: 24
+  Line coverage: 99.2%
+  Covered lines: 1604
+  Uncovered lines: 12
+  Coverable lines: 1616
+  Total lines: 4307
+  Branch coverage: 85.4% (294 of 344)
+  Covered branches: 294
+  Total branches: 344
+  Method coverage: 100% (271 of 271)
+  Full method coverage: 95.2% (258 of 271)
+  Covered methods: 271
+  Fully covered methods: 258
+  Total methods: 271
 
-Wolfgang.Extensions.IAsyncEnumerable                                               100%
-  Wolfgang.Extensions.IAsyncEnumerable.IAsyncEnumerableExtensions                  100%
+Wolfgang.Extensions.IAsyncEnumerable                                                 100%
+  Wolfgang.Extensions.IAsyncEnumerable.IAsyncEnumerableExtensions                    100%
 
-Wolfgang.Extensions.IAsyncEnumerable.Tests.Concurrency                             100%
-  Wolfgang.Extensions.IAsyncEnumerable.Tests.Concurrency.ConcurrencyStressTests    100%
+Wolfgang.Extensions.IAsyncEnumerable.Legacy                                          100%
+  Wolfgang.Extensions.IAsyncEnumerable.IAsyncEnumerableLegacyExtensions              100%
 
-Wolfgang.Extensions.IAsyncEnumerable.Tests.DocExamples                            99.2%
-  Wolfgang.Extensions.IAsyncEnumerable.Tests.DocExamples.DocExample                100%
-  Wolfgang.Extensions.IAsyncEnumerable.Tests.DocExamples.DocExampleCompiler        100%
-  Wolfgang.Extensions.IAsyncEnumerable.Tests.DocExamples.DocExampleSource          100%
-  Wolfgang.Extensions.IAsyncEnumerable.Tests.DocExamples.DocExampleTests          96.9%
+Wolfgang.Extensions.IAsyncEnumerable.Legacy.Tests.Unit                              99.6%
+  Wolfgang.Extensions.IAsyncEnumerable.Legacy.Tests.Unit.AnyAsyncTests              98.7%
+  Wolfgang.Extensions.IAsyncEnumerable.Legacy.Tests.Unit.CountAsyncTests             100%
+  Wolfgang.Extensions.IAsyncEnumerable.Legacy.Tests.Unit.DeepBehaviorTests           100%
+  Wolfgang.Extensions.IAsyncEnumerable.Legacy.Tests.Unit.FirstAsyncTests             100%
+  Wolfgang.Extensions.IAsyncEnumerable.Legacy.Tests.Unit.FirstOrDefaultAsyncTests    100%
+  Wolfgang.Extensions.IAsyncEnumerable.Legacy.Tests.Unit.TestSources                 100%
+  Wolfgang.Extensions.IAsyncEnumerable.Legacy.Tests.Unit.ToListAsyncTests            100%
 
-Wolfgang.Extensions.IAsyncEnumerable.Tests.Fuzz                                   97.1%
-  Wolfgang.Extensions.IAsyncEnumerable.Tests.Fuzz.FuzzProperties                  97.1%
+Wolfgang.Extensions.IAsyncEnumerable.Tests.Concurrency                               100%
+  Wolfgang.Extensions.IAsyncEnumerable.Tests.Concurrency.ConcurrencyStressTests      100%
 
-Wolfgang.Extensions.IAsyncEnumerable.Tests.Unit                                     99%
-  Wolfgang.Extensions.IAsyncEnumerable.Tests.Unit.ChunkAsyncTests                  100%
-  Wolfgang.Extensions.IAsyncEnumerable.Tests.Unit.CultureInvarianceTests           100%
-  Wolfgang.Extensions.IAsyncEnumerable.Tests.Unit.DeepBehaviorTests                100%
-  Wolfgang.Extensions.IAsyncEnumerable.Tests.Unit.DoAsyncTests                    99.1%
-  Wolfgang.Extensions.IAsyncEnumerable.Tests.Unit.ForEachAsyncTests               96.7%
-  Wolfgang.Extensions.IAsyncEnumerable.Tests.Unit.IsEmptyAsyncTests                100%
-  Wolfgang.Extensions.IAsyncEnumerable.Tests.Unit.IsNullOrEmptyAsyncTests          100%
-  Wolfgang.Extensions.IAsyncEnumerable.Tests.Unit.NoneAsyncTests                   100%
+Wolfgang.Extensions.IAsyncEnumerable.Tests.DocExamples                              99.2%
+  Wolfgang.Extensions.IAsyncEnumerable.Tests.DocExamples.DocExample                  100%
+  Wolfgang.Extensions.IAsyncEnumerable.Tests.DocExamples.DocExampleCompiler          100%
+  Wolfgang.Extensions.IAsyncEnumerable.Tests.DocExamples.DocExampleSource            100%
+  Wolfgang.Extensions.IAsyncEnumerable.Tests.DocExamples.DocExampleTests            96.9%
+
+Wolfgang.Extensions.IAsyncEnumerable.Tests.Fuzz                                     97.1%
+  Wolfgang.Extensions.IAsyncEnumerable.Tests.Fuzz.FuzzProperties                    97.1%
+
+Wolfgang.Extensions.IAsyncEnumerable.Tests.Unit                                       99%
+  Wolfgang.Extensions.IAsyncEnumerable.Tests.Unit.ChunkAsyncTests                    100%
+  Wolfgang.Extensions.IAsyncEnumerable.Tests.Unit.CultureInvarianceTests             100%
+  Wolfgang.Extensions.IAsyncEnumerable.Tests.Unit.DeepBehaviorTests                  100%
+  Wolfgang.Extensions.IAsyncEnumerable.Tests.Unit.DoAsyncTests                      99.1%
+  Wolfgang.Extensions.IAsyncEnumerable.Tests.Unit.ForEachAsyncTests                 96.7%
+  Wolfgang.Extensions.IAsyncEnumerable.Tests.Unit.IsEmptyAsyncTests                  100%
+  Wolfgang.Extensions.IAsyncEnumerable.Tests.Unit.IsNullOrEmptyAsyncTests            100%
+  Wolfgang.Extensions.IAsyncEnumerable.Tests.Unit.NoneAsyncTests                     100%
+  Wolfgang.Extensions.IAsyncEnumerable.Tests.Unit.TestSources                        100%
+  Wolfgang.Extensions.IAsyncEnumerable.Tests.Unit.TrackingAsyncEnumerable            100%

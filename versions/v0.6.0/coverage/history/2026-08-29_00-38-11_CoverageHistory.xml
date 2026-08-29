@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<coverage version="1.0" date="2026-08-29_00-38-11" tag="">
+  <assembly name="Wolfgang.Extensions.IAsyncEnumerable">
+    <class name="Wolfgang.Extensions.IAsyncEnumerable.IAsyncEnumerableExtensions" coveredlines="99" coverablelines="99" totallines="543" coveredbranches="48" totalbranches="48" coveredcodeelements="13" fullcoveredcodeelements="13" totalcodeelements="13" />
+  </assembly>
+  <assembly name="Wolfgang.Extensions.IAsyncEnumerable.Legacy">
+    <class name="Wolfgang.Extensions.IAsyncEnumerable.IAsyncEnumerableLegacyExtensions" coveredlines="66" coverablelines="66" totallines="334" coveredbranches="26" totalbranches="26" coveredcodeelements="12" fullcoveredcodeelements="12" totalcodeelements="12" />
+  </assembly>
+  <assembly name="Wolfgang.Extensions.IAsyncEnumerable.Legacy.Tests.Unit">
+    <class name="Wolfgang.Extensions.IAsyncEnumerable.Legacy.Tests.Unit.AnyAsyncTests/&lt;&gt;c" coveredlines="82" coverablelines="83" totallines="184" coveredbranches="3" totalbranches="6" coveredcodeelements="12" fullcoveredcodeelements="11" totalcodeelements="12" />
+    <class name="Wolfgang.Extensions.IAsyncEnumerable.Legacy.Tests.Unit.CountAsyncTests/&lt;&gt;c__DisplayClass0_0" coveredlines="33" coverablelines="33" totallines="82" coveredbranches="0" totalbranches="0" coveredcodeelements="6" fullcoveredcodeelements="6" totalcodeelements="6" />
+    <class name="Wolfgang.Extensions.IAsyncEnumerable.Legacy.Tests.Unit.DeepBehaviorTests/InstrumentedAsyncEnumerable`1" coveredlines="58" coverablelines="58" totallines="141" coveredbranches="7" totalbranches="8" coveredcodeelements="14" fullcoveredcodeelements="14" totalcodeelements="14" />
+    <class name="Wolfgang.Extensions.IAsyncEnumerable.Legacy.Tests.Unit.FirstAsyncTests/&lt;&gt;c__DisplayClass0_0" coveredlines="29" coverablelines="29" totallines="70" coveredbranches="0" totalbranches="0" coveredcodeelements="5" fullcoveredcodeelements="5" totalcodeelements="5" />
+    <class name="Wolfgang.Extensions.IAsyncEnumerable.Legacy.Tests.Unit.FirstOrDefaultAsyncTests/&lt;&gt;c__DisplayClass0_0" coveredlines="35" coverablelines="35" totallines="93" coveredbranches="0" totalbranches="0" coveredcodeelements="7" fullcoveredcodeelements="7" totalcodeelements="7" />
+    <class name="Wolfgang.Extensions.IAsyncEnumerable.Legacy.Tests.Unit.TestSources/&lt;Create&gt;d__0`1" coveredlines="15" coverablelines="15" totallines="51" coveredbranches="10" totalbranches="12" coveredcodeelements="3" fullcoveredcodeelements="3" totalcodeelements="3" />
+    <class name="Wolfgang.Extensions.IAsyncEnumerable.Legacy.Tests.Unit.ToListAsyncTests/&lt;&gt;c__DisplayClass0_0" coveredlines="39" coverablelines="39" totallines="95" coveredbranches="0" totalbranches="0" coveredcodeelements="7" fullcoveredcodeelements="7" totalcodeelements="7" />
+  </assembly>
+  <assembly name="Wolfgang.Extensions.IAsyncEnumerable.Tests.Concurrency">
+    <class name="Wolfgang.Extensions.IAsyncEnumerable.Tests.Concurrency.ConcurrencyStressTests" coveredlines="90" coverablelines="90" totallines="188" coveredbranches="43" totalbranches="50" coveredcodeelements="12" fullcoveredcodeelements="12" totalcodeelements="12" />
+  </assembly>
+  <assembly name="Wolfgang.Extensions.IAsyncEnumerable.Tests.DocExamples">
+    <class name="Wolfgang.Extensions.IAsyncEnumerable.Tests.DocExamples.DocExample" coveredlines="21" coverablelines="21" totallines="218" coveredbranches="0" totalbranches="0" coveredcodeelements="8" fullcoveredcodeelements="8" totalcodeelements="8" />
+    <class name="Wolfgang.Extensions.IAsyncEnumerable.Tests.DocExamples.DocExampleCompiler" coveredlines="38" coverablelines="38" totallines="120" coveredbranches="4" totalbranches="4" coveredcodeelements="3" fullcoveredcodeelements="3" totalcodeelements="3" />
+    <class name="Wolfgang.Extensions.IAsyncEnumerable.Tests.DocExamples.DocExampleSource" coveredlines="47" coverablelines="47" totallines="218" coveredbranches="24" totalbranches="26" coveredcodeelements="6" fullcoveredcodeelements="6" totalcodeelements="6" />
+    <class name="Wolfgang.Extensions.IAsyncEnumerable.Tests.DocExamples.DocExampleTests" coveredlines="32" coverablelines="33" totallines="106" coveredbranches="0" totalbranches="0" coveredcodeelements="7" fullcoveredcodeelements="6" totalcodeelements="7" />
+  </assembly>
+  <assembly name="Wolfgang.Extensions.IAsyncEnumerable.Tests.Fuzz">
+    <class name="Wolfgang.Extensions.IAsyncEnumerable.Tests.Fuzz.FuzzProperties" coveredlines="69" coverablelines="71" totallines="156" coveredbranches="25" totalbranches="34" coveredcodeelements="13" fullcoveredcodeelements="11" totalcodeelements="13" />
+  </assembly>
+  <assembly name="Wolfgang.Extensions.IAsyncEnumerable.Tests.Unit">
+    <class name="Wolfgang.Extensions.IAsyncEnumerable.Tests.Unit.ChunkAsyncTests" coveredlines="87" coverablelines="87" totallines="190" coveredbranches="4" totalbranches="4" coveredcodeelements="16" fullcoveredcodeelements="16" totalcodeelements="16" />
+    <class name="Wolfgang.Extensions.IAsyncEnumerable.Tests.Unit.CultureInvarianceTests" coveredlines="64" coverablelines="64" totallines="145" coveredbranches="16" totalbranches="18" coveredcodeelements="13" fullcoveredcodeelements="13" totalcodeelements="13" />
+    <class name="Wolfgang.Extensions.IAsyncEnumerable.Tests.Unit.DeepBehaviorTests" coveredlines="131" coverablelines="131" totallines="342" coveredbranches="43" totalbranches="48" coveredcodeelements="26" fullcoveredcodeelements="26" totalcodeelements="26" />
+    <class name="Wolfgang.Extensions.IAsyncEnumerable.Tests.Unit.DoAsyncTests/&lt;&gt;c" coveredlines="231" coverablelines="233" totallines="478" coveredbranches="18" totalbranches="24" coveredcodeelements="34" fullcoveredcodeelements="32" totalcodeelements="34" />
+    <class name="Wolfgang.Extensions.IAsyncEnumerable.Tests.Unit.ForEachAsyncTests/&lt;&gt;c" coveredlines="178" coverablelines="184" totallines="343" coveredbranches="12" totalbranches="22" coveredcodeelements="23" fullcoveredcodeelements="16" totalcodeelements="23" />
+    <class name="Wolfgang.Extensions.IAsyncEnumerable.Tests.Unit.IsEmptyAsyncTests/&lt;&gt;c__DisplayClass0_0" coveredlines="26" coverablelines="26" totallines="70" coveredbranches="0" totalbranches="0" coveredcodeelements="5" fullcoveredcodeelements="5" totalcodeelements="5" />
+    <class name="Wolfgang.Extensions.IAsyncEnumerable.Tests.Unit.IsNullOrEmptyAsyncTests/&lt;&gt;c__DisplayClass4_0" coveredlines="29" coverablelines="29" totallines="86" coveredbranches="0" totalbranches="0" coveredcodeelements="6" fullcoveredcodeelements="6" totalcodeelements="6" />
+    <class name="Wolfgang.Extensions.IAsyncEnumerable.Tests.Unit.NoneAsyncTests/&lt;&gt;c" coveredlines="87" coverablelines="87" totallines="203" coveredbranches="2" totalbranches="4" coveredcodeelements="14" fullcoveredcodeelements="14" totalcodeelements="14" />
+    <class name="Wolfgang.Extensions.IAsyncEnumerable.Tests.Unit.TestSources/&lt;Create&gt;d__0`1" coveredlines="14" coverablelines="14" totallines="50" coveredbranches="9" totalbranches="10" coveredcodeelements="3" fullcoveredcodeelements="3" totalcodeelements="3" />
+    <class name="Wolfgang.Extensions.IAsyncEnumerable.Tests.Unit.TrackingAsyncEnumerable" coveredlines="4" coverablelines="4" totallines="19" coveredbranches="0" totalbranches="0" coveredcodeelements="3" fullcoveredcodeelements="3" totalcodeelements="3" />
+  </assembly>
+</coverage>

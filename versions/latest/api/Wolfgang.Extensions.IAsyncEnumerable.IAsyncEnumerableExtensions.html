@@ -16,7 +16,7 @@
       <meta name="docfx:rel" content="../">
       
       
-      <meta name="docfx:docurl" content="https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/new/v0.5.4/apiSpec/new?filename=Wolfgang_Extensions_IAsyncEnumerable_IAsyncEnumerableExtensions.md&amp;value=---%0Auid%3A%20Wolfgang.Extensions.IAsyncEnumerable.IAsyncEnumerableExtensions%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">
+      <meta name="docfx:docurl" content="https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/new/v0.6.0/apiSpec/new?filename=Wolfgang_Extensions_IAsyncEnumerable_IAsyncEnumerableExtensions.md&amp;value=---%0Auid%3A%20Wolfgang.Extensions.IAsyncEnumerable.IAsyncEnumerableExtensions%0Asummary%3A%20&#39;*You%20can%20override%20summary%20for%20the%20API%20here%20using%20*MARKDOWN*%20syntax&#39;%0A---%0A%0A*Please%20type%20below%20more%20information%20about%20this%20API%3A*%0A%0A">
       <meta name="loc:inThisArticle" content="In this article">
       <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
       <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
@@ -75,7 +75,7 @@
 
 
   <h1 id="Wolfgang_Extensions_IAsyncEnumerable_IAsyncEnumerableExtensions" data-uid="Wolfgang.Extensions.IAsyncEnumerable.IAsyncEnumerableExtensions" class="text-break">
-Class IAsyncEnumerableExtensions  <a class="header-action link-secondary" title="View source" href="https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/blob/v0.5.4/src/Wolfgang.Extensions.IAsyncEnumerable/IAsyncEnumerableExtensions.cs/#L13"><i class="bi bi-code-slash"></i></a>
+Class IAsyncEnumerableExtensions  <a class="header-action link-secondary" title="View source" href="https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/blob/v0.6.0/src/Wolfgang.Extensions.IAsyncEnumerable/IAsyncEnumerableExtensions.cs/#L13"><i class="bi bi-code-slash"></i></a>
   </h1>
 
   <div class="facts text-secondary">
@@ -143,7 +143,7 @@ Class IAsyncEnumerableExtensions  <a class="header-action link-secondary" title=
 
   <h3 id="Wolfgang_Extensions_IAsyncEnumerable_IAsyncEnumerableExtensions_ChunkAsync__1_System_Collections_Generic_IAsyncEnumerable___0__System_Int32_System_Threading_CancellationToken_" data-uid="Wolfgang.Extensions.IAsyncEnumerable.IAsyncEnumerableExtensions.ChunkAsync``1(System.Collections.Generic.IAsyncEnumerable{``0},System.Int32,System.Threading.CancellationToken)">
   ChunkAsync&lt;T&gt;(IAsyncEnumerable&lt;T&gt;, int, CancellationToken)
-  <a class="header-action link-secondary" title="View source" href="https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/blob/v0.5.4/src/Wolfgang.Extensions.IAsyncEnumerable/IAsyncEnumerableExtensions.cs/#L26"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/blob/v0.6.0/src/Wolfgang.Extensions.IAsyncEnumerable/IAsyncEnumerableExtensions.cs/#L31"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Splits an IAsyncEnumerable{T} into chunks of a specified maximum size.</p>
@@ -195,6 +195,11 @@ Class IAsyncEnumerableExtensions  <a class="header-action link-secondary" title=
     <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.argumentoutofrangeexception">ArgumentOutOfRangeException</a></dt>
     <dd><p>Thrown when <code class="paramref">maxChunkSize</code> is less than one.</p>
 </dd>
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.operationcanceledexception">OperationCanceledException</a></dt>
+    <dd><p>Thrown when <code class="paramref">token</code> is canceled. Observed at enumeration
+time (surfaced through the consuming <code>await foreach</code>), checked at
+chunk boundaries rather than per element.</p>
+</dd>
   </dl>
 
 
@@ -203,7 +208,7 @@ Class IAsyncEnumerableExtensions  <a class="header-action link-secondary" title=
 
   <h3 id="Wolfgang_Extensions_IAsyncEnumerable_IAsyncEnumerableExtensions_DoAsync__1_System_Collections_Generic_IAsyncEnumerable___0__System_Action___0__System_Threading_CancellationToken_" data-uid="Wolfgang.Extensions.IAsyncEnumerable.IAsyncEnumerableExtensions.DoAsync``1(System.Collections.Generic.IAsyncEnumerable{``0},System.Action{``0},System.Threading.CancellationToken)">
   DoAsync&lt;T&gt;(IAsyncEnumerable&lt;T&gt;, Action&lt;T&gt;, CancellationToken)
-  <a class="header-action link-secondary" title="View source" href="https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/blob/v0.5.4/src/Wolfgang.Extensions.IAsyncEnumerable/IAsyncEnumerableExtensions.cs/#L123"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/blob/v0.6.0/src/Wolfgang.Extensions.IAsyncEnumerable/IAsyncEnumerableExtensions.cs/#L138"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Executes a synchronous side-effect action on each element of an IAsyncEnumerable{T}
@@ -266,6 +271,10 @@ cancellation is required.</p>
     <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.argumentnullexception">ArgumentNullException</a></dt>
     <dd><p>Thrown when <code class="paramref">source</code> or <code class="paramref">action</code> is null.</p>
 </dd>
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.operationcanceledexception">OperationCanceledException</a></dt>
+    <dd><p>Thrown when <code class="paramref">token</code> is canceled. Observed at enumeration
+time, surfaced through the consuming <code>await foreach</code>.</p>
+</dd>
   </dl>
 
 
@@ -274,7 +283,7 @@ cancellation is required.</p>
 
   <h3 id="Wolfgang_Extensions_IAsyncEnumerable_IAsyncEnumerableExtensions_DoAsync__1_System_Collections_Generic_IAsyncEnumerable___0__System_Func___0_System_Threading_Tasks_Task__System_Threading_CancellationToken_" data-uid="Wolfgang.Extensions.IAsyncEnumerable.IAsyncEnumerableExtensions.DoAsync``1(System.Collections.Generic.IAsyncEnumerable{``0},System.Func{``0,System.Threading.Tasks.Task},System.Threading.CancellationToken)">
   DoAsync&lt;T&gt;(IAsyncEnumerable&lt;T&gt;, Func&lt;T, Task&gt;, CancellationToken)
-  <a class="header-action link-secondary" title="View source" href="https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/blob/v0.5.4/src/Wolfgang.Extensions.IAsyncEnumerable/IAsyncEnumerableExtensions.cs/#L163"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/blob/v0.6.0/src/Wolfgang.Extensions.IAsyncEnumerable/IAsyncEnumerableExtensions.cs/#L189"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Executes an asynchronous side-effect action on each element of an IAsyncEnumerable{T}
@@ -324,11 +333,22 @@ without transforming the elements. The original items are yielded unchanged.</p>
 }</code></pre>
 
 
+  <h4 class="section" id="Wolfgang_Extensions_IAsyncEnumerable_IAsyncEnumerableExtensions_DoAsync__1_System_Collections_Generic_IAsyncEnumerable___0__System_Func___0_System_Threading_Tasks_Task__System_Threading_CancellationToken__remarks">Remarks</h4>
+  <div class="markdown level1 remarks"><p>Exceptions thrown by <code class="paramref">action</code> propagate to the consuming
+<code>await foreach</code> and terminate the enumeration. The cancellation token is
+observed between elements (after each <code>yield return</code>), not while the action
+is running — wrap long-running actions in their own cancellation if mid-action
+cancellation is required.</p>
+</div>
 
   <h4 class="section">Exceptions</h4>
   <dl class="parameters">
     <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.argumentnullexception">ArgumentNullException</a></dt>
     <dd><p>Thrown when <code class="paramref">source</code> or <code class="paramref">action</code> is null.</p>
+</dd>
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.operationcanceledexception">OperationCanceledException</a></dt>
+    <dd><p>Thrown when <code class="paramref">token</code> is canceled. Observed at enumeration
+time, surfaced through the consuming <code>await foreach</code>.</p>
 </dd>
   </dl>
 
@@ -338,7 +358,7 @@ without transforming the elements. The original items are yielded unchanged.</p>
 
   <h3 id="Wolfgang_Extensions_IAsyncEnumerable_IAsyncEnumerableExtensions_ForEachAsync__1_System_Collections_Generic_IAsyncEnumerable___0__System_Action___0__System_Threading_CancellationToken_" data-uid="Wolfgang.Extensions.IAsyncEnumerable.IAsyncEnumerableExtensions.ForEachAsync``1(System.Collections.Generic.IAsyncEnumerable{``0},System.Action{``0},System.Threading.CancellationToken)">
   ForEachAsync&lt;T&gt;(IAsyncEnumerable&lt;T&gt;, Action&lt;T&gt;, CancellationToken)
-  <a class="header-action link-secondary" title="View source" href="https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/blob/v0.5.4/src/Wolfgang.Extensions.IAsyncEnumerable/IAsyncEnumerableExtensions.cs/#L245"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/blob/v0.6.0/src/Wolfgang.Extensions.IAsyncEnumerable/IAsyncEnumerableExtensions.cs/#L276"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Executes a synchronous action on each element of an IAsyncEnumerable{T},
@@ -366,7 +386,8 @@ consuming the sequence. This is a terminal operation.</p>
   <h4 class="section">Returns</h4>
   <dl class="parameters">
     <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.tasks.task">Task</a></dt>
-    <dd></dd>
+    <dd><p>A task that completes when every element has been processed.</p>
+</dd>
   </dl>
 
   <h4 class="section">Type Parameters</h4>
@@ -390,6 +411,10 @@ consuming the sequence. This is a terminal operation.</p>
     <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.argumentnullexception">ArgumentNullException</a></dt>
     <dd><p>Thrown when <code class="paramref">source</code> or <code class="paramref">action</code> is null.</p>
 </dd>
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.operationcanceledexception">OperationCanceledException</a></dt>
+    <dd><p>Thrown when <code class="paramref">token</code> is canceled before or during enumeration.
+Delivered through the returned <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.tasks.task">Task</a>.</p>
+</dd>
   </dl>
 
 
@@ -398,7 +423,7 @@ consuming the sequence. This is a terminal operation.</p>
 
   <h3 id="Wolfgang_Extensions_IAsyncEnumerable_IAsyncEnumerableExtensions_ForEachAsync__1_System_Collections_Generic_IAsyncEnumerable___0__System_Func___0_System_Threading_Tasks_Task__System_Threading_CancellationToken_" data-uid="Wolfgang.Extensions.IAsyncEnumerable.IAsyncEnumerableExtensions.ForEachAsync``1(System.Collections.Generic.IAsyncEnumerable{``0},System.Func{``0,System.Threading.Tasks.Task},System.Threading.CancellationToken)">
   ForEachAsync&lt;T&gt;(IAsyncEnumerable&lt;T&gt;, Func&lt;T, Task&gt;, CancellationToken)
-  <a class="header-action link-secondary" title="View source" href="https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/blob/v0.5.4/src/Wolfgang.Extensions.IAsyncEnumerable/IAsyncEnumerableExtensions.cs/#L291"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/blob/v0.6.0/src/Wolfgang.Extensions.IAsyncEnumerable/IAsyncEnumerableExtensions.cs/#L327"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Executes an asynchronous action on each element of an IAsyncEnumerable{T},
@@ -426,7 +451,8 @@ consuming the sequence. This is a terminal operation.</p>
   <h4 class="section">Returns</h4>
   <dl class="parameters">
     <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.tasks.task">Task</a></dt>
-    <dd></dd>
+    <dd><p>A task that completes when every element has been processed.</p>
+</dd>
   </dl>
 
   <h4 class="section">Type Parameters</h4>
@@ -450,6 +476,10 @@ consuming the sequence. This is a terminal operation.</p>
     <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.argumentnullexception">ArgumentNullException</a></dt>
     <dd><p>Thrown when <code class="paramref">source</code> or <code class="paramref">action</code> is null.</p>
 </dd>
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.operationcanceledexception">OperationCanceledException</a></dt>
+    <dd><p>Thrown when <code class="paramref">token</code> is canceled before or during enumeration.
+Delivered through the returned <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.tasks.task">Task</a>.</p>
+</dd>
   </dl>
 
 
@@ -458,7 +488,7 @@ consuming the sequence. This is a terminal operation.</p>
 
   <h3 id="Wolfgang_Extensions_IAsyncEnumerable_IAsyncEnumerableExtensions_IsEmptyAsync__1_System_Collections_Generic_IAsyncEnumerable___0__System_Threading_CancellationToken_" data-uid="Wolfgang.Extensions.IAsyncEnumerable.IAsyncEnumerableExtensions.IsEmptyAsync``1(System.Collections.Generic.IAsyncEnumerable{``0},System.Threading.CancellationToken)">
   IsEmptyAsync&lt;T&gt;(IAsyncEnumerable&lt;T&gt;, CancellationToken)
-  <a class="header-action link-secondary" title="View source" href="https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/blob/v0.5.4/src/Wolfgang.Extensions.IAsyncEnumerable/IAsyncEnumerableExtensions.cs/#L341"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/blob/v0.6.0/src/Wolfgang.Extensions.IAsyncEnumerable/IAsyncEnumerableExtensions.cs/#L381"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Asynchronously determines whether a sequence contains no elements.</p>
@@ -510,6 +540,10 @@ consuming the sequence. This is a terminal operation.</p>
     <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.argumentnullexception">ArgumentNullException</a></dt>
     <dd><p>Thrown when <code class="paramref">source</code> is null.</p>
 </dd>
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.operationcanceledexception">OperationCanceledException</a></dt>
+    <dd><p>Thrown when <code class="paramref">token</code> is canceled before or during enumeration.
+Delivered through the returned <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.tasks.task-1">Task&lt;TResult&gt;</a>.</p>
+</dd>
   </dl>
 
 
@@ -518,7 +552,7 @@ consuming the sequence. This is a terminal operation.</p>
 
   <h3 id="Wolfgang_Extensions_IAsyncEnumerable_IAsyncEnumerableExtensions_IsNullOrEmptyAsync__1_System_Collections_Generic_IAsyncEnumerable___0__System_Threading_CancellationToken_" data-uid="Wolfgang.Extensions.IAsyncEnumerable.IAsyncEnumerableExtensions.IsNullOrEmptyAsync``1(System.Collections.Generic.IAsyncEnumerable{``0},System.Threading.CancellationToken)">
   IsNullOrEmptyAsync&lt;T&gt;(IAsyncEnumerable&lt;T&gt;?, CancellationToken)
-  <a class="header-action link-secondary" title="View source" href="https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/blob/v0.5.4/src/Wolfgang.Extensions.IAsyncEnumerable/IAsyncEnumerableExtensions.cs/#L386"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/blob/v0.6.0/src/Wolfgang.Extensions.IAsyncEnumerable/IAsyncEnumerableExtensions.cs/#L430"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Asynchronously determines whether a sequence is null or contains no elements.</p>
@@ -571,6 +605,13 @@ cancellation token is observed only when the source is non-null (a null source
 short-circuits before any token check).</p>
 </div>
 
+  <h4 class="section">Exceptions</h4>
+  <dl class="parameters">
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.operationcanceledexception">OperationCanceledException</a></dt>
+    <dd><p>Thrown when <code class="paramref">token</code> is canceled before or during enumeration
+of a non-null source. Delivered through the returned <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.tasks.task-1">Task&lt;TResult&gt;</a>.</p>
+</dd>
+  </dl>
 
 
 
@@ -578,7 +619,7 @@ short-circuits before any token check).</p>
 
   <h3 id="Wolfgang_Extensions_IAsyncEnumerable_IAsyncEnumerableExtensions_NoneAsync__1_System_Collections_Generic_IAsyncEnumerable___0__System_Func___0_System_Boolean__System_Threading_CancellationToken_" data-uid="Wolfgang.Extensions.IAsyncEnumerable.IAsyncEnumerableExtensions.NoneAsync``1(System.Collections.Generic.IAsyncEnumerable{``0},System.Func{``0,System.Boolean},System.Threading.CancellationToken)">
   NoneAsync&lt;T&gt;(IAsyncEnumerable&lt;T&gt;, Func&lt;T, bool&gt;, CancellationToken)
-  <a class="header-action link-secondary" title="View source" href="https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/blob/v0.5.4/src/Wolfgang.Extensions.IAsyncEnumerable/IAsyncEnumerableExtensions.cs/#L449"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/blob/v0.6.0/src/Wolfgang.Extensions.IAsyncEnumerable/IAsyncEnumerableExtensions.cs/#L508"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Asynchronously determines whether no element of a sequence satisfies a condition.</p>
@@ -633,6 +674,10 @@ short-circuits before any token check).</p>
     <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.argumentnullexception">ArgumentNullException</a></dt>
     <dd><p>Thrown when <code class="paramref">source</code> or <code class="paramref">predicate</code> is null.</p>
 </dd>
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.operationcanceledexception">OperationCanceledException</a></dt>
+    <dd><p>Thrown when <code class="paramref">token</code> is canceled before or during enumeration.
+Delivered through the returned <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.tasks.task-1">Task&lt;TResult&gt;</a>.</p>
+</dd>
   </dl>
 
 
@@ -641,7 +686,7 @@ short-circuits before any token check).</p>
 
   <h3 id="Wolfgang_Extensions_IAsyncEnumerable_IAsyncEnumerableExtensions_NoneAsync__1_System_Collections_Generic_IAsyncEnumerable___0__System_Threading_CancellationToken_" data-uid="Wolfgang.Extensions.IAsyncEnumerable.IAsyncEnumerableExtensions.NoneAsync``1(System.Collections.Generic.IAsyncEnumerable{``0},System.Threading.CancellationToken)">
   NoneAsync&lt;T&gt;(IAsyncEnumerable&lt;T&gt;, CancellationToken)
-  <a class="header-action link-secondary" title="View source" href="https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/blob/v0.5.4/src/Wolfgang.Extensions.IAsyncEnumerable/IAsyncEnumerableExtensions.cs/#L421"><i class="bi bi-code-slash"></i></a>
+  <a class="header-action link-secondary" title="View source" href="https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/blob/v0.6.0/src/Wolfgang.Extensions.IAsyncEnumerable/IAsyncEnumerableExtensions.cs/#L476"><i class="bi bi-code-slash"></i></a>
   </h3>
 
   <div class="markdown level1 summary"><p>Asynchronously determines whether a sequence contains no elements.</p>
@@ -699,6 +744,10 @@ call site (e.g. <code>await source.NoneAsync()</code> as a guard, or
     <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.argumentnullexception">ArgumentNullException</a></dt>
     <dd><p>Thrown when <code class="paramref">source</code> is null.</p>
 </dd>
+    <dt><a class="xref" href="https://learn.microsoft.com/dotnet/api/system.operationcanceledexception">OperationCanceledException</a></dt>
+    <dd><p>Thrown when <code class="paramref">token</code> is canceled before or during enumeration.
+Delivered through the returned <a class="xref" href="https://learn.microsoft.com/dotnet/api/system.threading.tasks.task-1">Task&lt;TResult&gt;</a>.</p>
+</dd>
   </dl>
 
 
@@ -707,7 +756,7 @@ call site (e.g. <code>await source.NoneAsync()</code> as a guard, or
 </article>
 
         <div class="contribution d-print-none">
-          <a href="https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/blob/v0.5.4/src/Wolfgang.Extensions.IAsyncEnumerable/IAsyncEnumerableExtensions.cs/#L13" class="edit-link">Edit this page</a>
+          <a href="https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/blob/v0.6.0/src/Wolfgang.Extensions.IAsyncEnumerable/IAsyncEnumerableExtensions.cs/#L13" class="edit-link">Edit this page</a>
         </div>
 
 

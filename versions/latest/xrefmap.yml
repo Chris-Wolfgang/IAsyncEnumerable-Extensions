@@ -136,3 +136,98 @@ references:
   fullName.vb: Wolfgang.Extensions.IAsyncEnumerable.IAsyncEnumerableExtensions.NoneAsync(Of T)(System.Collections.Generic.IAsyncEnumerable(Of T), System.Threading.CancellationToken)
   nameWithType: IAsyncEnumerableExtensions.NoneAsync<T>(IAsyncEnumerable<T>, CancellationToken)
   nameWithType.vb: IAsyncEnumerableExtensions.NoneAsync(Of T)(IAsyncEnumerable(Of T), CancellationToken)
+- uid: Wolfgang.Extensions.IAsyncEnumerable.IAsyncEnumerableLegacyExtensions
+  name: IAsyncEnumerableLegacyExtensions
+  href: api/Wolfgang.Extensions.IAsyncEnumerable.IAsyncEnumerableLegacyExtensions.html
+  commentId: T:Wolfgang.Extensions.IAsyncEnumerable.IAsyncEnumerableLegacyExtensions
+  fullName: Wolfgang.Extensions.IAsyncEnumerable.IAsyncEnumerableLegacyExtensions
+  nameWithType: IAsyncEnumerableLegacyExtensions
+- uid: Wolfgang.Extensions.IAsyncEnumerable.IAsyncEnumerableLegacyExtensions.AnyAsync*
+  name: AnyAsync
+  href: api/Wolfgang.Extensions.IAsyncEnumerable.IAsyncEnumerableLegacyExtensions.html#Wolfgang_Extensions_IAsyncEnumerable_IAsyncEnumerableLegacyExtensions_AnyAsync_
+  commentId: Overload:Wolfgang.Extensions.IAsyncEnumerable.IAsyncEnumerableLegacyExtensions.AnyAsync
+  isSpec: "True"
+  fullName: Wolfgang.Extensions.IAsyncEnumerable.IAsyncEnumerableLegacyExtensions.AnyAsync
+  nameWithType: IAsyncEnumerableLegacyExtensions.AnyAsync
+- uid: Wolfgang.Extensions.IAsyncEnumerable.IAsyncEnumerableLegacyExtensions.AnyAsync``1(System.Collections.Generic.IAsyncEnumerable{``0},System.Func{``0,System.Boolean},System.Threading.CancellationToken)
+  name: AnyAsync<T>(IAsyncEnumerable<T>, Func<T, bool>, CancellationToken)
+  href: api/Wolfgang.Extensions.IAsyncEnumerable.IAsyncEnumerableLegacyExtensions.html#Wolfgang_Extensions_IAsyncEnumerable_IAsyncEnumerableLegacyExtensions_AnyAsync__1_System_Collections_Generic_IAsyncEnumerable___0__System_Func___0_System_Boolean__System_Threading_CancellationToken_
+  commentId: M:Wolfgang.Extensions.IAsyncEnumerable.IAsyncEnumerableLegacyExtensions.AnyAsync``1(System.Collections.Generic.IAsyncEnumerable{``0},System.Func{``0,System.Boolean},System.Threading.CancellationToken)
+  name.vb: AnyAsync(Of T)(IAsyncEnumerable(Of T), Func(Of T, Boolean), CancellationToken)
+  fullName: Wolfgang.Extensions.IAsyncEnumerable.IAsyncEnumerableLegacyExtensions.AnyAsync<T>(System.Collections.Generic.IAsyncEnumerable<T>, System.Func<T, bool>, System.Threading.CancellationToken)
+  fullName.vb: Wolfgang.Extensions.IAsyncEnumerable.IAsyncEnumerableLegacyExtensions.AnyAsync(Of T)(System.Collections.Generic.IAsyncEnumerable(Of T), System.Func(Of T, Boolean), System.Threading.CancellationToken)
+  nameWithType: IAsyncEnumerableLegacyExtensions.AnyAsync<T>(IAsyncEnumerable<T>, Func<T, bool>, CancellationToken)
+  nameWithType.vb: IAsyncEnumerableLegacyExtensions.AnyAsync(Of T)(IAsyncEnumerable(Of T), Func(Of T, Boolean), CancellationToken)
+- uid: Wolfgang.Extensions.IAsyncEnumerable.IAsyncEnumerableLegacyExtensions.AnyAsync``1(System.Collections.Generic.IAsyncEnumerable{``0},System.Threading.CancellationToken)
+  name: AnyAsync<T>(IAsyncEnumerable<T>, CancellationToken)
+  href: api/Wolfgang.Extensions.IAsyncEnumerable.IAsyncEnumerableLegacyExtensions.html#Wolfgang_Extensions_IAsyncEnumerable_IAsyncEnumerableLegacyExtensions_AnyAsync__1_System_Collections_Generic_IAsyncEnumerable___0__System_Threading_CancellationToken_
+  commentId: M:Wolfgang.Extensions.IAsyncEnumerable.IAsyncEnumerableLegacyExtensions.AnyAsync``1(System.Collections.Generic.IAsyncEnumerable{``0},System.Threading.CancellationToken)
+  name.vb: AnyAsync(Of T)(IAsyncEnumerable(Of T), CancellationToken)
+  fullName: Wolfgang.Extensions.IAsyncEnumerable.IAsyncEnumerableLegacyExtensions.AnyAsync<T>(System.Collections.Generic.IAsyncEnumerable<T>, System.Threading.CancellationToken)
+  fullName.vb: Wolfgang.Extensions.IAsyncEnumerable.IAsyncEnumerableLegacyExtensions.AnyAsync(Of T)(System.Collections.Generic.IAsyncEnumerable(Of T), System.Threading.CancellationToken)
+  nameWithType: IAsyncEnumerableLegacyExtensions.AnyAsync<T>(IAsyncEnumerable<T>, CancellationToken)
+  nameWithType.vb: IAsyncEnumerableLegacyExtensions.AnyAsync(Of T)(IAsyncEnumerable(Of T), CancellationToken)
+- uid: Wolfgang.Extensions.IAsyncEnumerable.IAsyncEnumerableLegacyExtensions.CountAsync*
+  name: CountAsync
+  href: api/Wolfgang.Extensions.IAsyncEnumerable.IAsyncEnumerableLegacyExtensions.html#Wolfgang_Extensions_IAsyncEnumerable_IAsyncEnumerableLegacyExtensions_CountAsync_
+  commentId: Overload:Wolfgang.Extensions.IAsyncEnumerable.IAsyncEnumerableLegacyExtensions.CountAsync
+  isSpec: "True"
+  fullName: Wolfgang.Extensions.IAsyncEnumerable.IAsyncEnumerableLegacyExtensions.CountAsync
+  nameWithType: IAsyncEnumerableLegacyExtensions.CountAsync
+- uid: Wolfgang.Extensions.IAsyncEnumerable.IAsyncEnumerableLegacyExtensions.CountAsync``1(System.Collections.Generic.IAsyncEnumerable{``0},System.Threading.CancellationToken)
+  name: CountAsync<T>(IAsyncEnumerable<T>, CancellationToken)
+  href: api/Wolfgang.Extensions.IAsyncEnumerable.IAsyncEnumerableLegacyExtensions.html#Wolfgang_Extensions_IAsyncEnumerable_IAsyncEnumerableLegacyExtensions_CountAsync__1_System_Collections_Generic_IAsyncEnumerable___0__System_Threading_CancellationToken_
+  commentId: M:Wolfgang.Extensions.IAsyncEnumerable.IAsyncEnumerableLegacyExtensions.CountAsync``1(System.Collections.Generic.IAsyncEnumerable{``0},System.Threading.CancellationToken)
+  name.vb: CountAsync(Of T)(IAsyncEnumerable(Of T), CancellationToken)
+  fullName: Wolfgang.Extensions.IAsyncEnumerable.IAsyncEnumerableLegacyExtensions.CountAsync<T>(System.Collections.Generic.IAsyncEnumerable<T>, System.Threading.CancellationToken)
+  fullName.vb: Wolfgang.Extensions.IAsyncEnumerable.IAsyncEnumerableLegacyExtensions.CountAsync(Of T)(System.Collections.Generic.IAsyncEnumerable(Of T), System.Threading.CancellationToken)
+  nameWithType: IAsyncEnumerableLegacyExtensions.CountAsync<T>(IAsyncEnumerable<T>, CancellationToken)
+  nameWithType.vb: IAsyncEnumerableLegacyExtensions.CountAsync(Of T)(IAsyncEnumerable(Of T), CancellationToken)
+- uid: Wolfgang.Extensions.IAsyncEnumerable.IAsyncEnumerableLegacyExtensions.FirstAsync*
+  name: FirstAsync
+  href: api/Wolfgang.Extensions.IAsyncEnumerable.IAsyncEnumerableLegacyExtensions.html#Wolfgang_Extensions_IAsyncEnumerable_IAsyncEnumerableLegacyExtensions_FirstAsync_
+  commentId: Overload:Wolfgang.Extensions.IAsyncEnumerable.IAsyncEnumerableLegacyExtensions.FirstAsync
+  isSpec: "True"
+  fullName: Wolfgang.Extensions.IAsyncEnumerable.IAsyncEnumerableLegacyExtensions.FirstAsync
+  nameWithType: IAsyncEnumerableLegacyExtensions.FirstAsync
+- uid: Wolfgang.Extensions.IAsyncEnumerable.IAsyncEnumerableLegacyExtensions.FirstAsync``1(System.Collections.Generic.IAsyncEnumerable{``0},System.Threading.CancellationToken)
+  name: FirstAsync<T>(IAsyncEnumerable<T>, CancellationToken)
+  href: api/Wolfgang.Extensions.IAsyncEnumerable.IAsyncEnumerableLegacyExtensions.html#Wolfgang_Extensions_IAsyncEnumerable_IAsyncEnumerableLegacyExtensions_FirstAsync__1_System_Collections_Generic_IAsyncEnumerable___0__System_Threading_CancellationToken_
+  commentId: M:Wolfgang.Extensions.IAsyncEnumerable.IAsyncEnumerableLegacyExtensions.FirstAsync``1(System.Collections.Generic.IAsyncEnumerable{``0},System.Threading.CancellationToken)
+  name.vb: FirstAsync(Of T)(IAsyncEnumerable(Of T), CancellationToken)
+  fullName: Wolfgang.Extensions.IAsyncEnumerable.IAsyncEnumerableLegacyExtensions.FirstAsync<T>(System.Collections.Generic.IAsyncEnumerable<T>, System.Threading.CancellationToken)
+  fullName.vb: Wolfgang.Extensions.IAsyncEnumerable.IAsyncEnumerableLegacyExtensions.FirstAsync(Of T)(System.Collections.Generic.IAsyncEnumerable(Of T), System.Threading.CancellationToken)
+  nameWithType: IAsyncEnumerableLegacyExtensions.FirstAsync<T>(IAsyncEnumerable<T>, CancellationToken)
+  nameWithType.vb: IAsyncEnumerableLegacyExtensions.FirstAsync(Of T)(IAsyncEnumerable(Of T), CancellationToken)
+- uid: Wolfgang.Extensions.IAsyncEnumerable.IAsyncEnumerableLegacyExtensions.FirstOrDefaultAsync*
+  name: FirstOrDefaultAsync
+  href: api/Wolfgang.Extensions.IAsyncEnumerable.IAsyncEnumerableLegacyExtensions.html#Wolfgang_Extensions_IAsyncEnumerable_IAsyncEnumerableLegacyExtensions_FirstOrDefaultAsync_
+  commentId: Overload:Wolfgang.Extensions.IAsyncEnumerable.IAsyncEnumerableLegacyExtensions.FirstOrDefaultAsync
+  isSpec: "True"
+  fullName: Wolfgang.Extensions.IAsyncEnumerable.IAsyncEnumerableLegacyExtensions.FirstOrDefaultAsync
+  nameWithType: IAsyncEnumerableLegacyExtensions.FirstOrDefaultAsync
+- uid: Wolfgang.Extensions.IAsyncEnumerable.IAsyncEnumerableLegacyExtensions.FirstOrDefaultAsync``1(System.Collections.Generic.IAsyncEnumerable{``0},System.Threading.CancellationToken)
+  name: FirstOrDefaultAsync<T>(IAsyncEnumerable<T>, CancellationToken)
+  href: api/Wolfgang.Extensions.IAsyncEnumerable.IAsyncEnumerableLegacyExtensions.html#Wolfgang_Extensions_IAsyncEnumerable_IAsyncEnumerableLegacyExtensions_FirstOrDefaultAsync__1_System_Collections_Generic_IAsyncEnumerable___0__System_Threading_CancellationToken_
+  commentId: M:Wolfgang.Extensions.IAsyncEnumerable.IAsyncEnumerableLegacyExtensions.FirstOrDefaultAsync``1(System.Collections.Generic.IAsyncEnumerable{``0},System.Threading.CancellationToken)
+  name.vb: FirstOrDefaultAsync(Of T)(IAsyncEnumerable(Of T), CancellationToken)
+  fullName: Wolfgang.Extensions.IAsyncEnumerable.IAsyncEnumerableLegacyExtensions.FirstOrDefaultAsync<T>(System.Collections.Generic.IAsyncEnumerable<T>, System.Threading.CancellationToken)
+  fullName.vb: Wolfgang.Extensions.IAsyncEnumerable.IAsyncEnumerableLegacyExtensions.FirstOrDefaultAsync(Of T)(System.Collections.Generic.IAsyncEnumerable(Of T), System.Threading.CancellationToken)
+  nameWithType: IAsyncEnumerableLegacyExtensions.FirstOrDefaultAsync<T>(IAsyncEnumerable<T>, CancellationToken)
+  nameWithType.vb: IAsyncEnumerableLegacyExtensions.FirstOrDefaultAsync(Of T)(IAsyncEnumerable(Of T), CancellationToken)
+- uid: Wolfgang.Extensions.IAsyncEnumerable.IAsyncEnumerableLegacyExtensions.ToListAsync*
+  name: ToListAsync
+  href: api/Wolfgang.Extensions.IAsyncEnumerable.IAsyncEnumerableLegacyExtensions.html#Wolfgang_Extensions_IAsyncEnumerable_IAsyncEnumerableLegacyExtensions_ToListAsync_
+  commentId: Overload:Wolfgang.Extensions.IAsyncEnumerable.IAsyncEnumerableLegacyExtensions.ToListAsync
+  isSpec: "True"
+  fullName: Wolfgang.Extensions.IAsyncEnumerable.IAsyncEnumerableLegacyExtensions.ToListAsync
+  nameWithType: IAsyncEnumerableLegacyExtensions.ToListAsync
+- uid: Wolfgang.Extensions.IAsyncEnumerable.IAsyncEnumerableLegacyExtensions.ToListAsync``1(System.Collections.Generic.IAsyncEnumerable{``0},System.Threading.CancellationToken)
+  name: ToListAsync<T>(IAsyncEnumerable<T>, CancellationToken)
+  href: api/Wolfgang.Extensions.IAsyncEnumerable.IAsyncEnumerableLegacyExtensions.html#Wolfgang_Extensions_IAsyncEnumerable_IAsyncEnumerableLegacyExtensions_ToListAsync__1_System_Collections_Generic_IAsyncEnumerable___0__System_Threading_CancellationToken_
+  commentId: M:Wolfgang.Extensions.IAsyncEnumerable.IAsyncEnumerableLegacyExtensions.ToListAsync``1(System.Collections.Generic.IAsyncEnumerable{``0},System.Threading.CancellationToken)
+  name.vb: ToListAsync(Of T)(IAsyncEnumerable(Of T), CancellationToken)
+  fullName: Wolfgang.Extensions.IAsyncEnumerable.IAsyncEnumerableLegacyExtensions.ToListAsync<T>(System.Collections.Generic.IAsyncEnumerable<T>, System.Threading.CancellationToken)
+  fullName.vb: Wolfgang.Extensions.IAsyncEnumerable.IAsyncEnumerableLegacyExtensions.ToListAsync(Of T)(System.Collections.Generic.IAsyncEnumerable(Of T), System.Threading.CancellationToken)
+  nameWithType: IAsyncEnumerableLegacyExtensions.ToListAsync<T>(IAsyncEnumerable<T>, CancellationToken)
+  nameWithType.vb: IAsyncEnumerableLegacyExtensions.ToListAsync(Of T)(IAsyncEnumerable(Of T), CancellationToken)

@@ -16,7 +16,7 @@
       <meta name="docfx:rel" content="../">
       
       
-      <meta name="docfx:docurl" content="https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/blob/v0.5.4/docfx_project/docs/getting-started.md/#L1">
+      <meta name="docfx:docurl" content="https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/blob/v0.6.0/docfx_project/docs/getting-started.md/#L1">
       <meta name="loc:inThisArticle" content="In this article">
       <meta name="loc:searchResultsCount" content="{count} results for &quot;{query}&quot;">
       <meta name="loc:searchNoResults" content="No results for &quot;{query}&quot;">
@@ -156,10 +156,10 @@ public record DataRecord
 </code></pre>
 <h2 id="chunkasync-method-details">ChunkAsync Method Details</h2>
 <h3 id="method-signature">Method Signature</h3>
-<pre><code class="lang-csharp">public static async IAsyncEnumerable&lt;ICollection&lt;T&gt;&gt; ChunkAsync&lt;T&gt;(
+<pre><code class="lang-csharp">public static IAsyncEnumerable&lt;ICollection&lt;T&gt;&gt; ChunkAsync&lt;T&gt;(
     this IAsyncEnumerable&lt;T&gt; source,
     int maxChunkSize,
-    [EnumeratorCancellation] CancellationToken token = default)
+    CancellationToken token = default)
 </code></pre>
 <h3 id="parameters">Parameters</h3>
 <ul>
@@ -314,7 +314,7 @@ if (await dataStream.NoneAsync(x =&gt; x.IsExpired, cancellationToken))
 </article>
 
         <div class="contribution d-print-none">
-          <a href="https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/blob/v0.5.4/docfx_project/docs/getting-started.md/#L1" class="edit-link">Edit this page</a>
+          <a href="https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/blob/v0.6.0/docfx_project/docs/getting-started.md/#L1" class="edit-link">Edit this page</a>
         </div>
 
         <div class="next-article d-print-none border-top" id="nextArticle"></div>
