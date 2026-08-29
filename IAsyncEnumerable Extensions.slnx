@@ -2,11 +2,15 @@
   <Folder Name="/.root/">
     <File Path=".editorconfig" />
     <File Path=".gitignore" />
+    <File Path="BannedSymbols.txt" />
+    <File Path="CHANGELOG.md" />
     <File Path="CODE_OF_CONDUCT.md" />
     <File Path="CONTRIBUTING.md" />
+    <File Path="Directory.Build.props" />
     <File Path="LICENSE" />
     <File Path="README.md" />
-    <File Path="SETUP.md" />
+    <File Path="SECURITY.md" />
+    <File Path="THIRD-PARTY-NOTICES.md" />
   </Folder>
   <Folder Name="/.root/.github/">
     <File Path=".github/CODEOWNERS" />
@@ -16,13 +20,28 @@
   </Folder>
   <Folder Name="/.root/.github/ISSUE_TEMPLATE/">
     <File Path=".github/ISSUE_TEMPLATE/BUG_REPORT.yaml" />
-    <File Path=".github/ISSUE_TEMPLATE/feature_request.md" />
+    <File Path=".github/ISSUE_TEMPLATE/feature_request.yaml" />
   </Folder>
   <Folder Name="/.root/.github/workflows/">
-    <File Path=".github/workflows/create-labels.yaml" />
+    <File Path=".github/workflows/aot-smoke.yaml" />
+    <File Path=".github/workflows/benchmarks.yaml" />
+    <File Path=".github/workflows/build-all-versions.yaml" />
+    <File Path=".github/workflows/codeql.yaml" />
+    <File Path=".github/workflows/concurrency.yaml" />
+    <File Path=".github/workflows/cross-platform-differential.yaml" />
     <File Path=".github/workflows/docfx.yaml" />
+    <File Path=".github/workflows/fuzz.yaml" />
+    <File Path=".github/workflows/license-audit.yaml" />
+    <File Path=".github/workflows/pr-benchmarks.yaml" />
     <File Path=".github/workflows/pr.yaml" />
     <File Path=".github/workflows/release.yaml" />
+    <File Path=".github/workflows/reproducible-build.yaml" />
+    <File Path=".github/workflows/scorecard.yaml" />
+    <File Path=".github/workflows/shadow.yaml" />
+    <File Path=".github/workflows/sourcelink-verify.yaml" />
+    <File Path=".github/workflows/sourcelink.yaml" />
+    <File Path=".github/workflows/stryker.yaml" />
+    <File Path=".github/workflows/workflow-security.yaml" />
   </Folder>
   <Folder Name="/benchmarks/">
     <Project Path="benchmarks/Wolfgang.Extensions.IAsyncEnumerable.Benchmarks/Wolfgang.Extensions.IAsyncEnumerable.Benchmarks.csproj" />
@@ -33,15 +52,22 @@
     <Project Path="examples/ForEachAsync.Example/ForEachAsync.Example.csproj" />
     <Project Path="examples/IsEmptyAsync.Example/IsEmptyAsync.Example.csproj" />
     <Project Path="examples/IsNullOrEmptyAsync.Example/IsNullOrEmptyAsync.Example.csproj" />
+    <Project Path="examples/Legacy.Example/Legacy.Example.csproj" />
     <Project Path="examples/NoneAsync.Example/NoneAsync.Example.csproj" />
+  </Folder>
+  <Folder Name="/samples/">
+    <Project Path="samples/ShadowWorkloads/ShadowWorkloads.csproj" />
   </Folder>
   <Folder Name="/src/">
     <Project Path="src/Wolfgang.Extensions.IAsyncEnumerable/Wolfgang.Extensions.IAsyncEnumerable.csproj" Id="46f709fc-f4ce-4013-9254-c76bd0ab19ae" />
+    <Project Path="src/Wolfgang.Extensions.IAsyncEnumerable.Legacy/Wolfgang.Extensions.IAsyncEnumerable.Legacy.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/AotSmoke/AotSmoke.csproj" />
     <Project Path="tests/Wolfgang.Extensions.IAsyncEnumerable.Tests.Fuzz/Wolfgang.Extensions.IAsyncEnumerable.Tests.Fuzz.csproj" />
     <Project Path="tests/Wolfgang.Extensions.IAsyncEnumerable.Tests.DocExamples/Wolfgang.Extensions.IAsyncEnumerable.Tests.DocExamples.csproj" />
     <Project Path="tests/Wolfgang.Extensions.IAsyncEnumerable.Tests.Concurrency/Wolfgang.Extensions.IAsyncEnumerable.Tests.Concurrency.csproj" />
     <Project Path="tests/Wolfgang.Extensions.IAsyncEnumerable.Tests.Unit/Wolfgang.Extensions.IAsyncEnumerable.Tests.Unit.csproj" />
+    <Project Path="tests/Wolfgang.Extensions.IAsyncEnumerable.Legacy.Tests.Unit/Wolfgang.Extensions.IAsyncEnumerable.Legacy.Tests.Unit.csproj" />
   </Folder>
 </Solution>

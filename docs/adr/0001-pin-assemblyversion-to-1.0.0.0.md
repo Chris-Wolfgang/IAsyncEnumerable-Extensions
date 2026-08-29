@@ -2,7 +2,10 @@
 
 ## Status
 
-Accepted
+Accepted — scoped by [ADR-0005](0005-legacy-package-conventions.md): this
+pin applies to `Wolfgang.Extensions.IAsyncEnumerable` (and any package at
+1.0+). New pre-1.0 packages in this repo use a derived `0.{Minor}.0.0`
+scheme instead; see ADR-0005 §3.
 
 ## Context
 

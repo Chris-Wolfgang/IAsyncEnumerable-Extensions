@@ -1,9 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Wolfgang.Extensions.IAsyncEnumerable;
-
 namespace Wolfgang.Extensions.IAsyncEnumerable.Tests.Concurrency;
 
 /// <summary>

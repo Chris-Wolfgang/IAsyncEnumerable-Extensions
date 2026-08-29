@@ -17,7 +17,7 @@ public sealed class IsNullOrEmptyAsyncTests
     [Fact]
     public async Task IsNullOrEmptyAsync_when_source_is_empty_returns_true()
     {
-        var source = CreateSource();
+        var source = TestSources.Create<int>();
 
         var result = await source.IsNullOrEmptyAsync();
 
@@ -29,7 +29,7 @@ public sealed class IsNullOrEmptyAsyncTests
     [Fact]
     public async Task IsNullOrEmptyAsync_when_source_has_items_returns_false()
     {
-        var source = CreateSource(1, 2, 3);
+        var source = TestSources.Create(1, 2, 3);
 
         var result = await source.IsNullOrEmptyAsync();
 
@@ -41,7 +41,7 @@ public sealed class IsNullOrEmptyAsyncTests
     [Fact]
     public async Task IsNullOrEmptyAsync_when_source_has_single_item_returns_false()
     {
-        var source = CreateSource(42);
+        var source = TestSources.Create(42);
 
         var result = await source.IsNullOrEmptyAsync();
 
@@ -56,7 +56,7 @@ public sealed class IsNullOrEmptyAsyncTests
         using var tokenSource = new CancellationTokenSource();
         tokenSource.Cancel();
 
-        var source = CreateSource(1, 2, 3);
+        var source = TestSources.Create(1, 2, 3);
 
         await Assert.ThrowsAsync<OperationCanceledException>
         (
@@ -82,14 +82,5 @@ public sealed class IsNullOrEmptyAsyncTests
     }
 
 
-
-    private static async IAsyncEnumerable<int> CreateSource(params int[] values)
-    {
-        foreach (var value in values)
-        {
-            await Task.Yield();
-            yield return value;
-        }
-    }
 
 }

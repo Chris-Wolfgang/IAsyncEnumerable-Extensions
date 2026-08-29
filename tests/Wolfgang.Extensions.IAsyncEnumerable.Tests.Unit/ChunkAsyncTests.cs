@@ -3,9 +3,9 @@ namespace Wolfgang.Extensions.IAsyncEnumerable.Tests.Unit;
 public sealed class ChunkAsyncTests
 {
     [Fact]
-    public async Task ChunkAsync_WithExactMultipleChunkSize_ReturnsExpectedChunks()
+    public async Task ChunkAsync_when_chunk_size_is_exact_multiple_returns_expected_chunks()
     {
-        var source = CreateSource(1, 2, 3, 4);
+        var source = TestSources.Create(1, 2, 3, 4);
 
         var chunks = await CollectChunksAsync(source.ChunkAsync(2));
 
@@ -15,9 +15,9 @@ public sealed class ChunkAsyncTests
     }
 
     [Fact]
-    public async Task ChunkAsync_WithRemainderChunk_ReturnsFinalPartialChunk()
+    public async Task ChunkAsync_when_source_has_remainder_returns_final_partial_chunk()
     {
-        var source = CreateSource(1, 2, 3, 4, 5);
+        var source = TestSources.Create(1, 2, 3, 4, 5);
 
         var chunks = await CollectChunksAsync(source.ChunkAsync(2));
 
@@ -28,9 +28,9 @@ public sealed class ChunkAsyncTests
     }
 
     [Fact]
-    public async Task ChunkAsync_WithChunkSizeLargerThanSource_YieldsSingleChunk()
+    public async Task ChunkAsync_when_chunk_size_larger_than_source_yields_single_chunk()
     {
-        var source = CreateSource(1, 2, 3);
+        var source = TestSources.Create(1, 2, 3);
 
         var chunks = await CollectChunksAsync(source.ChunkAsync(10));
 
@@ -39,9 +39,9 @@ public sealed class ChunkAsyncTests
     }
 
     [Fact]
-    public async Task ChunkAsync_WithChunkSizeOfOne_EmitsSingletonChunks()
+    public async Task ChunkAsync_when_chunk_size_is_one_emits_singleton_chunks()
     {
-        var source = CreateSource(4, 5, 6);
+        var source = TestSources.Create(4, 5, 6);
 
         var chunks = await CollectChunksAsync(source.ChunkAsync(1));
 
@@ -52,9 +52,9 @@ public sealed class ChunkAsyncTests
     }
 
     [Fact]
-    public async Task ChunkAsync_WithEmptySource_YieldsNoChunks()
+    public async Task ChunkAsync_when_source_is_empty_yields_no_chunks()
     {
-        var source = CreateSource();
+        var source = TestSources.Create<int>();
 
         var chunks = await CollectChunksAsync(source.ChunkAsync(4));
 
@@ -62,7 +62,7 @@ public sealed class ChunkAsyncTests
     }
 
     [Fact]
-    public void ChunkAsync_WithNullSource_ThrowsArgumentNullException()
+    public void ChunkAsync_when_source_is_null_throws_ArgumentNullException()
     {
         IAsyncEnumerable<int> source = null!;
 
@@ -70,9 +70,9 @@ public sealed class ChunkAsyncTests
     }
 
     [Fact]
-    public async Task ChunkAsync_YieldsDistinctChunkInstances()
+    public async Task ChunkAsync_yields_distinct_chunk_instances()
     {
-        var source = CreateSource(1, 2, 3, 4);
+        var source = TestSources.Create(1, 2, 3, 4);
 
         var chunks = await CollectChunksAsync(source.ChunkAsync(2));
 
@@ -82,9 +82,9 @@ public sealed class ChunkAsyncTests
     }
 
     [Fact]
-    public async Task ChunkAsync_WithDelayedSource_PreservesOrdering()
+    public async Task ChunkAsync_with_delayed_source_preserves_ordering()
     {
-        var source = CreateDelayedSource(TimeSpan.FromMilliseconds(10), 1, 2, 3, 4, 5);
+        var source = TestSources.CreateDelayed(TimeSpan.FromMilliseconds(10), 1, 2, 3, 4, 5);
 
         var chunks = await CollectChunksAsync(source.ChunkAsync(3));
 
@@ -94,7 +94,7 @@ public sealed class ChunkAsyncTests
     }
 
     [Fact]
-    public async Task ChunkAsync_DoesNotEnumerateSourceUntilConsumed()
+    public async Task ChunkAsync_does_not_enumerate_source_until_consumed()
     {
         var source = new TrackingAsyncEnumerable(1, 2, 3, 4);
 
@@ -108,12 +108,12 @@ public sealed class ChunkAsyncTests
     }
 
     [Fact]
-    public async Task ChunkAsync_WithPreCanceledToken_ThrowsOperationCanceledException()
+    public async Task ChunkAsync_with_pre_canceled_token_throws_OperationCanceledException()
     {
         using var tokenSource = new CancellationTokenSource();
         tokenSource.Cancel();
 
-        var source = CreateSource(1, 2, 3);
+        var source = TestSources.Create(1, 2, 3);
 
         await Assert.ThrowsAsync<OperationCanceledException>
         (
@@ -122,7 +122,7 @@ public sealed class ChunkAsyncTests
     }
 
     [Fact]
-    public async Task ChunkAsync_WithPreCanceledToken_NeverEnumeratesSource()
+    public async Task ChunkAsync_with_pre_canceled_token_never_enumerates_source()
     {
         // The pre-loop ThrowIfCancellationRequested() must fire before the source is
         // ever touched. A source with enough items to fill a full chunk would otherwise
@@ -146,11 +146,11 @@ public sealed class ChunkAsyncTests
 
 
     [Fact]
-    public async Task ChunkAsync_WhenCancellationRequestedDuringEnumeration_ThrowsOperationCanceledException()
+    public async Task ChunkAsync_when_cancellation_requested_during_enumeration_throws_OperationCanceledException()
     {
         using var tokenSource = new CancellationTokenSource();
 
-        var source = CreateDelayedSource(TimeSpan.FromMilliseconds(10), 1, 2, 3, 4);
+        var source = TestSources.CreateDelayed(TimeSpan.FromMilliseconds(10), 1, 2, 3, 4);
 
         var chunked = source.ChunkAsync(2, tokenSource.Token);
 
@@ -170,29 +170,11 @@ public sealed class ChunkAsyncTests
     [InlineData(0)]
     [InlineData(-1)]
     [InlineData(-5)]
-    public async Task ChunkAsync_WithNonPositiveChunkSize_ThrowsArgumentOutOfRangeException(int chunkSize)
+    public async Task ChunkAsync_when_chunk_size_is_not_positive_throws_ArgumentOutOfRangeException(int chunkSize)
     {
-        var source = CreateSource(1, 2, 3);
+        var source = TestSources.Create(1, 2, 3);
 
         await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => CollectChunksAsync(source.ChunkAsync(chunkSize)));
-    }
-
-    private static async IAsyncEnumerable<int> CreateSource(params int[] values)
-    {
-        foreach (var value in values)
-        {
-            await Task.Yield();
-            yield return value;
-        }
-    }
-
-    private static async IAsyncEnumerable<int> CreateDelayedSource(TimeSpan delay, params int[] values)
-    {
-        foreach (var value in values)
-        {
-            await Task.Delay(delay);
-            yield return value;
-        }
     }
 
     private static async Task<List<ICollection<int>>> CollectChunksAsync(IAsyncEnumerable<ICollection<int>> chunks)
@@ -204,16 +186,5 @@ public sealed class ChunkAsyncTests
         }
 
         return result;
-    }
-
-    private sealed class TrackingAsyncEnumerable(params int[] values) : IAsyncEnumerable<int>
-    {
-        public bool EnumerationStarted { get; private set; }
-
-        public IAsyncEnumerator<int> GetAsyncEnumerator(CancellationToken cancellationToken = default)
-        {
-            EnumerationStarted = true;
-            return CreateSource(values).GetAsyncEnumerator(cancellationToken);
-        }
     }
 }

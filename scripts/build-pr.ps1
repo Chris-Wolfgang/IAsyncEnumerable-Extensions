@@ -283,6 +283,26 @@ if (-not $SkipSecurity) {
     if (-not $gitleaks) {
         Write-Host "gitleaks not found — installing..."
         $version = "8.24.0"
+        # Pinned SHA256 checksums for v8.24.0 assets, taken from the official
+        # release checksums file:
+        # https://github.com/gitleaks/gitleaks/releases/download/v8.24.0/gitleaks_8.24.0_checksums.txt
+        # Mirrors pr.yaml, which verifies the same pinned version's linux
+        # asset. Bump these together with $version.
+        $sha256 = @{
+            "gitleaks_${version}_windows_x64.zip"  = "dab91070b01feec49bd157375085c93a16fe85e13b3bff6916aaaa0a3b3b5fac" # DevSkim: ignore DS173237 - integrity checksum, not a secret
+            "gitleaks_${version}_linux_x64.tar.gz" = "cb49b7de5ee986510fe8666ca0273a6cc15eb82571f2f14832c9e8920751f3a4" # DevSkim: ignore DS173237 - integrity checksum, not a secret
+        }
+
+        function Assert-GitleaksChecksum([string]$File, [string]$AssetName) {
+            $expected = $sha256[$AssetName]
+            $actual = (Get-FileHash -Path $File -Algorithm SHA256).Hash.ToLowerInvariant()
+            if ($actual -ne $expected) {
+                Remove-Item $File -Force -ErrorAction SilentlyContinue
+                throw "gitleaks download checksum mismatch for ${AssetName}: expected $expected but got $actual. Download deleted — possible tampering or a corrupted transfer."
+            }
+            Write-Host "gitleaks archive SHA256 verified ($AssetName)"
+        }
+
         if ($IsWindows -or $env:OS -match 'Windows') {
             $archive = "gitleaks_${version}_windows_x64.zip"
             $url = "https://github.com/gitleaks/gitleaks/releases/download/v${version}/$archive"
@@ -290,6 +310,7 @@ if (-not $SkipSecurity) {
             New-Item -ItemType Directory -Force -Path $dest | Out-Null
             $zip = Join-Path $env:TEMP $archive
             Invoke-WebRequest -Uri $url -OutFile $zip -UseBasicParsing
+            Assert-GitleaksChecksum -File $zip -AssetName $archive
             Expand-Archive -Path $zip -DestinationPath $dest -Force
             Remove-Item $zip -ErrorAction SilentlyContinue
             $env:PATH = "$dest;$env:PATH"
@@ -302,11 +323,17 @@ if (-not $SkipSecurity) {
             # is on PATH by default on most Linux distros and macOS; if not, prepend it.
             $localBin = Join-Path $HOME ".local/bin"
             New-Item -ItemType Directory -Force -Path $localBin | Out-Null
-            # Use 'tar -f -' so extraction reads the gitleaks archive from
-            # stdin. GNU tar without '-f' defaults to /dev/tape (or another
-            # default depending on the TAPE env var), which can hang silently
-            # in CI / fresh shells.
-            curl -sSfL $url | tar -xz -f - -C $localBin gitleaks
+            # Download to a temp file first (instead of streaming curl | tar)
+            # so the archive's SHA256 can be verified before extraction —
+            # matching pr.yaml's verification of the same asset.
+            $tarball = Join-Path ([IO.Path]::GetTempPath()) $archive
+            curl -sSfL $url -o $tarball
+            if ($LASTEXITCODE -ne 0) {
+                throw "Failed to download $url (curl exit code $LASTEXITCODE)."
+            }
+            Assert-GitleaksChecksum -File $tarball -AssetName $archive
+            tar -xz -f $tarball -C $localBin gitleaks
+            Remove-Item $tarball -ErrorAction SilentlyContinue
             if (-not ($env:PATH -split [IO.Path]::PathSeparator | Where-Object { $_ -eq $localBin })) {
                 $env:PATH = "$localBin$([IO.Path]::PathSeparator)$env:PATH"
             }

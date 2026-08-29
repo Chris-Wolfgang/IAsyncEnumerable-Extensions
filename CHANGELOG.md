@@ -19,6 +19,71 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+## [0.6.0] - 2026-08-28
+
+MINOR release: this repo now ships **two** NuGet packages, in lockstep. The
+new `Wolfgang.Extensions.IAsyncEnumerable.Legacy` package makes its first
+appearance; the main package has no public-API changes but its dependency
+graph slims down on modern TFMs (see Changed).
+
+### Added
+
+- New package `Wolfgang.Extensions.IAsyncEnumerable.Legacy` (net462;netstandard2.0
+  only): terminal operator extension methods (`CountAsync`, `AnyAsync` (2 overloads),
+  `FirstAsync`, `FirstOrDefaultAsync`, `ToListAsync`) for `IAsyncEnumerable<T>` on
+  TFMs where `System.Linq.AsyncEnumerable` isn't available (#124). Scoped to
+  exactly the TFMs the BCL doesn't cover, so there's no ambiguous-call risk with
+  `System.Linq.AsyncEnumerable` on net8.0+ — the package simply doesn't apply
+  there. `ValueTask`-returning signatures mirror the BCL's, so consumer code
+  ports without changes when retargeting to net8.0+. Methods validate
+  arguments eagerly (at call time, not await time), and the enumerator is
+  passed the cancellation token and disposed on every path — both pinned by
+  tests. Design decisions recorded in ADR-0005 (#330, #331).
+- `examples/Legacy.Example`: net462-only console example for all 6 terminal
+  operators — deliberately targeting the TFM the package exists for (#332).
+- Per-PR ABI-compatibility gate (`ApiCompat` job in `pr.yaml`) — previously
+  binary breaks only surfaced at release time (#326).
+
+### Changed
+
+- **Main package: `Microsoft.Bcl.AsyncInterfaces` is now conditioned to
+  net462/netstandard2.0** — net8.0/net10.0 consumers no longer inherit a
+  pointless dependency edge (`IAsyncEnumerable<T>`/`IAsyncDisposable` are
+  in-box there). Not a behavioral change; existing net8.0+ consumers simply
+  lose an unused package reference on upgrade (#330).
+- Package metadata, both packages: `PackageTags` added (previously published
+  with no search keywords), `PackageRequireLicenseAcceptance` dropped (MIT
+  needs no acceptance gate), and the stray `content/icon.ico` payload no
+  longer ships in the nupkg (#330).
+- `PublicAPI.Shipped.txt`/`Unshipped.txt` regenerated **with nullability
+  annotations** for both packages, so the PublicApiAnalyzer gate can catch
+  nullability regressions (#330).
+- Full-repo code-review sweep (48 findings): `OperationCanceledException`
+  documented on all 15 public methods, deeper Legacy test suite (44 cases,
+  incl. enumerator-disposal and token-flow pins), shared `TestSources`
+  dedup, docfx now generates API docs for both packages, `release.yaml`
+  requires every csproj version to match the tag (lockstep enforced),
+  script hardening (`Check-ApiCompatibility.ps1` treats a dropped TFM as a
+  breaking change; local gitleaks download is checksum-verified), CHANGELOG
+  backfilled to v0.1.0, and timeout ceilings on all CI jobs
+  (#326, #330–#333).
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+- CHANGELOG: corrected the `[0.5.2]` release date (tag was created
+  2026-07-11, not 2026-07-06) (#332).
+
+### Security
+
+- `pr.yaml`'s DevSkim gate now evaluates SARIF severity instead of
+  substring-grepping the text report; the trusted-config fetch lists cover
+  `*.DotSettings` in every job; local tool downloads are checksum-verified
+  (#326, #333).
+
 ## [0.5.4] - 2026-08-27
 
 No public API changes — a follow-on maintenance / infrastructure release
@@ -299,11 +364,12 @@ source or public-API changes.
   uploaded to the Security tab, badge added to `README.md`, 7.5 score
   floor documented in `SECURITY.md` (#247).
 
-## [0.5.2] - 2026-07-06
+## [0.5.2] - 2026-07-11
 
 ### Changed
 
 - Dependabot bump: dotnet-dependencies group (2 packages).
+
 ## [0.5.1] - 2026-06-06
 
 No public API changes. This release is a maintenance / infrastructure refresh
@@ -409,8 +475,63 @@ plus a fix for a Release-build blocker.
   without an explicit maintainer admin-bypass.
 - `persist-credentials: false` on the gitleaks / stryker checkouts.
 
-[Unreleased]: https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/compare/v0.5.4...HEAD
+## [0.5.0] - 2026-04-27
+
+### Added
+
+- `scripts/build-pr.ps1` to replicate the PR CI checks locally, and
+  `SECURITY.md` for responsible vulnerability disclosure.
+- `netcoreapp3.1` added to the test target frameworks.
+- Release-tag-matches-csproj-version validation in `release.yaml`, and
+  `.github/workflows/*` added to protected-file detection in `pr.yaml`.
+
+### Changed
+
+- Internal core methods renamed with the `Async` suffix (VSTHRD200);
+  analyzer `PackageReference`s moved from `Directory.Build.props` to
+  individual csproj files; dependency bumps.
+
+## [0.4.0] - 2026-03-24
+
+### Added
+
+- `ForEachAsync` (sync + async action overloads), `IsEmptyAsync`,
+  `IsNullOrEmptyAsync`, and `NoneAsync` (with and without predicate)
+  extension methods.
+
+## [0.3.0] - 2026-03-24
+
+### Added
+
+- `DoAsync` extension method (sync + async action overloads).
+- Project / package icons.
+
+### Changed
+
+- Dependency bumps and documentation updates.
+
+## [0.2.0] - 2026-03-13
+
+### Changed
+
+- Workflows re-synced from `repo-template`, including the
+  `pull_request_target` → `pull_request` security fix in `pr.yaml`.
+- README / docfx link fixes and dependency bumps.
+
+## [0.1.0] - 2026-02-03
+
+### Added
+
+- Initial release: `ChunkAsync` extension method for `IAsyncEnumerable<T>`.
+
+[Unreleased]: https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/compare/v0.5.4...v0.6.0
 [0.5.4]: https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/compare/v0.5.3...v0.5.4
 [0.5.3]: https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/compare/v0.5.2...v0.5.3
 [0.5.2]: https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/compare/v0.5.1...v0.5.2
 [0.5.1]: https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/compare/v0.5.0...v0.5.1
+[0.5.0]: https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/compare/v0.4.0...v0.5.0
+[0.4.0]: https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/compare/v0.3.0...v0.4.0
+[0.3.0]: https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/compare/v0.2.0...v0.3.0
+[0.2.0]: https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/compare/v0.1.0...v0.2.0
+[0.1.0]: https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/releases/tag/v0.1.0

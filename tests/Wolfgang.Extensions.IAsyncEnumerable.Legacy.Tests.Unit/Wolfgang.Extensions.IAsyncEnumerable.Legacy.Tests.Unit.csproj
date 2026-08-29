@@ -1,0 +1,77 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+	<!-- net462 exercises the Legacy package's net462 build directly; net10.0
+	     has no exact match in the package's net462;netstandard2.0 TargetFrameworks
+	     so it resolves via NuGet fallback to the netstandard2.0 build — between
+	     the two, both compiled surfaces of the package are exercised. -->
+	<TargetFrameworks>net462;net10.0</TargetFrameworks>
+	<LangVersion>latest</LangVersion>
+	<ImplicitUsings>enable</ImplicitUsings>
+	<IsPackable>false</IsPackable>
+	<IsTestProject>true</IsTestProject>
+
+	<Copyright>Copyright 2026 Chris Wolfgang</Copyright>
+	</PropertyGroup>
+
+
+
+	<!-- .NET Framework 4.6.2 -->
+	<ItemGroup Condition="'$(TargetFramework)' == 'net462'">
+		<PackageReference Include="coverlet.collector" Version="10.0.1">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+
+		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
+
+		<PackageReference Include="xunit" Version="2.9.3" />
+		<PackageReference Include="xunit.assert" Version="2.9.3" />
+		<PackageReference Include="xunit.extensibility.core" Version="2.9.3" />
+		<PackageReference Include="xunit.runner.console" Version="2.9.3">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="xunit.runner.visualstudio" Version="[2.8.2]">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+	</ItemGroup>
+
+
+	<!-- .NET 10.0 -->
+	<ItemGroup Condition="'$(TargetFramework)' == 'net10.0'">
+		<PackageReference Include="coverlet.collector" Version="10.0.1">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+
+		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
+
+		<PackageReference Include="xunit" Version="2.9.3" />
+		<PackageReference Include="xunit.assert" Version="2.9.3" />
+		<PackageReference Include="xunit.extensibility.core" Version="2.9.3" />
+		<PackageReference Include="xunit.runner.console" Version="2.9.3">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="xunit.runner.visualstudio" Version="3.1.5">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\..\src\Wolfgang.Extensions.IAsyncEnumerable.Legacy\Wolfgang.Extensions.IAsyncEnumerable.Legacy.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Using Include="Xunit" />
+		<Using Include="Wolfgang.Extensions.IAsyncEnumerable" />
+	</ItemGroup>
+
+  <!-- Analyzer PackageReferences are centralized in Directory.Build.props -->
+
+
+
+</Project>

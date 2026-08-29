@@ -75,4 +75,4 @@ Facts a maintainer would need at 2am if the release identity is compromised. Gen
 - **Fallback**: none. If Trusted Publishing is compromised, the incident is at the GitHub-account level (the OIDC identity is `Chris-Wolfgang/IAsyncEnumerable-Extensions`).
 - **Owner**: @Chris-Wolfgang.
 - **Downstream consumers**: none known within the Wolfgang.* fleet; unknown external consumers may exist on nuget.org.
-- **Package coordinates for unlisting**: `Wolfgang.Extensions.IAsyncEnumerable` — https://www.nuget.org/packages/Wolfgang.Extensions.IAsyncEnumerable/.
+- **Package coordinates for unlisting**: `Wolfgang.Extensions.IAsyncEnumerable` — https://www.nuget.org/packages/Wolfgang.Extensions.IAsyncEnumerable/; `Wolfgang.Extensions.IAsyncEnumerable.Legacy` — https://www.nuget.org/packages/Wolfgang.Extensions.IAsyncEnumerable.Legacy/.

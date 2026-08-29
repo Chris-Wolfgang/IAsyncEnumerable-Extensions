@@ -105,10 +105,10 @@ public record DataRecord
 ### Method Signature
 
 ```csharp
-public static async IAsyncEnumerable<ICollection<T>> ChunkAsync<T>(
+public static IAsyncEnumerable<ICollection<T>> ChunkAsync<T>(
     this IAsyncEnumerable<T> source,
     int maxChunkSize,
-    [EnumeratorCancellation] CancellationToken token = default)
+    CancellationToken token = default)
 ```
 
 ### Parameters

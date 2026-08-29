@@ -82,7 +82,7 @@ All checkout steps include `persist-credentials: false` to prevent the checkout 
 
 ```yaml
 - name: Checkout code
-  uses: actions/checkout@v6
+  uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
   with:
     ref: refs/pull/${{ github.event.pull_request.number }}/head
     persist-credentials: false

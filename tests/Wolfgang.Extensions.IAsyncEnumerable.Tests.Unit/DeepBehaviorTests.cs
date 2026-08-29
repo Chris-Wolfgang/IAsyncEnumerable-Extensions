@@ -103,7 +103,7 @@ public sealed class DeepBehaviorTests
     {
         AmbientId.Value = 42;
         var observed = new List<int>();
-        var source = CreateSource(1, 2, 3);
+        var source = TestSources.Create(1, 2, 3);
 
         await foreach (var _ in source.DoAsync(_ => observed.Add(AmbientId.Value)))
         {
@@ -119,7 +119,7 @@ public sealed class DeepBehaviorTests
     {
         AmbientId.Value = 17;
         var observed = new List<int>();
-        var source = CreateSource(1, 2, 3);
+        var source = TestSources.Create(1, 2, 3);
 
         await source.ForEachAsync(_ => observed.Add(AmbientId.Value));
 
@@ -137,7 +137,7 @@ public sealed class DeepBehaviorTests
         AmbientId.Value = 99;
         var observedBefore = new List<int>();
         var observedAfter = new List<int>();
-        var source = CreateSource(1, 2, 3);
+        var source = TestSources.Create(1, 2, 3);
 
         await foreach (var _ in source.DoAsync(async _ =>
         {
@@ -162,7 +162,7 @@ public sealed class DeepBehaviorTests
         // last-write-wins. The async overload, by contrast, captures the
         // execution context per await and the inner mutation does NOT leak.
         AmbientId.Value = 1;
-        var source = CreateSource(1, 2, 3);
+        var source = TestSources.Create(1, 2, 3);
 
         await foreach (var _ in source.DoAsync(async _ =>
         {
@@ -193,7 +193,7 @@ public sealed class DeepBehaviorTests
     [InlineData(10_000, 256, 61)]
     public async Task ChunkAsync_property_concatenated_chunks_equal_source(int n, int chunkSize, int seed)
     {
-        var rng = new Random(seed);
+        var rng = new Random(seed); // DevSkim: ignore DS148264 - deterministic test-data generation, not cryptographic use
         var input = new int[n];
         for (var i = 0; i < n; i++)
         {
@@ -243,7 +243,7 @@ public sealed class DeepBehaviorTests
     public async Task NoneAsync_predicate_property_equals_inverse_of_any(int n, int seed)
     {
         // Property: NoneAsync(predicate) <=> source.All(x => !predicate(x))
-        var rng = new Random(seed);
+        var rng = new Random(seed); // DevSkim: ignore DS148264 - deterministic test-data generation, not cryptographic use
         var input = new int[n];
         for (var i = 0; i < n; i++)
         {
@@ -280,17 +280,6 @@ public sealed class DeepBehaviorTests
     // ----------------------------------------------------------------------
     // Helpers
     // ----------------------------------------------------------------------
-
-    private static async IAsyncEnumerable<int> CreateSource(params int[] values)
-    {
-        foreach (var value in values)
-        {
-            await Task.Yield();
-            yield return value;
-        }
-    }
-
-
 
     private static async IAsyncEnumerable<int> CreateSourceFrom(IReadOnlyList<int> values)
     {
