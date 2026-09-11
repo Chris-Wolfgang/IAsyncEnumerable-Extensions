@@ -52,7 +52,7 @@
 	     IAsyncDisposable only where they aren't in-box. Conditioned so net8.0+
 	     consumers don't inherit a pointless dependency edge. -->
 	<ItemGroup Condition="'$(TargetFramework)' == 'net462' OR '$(TargetFramework)' == 'netstandard2.0'">
-	  <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="10.0.11" />
+	  <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="10.0.12" />
 	</ItemGroup>
 
   <!-- Analyzer PackageReferences are centralized in Directory.Build.props -->
