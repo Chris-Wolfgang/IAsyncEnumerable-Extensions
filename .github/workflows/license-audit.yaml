@@ -1,69 +1,84 @@
-name: "License Audit"
+name: License Audit
+
+# License audit of transitive dependencies. Validates every src/ project's full
+# (direct + transitive) dependency closure against an allow-list of OSI-permissive
+# licenses using the `nuget-license` tool, and FAILS if any dependency's license is
+# not allowed (e.g. a copyleft or non-OSI license slipping in via a bump).
+#
+# Config lives in .github/license-audit/:
+#  - allowed-licenses.json     — the licenses we accept: OSI-permissive ones plus one
+#    explicit non-OSI exception, MS-.NET-Library (the Microsoft .NET Library license
+#    some older System.* packages ship under - proprietary, but freely redistributable
+#    with the package, so it imposes nothing on consumers of ours).
+#  - url-license-mappings.json — maps packages that expose a license URL (not an SPDX
+#    expression) to a license identifier: the dotnet/standard LICENSE.TXT is MIT, the
+#    go.microsoft.com LinkId=329770 URL is MS-.NET-Library.
+#  - ignored-packages.json     — SonarAnalyzer.CSharp: a build-time analyzer
+#    (PrivateAssets=all, not shipped) under the non-OSI SONAR Source-Available
+#    License, so it imposes no obligation on consumers of the package.
+#
+# Skips automatically when the repo has no src/ project (e.g. the template repo).
 
 on:
   pull_request:
-    branches:
-      - main
-    paths:
-      - '**/*.csproj'
-      - 'licenses/allowed-licenses.json'
+  push:
+    branches: [main]
+  # Weekly re-audit of main: a package can change its license between the
+  # versions Dependabot bumps, or a transitive can be re-licensed upstream
+  # without any PR touching this repo. Tuesdays 06:15 UTC, off the Monday
+  # Scorecard / Sunday CodeQL+Stryker slots.
   schedule:
-    - cron: '0 5 * * 1'  # weekly Monday 05:00 UTC
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
+    - cron: '15 6 * * 2'
+  workflow_dispatch:
 
 permissions:
   contents: read
 
+concurrency:
+  group: license-audit-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   license-audit:
-    name: "Audit shipped dependency licenses"
+    name: License audit
     runs-on: ubuntu-latest
-    timeout-minutes: 15
-
+    timeout-minutes: 10
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
           persist-credentials: false
 
+      - name: Detect src projects
+        id: detect
+        run: |
+          if git ls-files 'src/**/*.csproj' 'src/*.csproj' | grep -q .; then
+            echo "found=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "No src/**/*.csproj found — skipping license audit."
+            echo "found=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Setup .NET
-        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        if: steps.detect.outputs.found == 'true'
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68  # v6.0.0
         with:
           dotnet-version: '10.0.x'
 
-      - name: Install dotnet-project-licenses
-        run: dotnet tool update --global dotnet-project-licenses || dotnet tool install --global dotnet-project-licenses
+      - name: Install nuget-license
+        if: steps.detect.outputs.found == 'true'
+        run: dotnet tool install --global nuget-license
 
-      - name: Audit src/ dependencies against the allowlist
-        # Only the src/ project graph — analyzer packages (Roslynator,
-        # Meziantou, SonarAnalyzer, BannedApiAnalyzers, etc.) are
-        # PrivateAssets=all build-time-only and are never distributed in
-        # the NuGet package, so auditing tests/benchmarks/examples would
-        # flag packages that ship in nobody's output.
-        # dotnet-project-licenses targets net7.0; ubuntu-latest no longer ships an
-        # EOL net7.0 runtime, so the tool needs roll-forward to launch on
-        # whatever runtime the image actually has (net8.0+).
-        # One invocation per shipped package under src/ — the repo may
-        # ship more than one independently-versioned package.
-        env:
-          DOTNET_ROLL_FORWARD: LatestMajor
+      # Gate: fail if any src project's dependency license is not on the allow-list.
+      - name: Audit licenses (gate on allow-list)
+        if: steps.detect.outputs.found == 'true'
         run: |
-          failed=0
-          for proj in src/*/*.csproj; do
-            echo "::group::Auditing $proj"
-            if ! dotnet-project-licenses \
-              --input "$proj" \
-              --allowed-license-types licenses/allowed-licenses.json \
-              --log-level Information; then
-              echo "::error::License audit failed for $proj"
-              failed=1
-            fi
-            echo "::endgroup::"
-          done
-
-          if [ "$failed" -eq 1 ]; then
-            exit 1
-          fi
+          while IFS= read -r proj; do
+            echo "== $proj =="
+            dotnet restore "$proj"
+            nuget-license -i "$proj" -t \
+              -a .github/license-audit/allowed-licenses.json \
+              -ignore .github/license-audit/ignored-packages.json \
+              -mapping .github/license-audit/url-license-mappings.json \
+              -o Table
+          done < <(git ls-files 'src/**/*.csproj' 'src/*.csproj')

@@ -23,6 +23,10 @@
     <File Path=".github/ISSUE_TEMPLATE/feature_request.yaml" />
   </Folder>
   <Folder Name="/.root/.github/workflows/">
+    <File Path=".github/workflows/semgrep.yaml" />
+    <File Path=".github/workflows/security-alerts.yml" />
+    <File Path=".github/workflows/sbom.yaml" />
+    <File Path=".github/workflows/actions-audit.yaml" />
     <File Path=".github/workflows/aot-smoke.yaml" />
     <File Path=".github/workflows/benchmarks.yaml" />
     <File Path=".github/workflows/build-all-versions.yaml" />
@@ -41,7 +45,6 @@
     <File Path=".github/workflows/sourcelink-verify.yaml" />
     <File Path=".github/workflows/sourcelink.yaml" />
     <File Path=".github/workflows/stryker.yaml" />
-    <File Path=".github/workflows/workflow-security.yaml" />
   </Folder>
   <Folder Name="/benchmarks/">
     <Project Path="benchmarks/Wolfgang.Extensions.IAsyncEnumerable.Benchmarks/Wolfgang.Extensions.IAsyncEnumerable.Benchmarks.csproj" />
