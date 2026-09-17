@@ -791,7 +791,7 @@ jobs:
 
       - name: Login to NuGet via Trusted Publishing (OIDC)
         id: nuget-login
-        uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841 # v1
+        uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841 # v1.2.0
         with:
           user: Chris-Wolfgang
 
