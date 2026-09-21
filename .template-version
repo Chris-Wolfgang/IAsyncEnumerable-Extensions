@@ -1,7 +1,7 @@
 {
   "template": "Chris-Wolfgang/repo-template",
-  "commit": "d0ad558a544f3ab45e199a3311e46951cad19824",
-  "updated": "2026-09-17",
+  "commit": "d16994ec7f57e52dcbe8dd7dc700dc54649e9bcf",
+  "updated": "2026-09-20",
   "placeholders": {
     "GITHUB_OWNER": "Chris-Wolfgang",
     "REPO_NAME": "IAsyncEnumerable-Extensions",
