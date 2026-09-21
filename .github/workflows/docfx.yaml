@@ -50,27 +50,17 @@ on:
 permissions:
   contents: read  # Default to read-only; the build-and-deploy job overrides with write
 
-# Serialize gh-pages deploys: a workflow_dispatch docs run racing a
-# release-triggered deploy would have the loser fail on a non-fast-forward
-# push to gh-pages. One fixed group (not per-ref) because every run pushes
-# to the same branch; never cancel — a half-deployed docs site is worse
-# than a queued rebuild.
-concurrency:
-  group: docfx-gh-pages-deploy
-  cancel-in-progress: false
-
 jobs:
   build-and-deploy:
     name: Build & Deploy Documentation
     runs-on: windows-latest
-    timeout-minutes: 30
 
     permissions:
       contents: write # Allow write access for gh-pages branch
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
           fetch-depth: 0  # Full history needed to enumerate all v* tags
           persist-credentials: false
@@ -102,7 +92,10 @@ jobs:
             'docfx_project/public',
             'docfx_project/versions.json',
             'docfx_project/logo.svg',
-            'docfx_project/docfx.json'
+            'docfx_project/docfx.json',
+            # The docs tool versions belong to the docs tooling, not the tag: a tag
+            # that predates the manifest would otherwise have nothing to restore.
+            '.config/dotnet-tools.json'
           )
 
           # Detect whether the current HEAD already matches origin/main.
@@ -137,7 +130,7 @@ jobs:
           }
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68  # v6.0.0
         with:
           dotnet-version: |
             5.0.x
@@ -155,17 +148,18 @@ jobs:
         run: dotnet build --configuration Release --no-restore
         shell: pwsh
 
-      - name: Install DocFX
-        run: dotnet tool update docfx --global || dotnet tool install docfx --global
+      - name: Restore CI tools (DocFX, ReportGenerator)
+        # Pinned in .config/dotnet-tools.json; never installed unversioned.
+        run: dotnet tool restore
         shell: pwsh
 
       - name: Build DocFX Metadata
-        run: docfx metadata
+        run: dotnet docfx metadata
         working-directory: docfx_project
         shell: pwsh
 
       - name: Build Docs
-        run: docfx build
+        run: dotnet docfx build
         working-directory: docfx_project
         shell: pwsh
 
@@ -174,8 +168,8 @@ jobs:
           if (-Not (Test-Path "docfx_project/_site")) {
           Write-Host "Error: docfx_project/_site directory not found!"
           exit 1
-          }  
-          Write-Host "Build successful. Contents of _site:" 
+          }
+          Write-Host "Build successful. Contents of _site:"
           Get-ChildItem "docfx_project/_site"
           Write-Host "API documentation:"
           Get-ChildItem "docfx_project/_site/api"
@@ -198,7 +192,6 @@ jobs:
           # time and adds extra failure surface for older targets. Pin to
           # net10.0 — the modern target that's always present in this fleet.
           dotnet test --configuration Release --no-build --no-restore --framework net10.0 --collect:"XPlat Code Coverage" --settings coverlet.runsettings --results-directory ./coverage-raw 2>&1 | Out-Host
-          dotnet tool update -g dotnet-reportgenerator-globaltool 2>$null || dotnet tool install -g dotnet-reportgenerator-globaltool 2>$null
           $coverageFiles = @(Get-ChildItem -Path ./coverage-raw -Recurse -Filter "coverage.cobertura.xml" -ErrorAction SilentlyContinue)
           if ($coverageFiles.Count -eq 0) {
             Write-Host "::notice::No coverage files generated - skipping coverage report step"
@@ -229,8 +222,25 @@ jobs:
             Write-Host "::notice::Could not restore prior coverage history ($($_.Exception.Message)) - starting fresh."
           }
 
-          reportgenerator "-reports:$reports" "-targetdir:$outDir" "-reporttypes:Html;TextSummary" "-historydir:$historyDir"
+          dotnet reportgenerator "-reports:$reports" "-targetdir:$outDir" "-reporttypes:Html;TextSummary" "-historydir:$historyDir"
           Write-Host "Coverage report (with trend) written to $outDir"
+
+          # Coverage BADGE (#283): a shields.io endpoint document next to the
+          # report. The README badge reads it from
+          # <docs site>/versions/latest/coverage/badge.json, so it updates on
+          # every release with no gist, PAT or third-party service. Colour
+          # steps follow the CI gate: >= 90 is the src/ threshold.
+          $summary = Get-Content (Join-Path $outDir 'Summary.txt') -Raw
+          $m = [regex]::Match($summary, 'Line coverage:\s*([0-9]+(?:\.[0-9]+)?)%')
+          if ($m.Success) {
+            $pct = [double]$m.Groups[1].Value
+            $color = if ($pct -ge 90) { 'brightgreen' } elseif ($pct -ge 80) { 'green' } elseif ($pct -ge 70) { 'yellow' } else { 'red' }
+            $badge = [ordered]@{ schemaVersion = 1; label = 'coverage'; message = "$($m.Groups[1].Value)%"; color = $color }
+            $badge | ConvertTo-Json -Compress | Set-Content -Path (Join-Path $outDir 'badge.json') -Encoding utf8NoBOM -NoNewline
+            Write-Host "Coverage badge: $($m.Groups[1].Value)% ($color)"
+          } else {
+            Write-Host "::notice::Could not read 'Line coverage' from Summary.txt - no badge.json written"
+          }
 
       - name: Generate versions.json
         # Produces versions.json consumed by the DocFX version-switcher dropdown.
