@@ -1,15 +1,15 @@
 {
   "template": "Chris-Wolfgang/repo-template",
-  "commit": "d16994ec7f57e52dcbe8dd7dc700dc54649e9bcf",
-  "updated": "2026-09-20",
+  "commit": "74080b0f14fd9f3bca1b12f101852a9ffde2531d",
+  "updated": "2026-09-22",
   "placeholders": {
-    "GITHUB_OWNER": "Chris-Wolfgang",
-    "REPO_NAME": "IAsyncEnumerable-Extensions",
-    "GITHUB_REPO_URL": "https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions",
-    "DOCS_URL": "https://chris-wolfgang.github.io/IAsyncEnumerable-Extensions/",
     "PROJECT_NAME": "Wolfgang.Extensions.IAsyncEnumerable",
     "PACKAGE_NAME": "Wolfgang.Extensions.IAsyncEnumerable",
-    "LICENSE_TYPE": "MIT"
+    "LICENSE_TYPE": "MIT",
+    "DOCS_URL": "https://chris-wolfgang.github.io/IAsyncEnumerable-Extensions/",
+    "GITHUB_REPO_URL": "https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions",
+    "GITHUB_OWNER": "Chris-Wolfgang",
+    "REPO_NAME": "IAsyncEnumerable-Extensions"
   },
   "note": "Written by scripts/setup.ps1 and scripts/upgrade.ps1; the template commit this repository last took template-managed files from, and the placeholder values setup used."
 }
