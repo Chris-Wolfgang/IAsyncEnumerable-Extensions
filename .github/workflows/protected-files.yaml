@@ -17,22 +17,42 @@ on:
   pull_request_target:  # no checkout, no execution of PR content — see the note above
     branches:
       - main
+  # A merge queue builds a temporary ref with no pull request attached, so this guard has
+  # nothing to classify there - but "Protected Files Guard" is a required check and a
+  # required check that never reports stalls the queue. The merge-group job below reports
+  # it, and says why it is a no-op.
+  merge_group:
 
 permissions:
   contents: read
   pull-requests: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
+  # Merge-queue counterpart: same check name, nothing to evaluate. The classification is a
+  # property of the pull request (which files it changes relative to main) and it already
+  # ran - and had to pass - before the pull request could be queued. Re-deriving it from a
+  # queue ref would compare the batch against main, not the pull request.
+  guard-merge-group:
+    name: "Protected Files Guard"
+    if: github.event_name == 'merge_group'
+    runs-on: ubuntu-latest
+    timeout-minutes: 1
+    steps:
+      - name: Already evaluated on the pull request
+        run: echo "::notice::Protected-file classification ran on the pull request; nothing to re-check in the merge group."
+
   guard:
     name: "Protected Files Guard"
     runs-on: ubuntu-latest
     # Dependabot's bumps to protected files (e.g. Directory.Build.props) are legitimate;
     # its identity is GitHub-controlled and not spoofable.
-    if: github.event.pull_request.user.login != 'dependabot[bot]'
+    if: >-
+      github.event_name == 'pull_request_target'
+      && github.event.pull_request.user.login != 'dependabot[bot]'
     timeout-minutes: 5
     steps:
       - name: Classify the PR's changed files

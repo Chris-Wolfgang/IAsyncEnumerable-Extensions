@@ -47,6 +47,10 @@ on:
   push:
     branches:
       - main
+  # The merge queue builds a temporary gh-readonly-queue/main/... ref and waits for the
+  # SAME required checks to report on it. Without this trigger they never run there and
+  # every queued pull request times out.
+  merge_group:
 
 concurrency:
   # The event name is part of the group on purpose: while a repository migrates to this
