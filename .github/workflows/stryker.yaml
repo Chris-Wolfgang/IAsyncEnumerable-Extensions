@@ -165,6 +165,14 @@ jobs:
         shell: bash
         run: dotnet tool restore
 
+      - name: Restore packages for every target framework
+        # Stryker analyses the mutated project for EVERY TargetFramework and rebuilds the
+        # solution; on a cold runner the per-TFM analysis fails without a full restore
+        # ("Analysis of project ... failed for frameworks netstandard2.0") and every
+        # mutant is then a compile error - a 0 % score that is really a build problem.
+        shell: bash
+        run: dotnet restore
+
       - name: Run Stryker
         id: run
         env:
