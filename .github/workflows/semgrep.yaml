@@ -63,7 +63,8 @@ jobs:
             --config p/security-audit \
             --config p/secrets \
             --sarif --output semgrep.sarif \
-            --error
+            --error \
+            src/
           rc=$?
           set -e
           case "$rc" in
