@@ -7,7 +7,7 @@ namespace Wolfgang.Extensions.IAsyncEnumerable.Tests.DocExamples;
 /// </summary>
 /// <remarks>
 /// Limitation: only identifiers explicitly stubbed as typed fields on
-/// <see cref="DocExampleContext"/> (in <c>DocExampleCompiler</c>) resolve.
+/// <c>DocExampleContext</c> (in <c>DocExampleCompiler</c>) resolve.
 /// If a future example introduces a new placeholder identifier, add a
 /// typed field for it there — the compile error you'd otherwise see
 /// (<c>CS0103: name does not exist in the current context</c>) is

@@ -77,7 +77,7 @@ public sealed class DeepBehaviorTests
         await Assert.ThrowsAsync<OperationCanceledException>(async () =>
         {
             var chunkCount = 0;
-            await foreach (var chunk in source.ChunkAsync(2, cts.Token))
+            await foreach (var _ in source.ChunkAsync(2, cts.Token))
             {
                 chunkCount++;
                 if (chunkCount == 1)
