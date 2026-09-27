@@ -1,3 +1,9 @@
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+using Xunit;
+
 namespace Wolfgang.Extensions.IAsyncEnumerable.Legacy.Tests.Unit;
 
 public sealed class FirstAsyncTests

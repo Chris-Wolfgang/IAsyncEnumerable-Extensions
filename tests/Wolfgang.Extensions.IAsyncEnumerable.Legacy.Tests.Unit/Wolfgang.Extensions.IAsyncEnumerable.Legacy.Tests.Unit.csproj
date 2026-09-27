@@ -7,7 +7,7 @@
 	     the two, both compiled surfaces of the package are exercised. -->
 	<TargetFrameworks>net462;net10.0</TargetFrameworks>
 	<LangVersion>latest</LangVersion>
-	<ImplicitUsings>enable</ImplicitUsings>
+	<ImplicitUsings>disable</ImplicitUsings>
 	<IsPackable>false</IsPackable>
 	<IsTestProject>true</IsTestProject>
 
@@ -63,11 +63,6 @@
 
 	<ItemGroup>
 	  <ProjectReference Include="..\..\src\Wolfgang.Extensions.IAsyncEnumerable.Legacy\Wolfgang.Extensions.IAsyncEnumerable.Legacy.csproj" />
-	</ItemGroup>
-
-	<ItemGroup>
-		<Using Include="Xunit" />
-		<Using Include="Wolfgang.Extensions.IAsyncEnumerable" />
 	</ItemGroup>
 
   <!-- Analyzer PackageReferences are centralized in Directory.Build.props -->
