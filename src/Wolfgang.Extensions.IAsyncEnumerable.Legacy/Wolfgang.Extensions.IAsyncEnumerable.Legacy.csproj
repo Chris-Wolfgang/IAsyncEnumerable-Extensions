@@ -3,6 +3,10 @@
 	<PropertyGroup>
 		<TargetFrameworks>net462;netstandard2.0</TargetFrameworks>
 		<LangVersion>14</LangVersion>
+		<!-- The Legacy package deliberately shares the main package's namespace, so consumers write the
+		     same using directive on every TFM. Declaring it as the root namespace keeps namespace/folder
+		     checks (InspectCode CheckNamespace) aligned with that design. -->
+		<RootNamespace>Wolfgang.Extensions.IAsyncEnumerable</RootNamespace>
 		<Version>0.6.0</Version>
 		<!-- New net462-targeting library during 0.x: derive AssemblyVersion from
 		     Version's minor (SemVer's breaking position pre-1.0) so a breaking

@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Wolfgang.Extensions.IAsyncEnumerable;
 
-namespace LegacyExample
+namespace Legacy.Example
 {
     internal static class Program
     {
