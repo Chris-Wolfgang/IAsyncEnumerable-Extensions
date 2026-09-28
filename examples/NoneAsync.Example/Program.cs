@@ -31,6 +31,11 @@ var orders = GenerateOrders();
 if (await orders.NoneAsync(o => o.Amount <= 0))
 {
     Console.WriteLine("  All orders have valid amounts.");
+
+    await foreach (var order in GenerateOrders())
+    {
+        Console.WriteLine($"    {order.Id}: {order.Amount:0.00}");
+    }
 }
 else
 {
