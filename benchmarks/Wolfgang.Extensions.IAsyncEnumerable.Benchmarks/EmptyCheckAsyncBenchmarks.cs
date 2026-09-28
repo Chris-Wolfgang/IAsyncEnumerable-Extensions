@@ -43,7 +43,7 @@ public class EmptyCheckAsyncBenchmarks
     public async Task<bool> IsNullOrEmptyAsync_NonEmpty()
         => await CreateSource(_nonEmpty).IsNullOrEmptyAsync(CancellationToken.None);
 
-    private async IAsyncEnumerable<int> CreateSource
+    private static async IAsyncEnumerable<int> CreateSource
     (
         IReadOnlyList<int> data,
         [EnumeratorCancellation] CancellationToken cancellationToken = default
