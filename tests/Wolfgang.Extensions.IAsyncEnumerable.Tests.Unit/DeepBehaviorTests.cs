@@ -3,6 +3,13 @@
 // scenarios that the per-method test files don't exercise. Each test below
 // pins a specific contract the library quietly promises.
 
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Xunit;
+
 namespace Wolfgang.Extensions.IAsyncEnumerable.Tests.Unit;
 
 public sealed class DeepBehaviorTests

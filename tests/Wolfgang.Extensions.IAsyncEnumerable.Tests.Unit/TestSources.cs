@@ -1,3 +1,7 @@
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
 namespace Wolfgang.Extensions.IAsyncEnumerable.Tests.Unit;
 
 /// <summary>
