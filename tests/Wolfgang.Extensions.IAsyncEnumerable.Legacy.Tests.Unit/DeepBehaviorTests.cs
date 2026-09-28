@@ -3,6 +3,12 @@
 // files don't exercise directly: the token handed to GetAsyncEnumerator and
 // enumerator disposal on every exit path (exception, empty source, cancellation).
 
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+using Xunit;
+
 namespace Wolfgang.Extensions.IAsyncEnumerable.Legacy.Tests.Unit;
 
 public sealed class DeepBehaviorTests

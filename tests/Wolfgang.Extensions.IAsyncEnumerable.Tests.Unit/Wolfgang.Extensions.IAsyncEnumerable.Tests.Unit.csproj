@@ -3,7 +3,7 @@
 	<PropertyGroup>
 	<TargetFrameworks>net462;net47;net471;net472;net48;net481;netcoreapp3.1;net5.0;net6.0;net7.0;net8.0;net9.0;net10.0</TargetFrameworks>
 	<LangVersion>latest</LangVersion>
-	<ImplicitUsings>enable</ImplicitUsings>
+	<ImplicitUsings>disable</ImplicitUsings>
 	<IsPackable>false</IsPackable>
 	<IsTestProject>true</IsTestProject>
 
@@ -315,10 +315,6 @@
 	</ItemGroup>
 	<ItemGroup>
 	  <ProjectReference Include="..\..\src\Wolfgang.Extensions.IAsyncEnumerable\Wolfgang.Extensions.IAsyncEnumerable.csproj" />
-	</ItemGroup>
-
-	<ItemGroup>
-		<Using Include="Xunit" />
 	</ItemGroup>
 
   <!-- Analyzer PackageReferences are centralized in Directory.Build.props -->

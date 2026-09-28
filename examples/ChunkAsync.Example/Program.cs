@@ -24,9 +24,9 @@ var totalInserted = 0;
 
 await foreach (var batch in GenerateRecords(7).ChunkAsync(3))
 {
-    // In real code: await db.BulkInsertAsync(batch);
+    // In real code, this is where the batch would be bulk-inserted into the database.
     totalInserted += batch.Count;
-    Console.WriteLine($"  Inserted batch of {batch.Count} records (total: {totalInserted})");
+    Console.WriteLine($"  Inserted batch of {batch.Count} records [{string.Join(", ", batch.Select(r => $"{r.Id}:{r.Name}"))}] (total: {totalInserted})");
 }
 
 Console.WriteLine();
