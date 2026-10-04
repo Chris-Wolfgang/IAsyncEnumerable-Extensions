@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1790489942860,
+  "lastUpdate": 1791101419786,
   "repoUrl": "https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions",
   "entries": {
     "Mutation score": [
@@ -21,6 +21,33 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/commit/9edfabefcde0d2192fae37623033c5d4df1c12d8"
         },
         "date": 1790489937025,
+        "tool": "customBiggerIsBetter",
+        "benches": [
+          {
+            "name": "Mutation score",
+            "value": 100,
+            "unit": "%"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Chris Wolfgang",
+            "username": "Chris-Wolfgang",
+            "email": "210299580+Chris-Wolfgang@users.noreply.github.com"
+          },
+          "committer": {
+            "name": "GitHub",
+            "username": "web-flow",
+            "email": "noreply@github.com"
+          },
+          "id": "154123b4431bbeed9f0249ca053640842c2a4d54",
+          "message": "fix: align Legacy namespaces with InspectCode CheckNamespace (#461)\n\n- Legacy csproj: RootNamespace = Wolfgang.Extensions.IAsyncEnumerable, the namespace the\n  package deliberately shares with the main package (clears code-scanning alert #464).\n- Legacy.Example: namespace LegacyExample -> Legacy.Example to match its folder (#463).\n\nCo-authored-by: Claude Opus 5.5 <noreply@anthropic.com>",
+          "timestamp": "2026-09-28T18:22:29Z",
+          "url": "https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/commit/154123b4431bbeed9f0249ca053640842c2a4d54"
+        },
+        "date": 1791101412590,
         "tool": "customBiggerIsBetter",
         "benches": [
           {
