@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1791101419786,
+  "lastUpdate": 1791699533942,
   "repoUrl": "https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions",
   "entries": {
     "Mutation score": [
@@ -48,6 +48,33 @@ window.BENCHMARK_DATA = {
           "url": "https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/commit/154123b4431bbeed9f0249ca053640842c2a4d54"
         },
         "date": 1791101412590,
+        "tool": "customBiggerIsBetter",
+        "benches": [
+          {
+            "name": "Mutation score",
+            "value": 100,
+            "unit": "%"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Chris Wolfgang",
+            "username": "Chris-Wolfgang",
+            "email": "210299580+Chris-Wolfgang@users.noreply.github.com"
+          },
+          "committer": {
+            "name": "GitHub",
+            "username": "web-flow",
+            "email": "noreply@github.com"
+          },
+          "id": "019d297821482455e7f996a77166a10b5f8399ac",
+          "message": "ci: sync Stage 1 coverage gate and build-pr.ps1 local tools from repo-template (#469)\n\n* ci: sync Stage 1 coverage gate and build-pr.ps1 local tools from repo-template\n\nStage 1 now runs every test project (integration included), records the\nassemblies that ran, fails \"Check for coverage files\" when tests ran but\nproduced no coverage, and fails the gate for an assembly that ran without a\ncoverage row (Chris-Wolfgang/repo-template#654).\n\nbuild-pr.ps1 runs ReportGenerator and DevSkim as pinned local tools through a\nRestore-LocalTools helper, and a DevSkim non-zero exit fails the step\n(Chris-Wolfgang/repo-template#656).\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\n\n* ci(pr): Stage 2 skips *.Tests.Integration.* after TFM discovery (repo-template#701)\n\nWindows runners cannot run the Linux containers integration suites need;\nStage 1 runs and gates them. A TFM no Linux stage runs is still reported.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\n\n---------\n\nCo-authored-by: Claude Opus 5.5 <noreply@anthropic.com>",
+          "timestamp": "2026-10-11T02:18:35Z",
+          "url": "https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/commit/019d297821482455e7f996a77166a10b5f8399ac"
+        },
+        "date": 1791699529533,
         "tool": "customBiggerIsBetter",
         "benches": [
           {
