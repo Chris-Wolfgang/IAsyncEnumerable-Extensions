@@ -57,21 +57,13 @@ public sealed class FuzzProperties
                 chunks.Add([.. chunk]);
             }
 
+            // One expression, so a passing run executes every line: separate
+            // `return false` branches would only run when the property fails.
             var flattened = chunks.SelectMany(c => c).ToList();
-            if (!flattened.SequenceEqual(items))
-            {
-                return false;
-            }
+            var allButLastAreFull = chunks.Take(chunks.Count - 1).All(c => c.Length == chunkSize);
+            var lastIsPartial = chunks.Count == 0 || (chunks[^1].Length > 0 && chunks[^1].Length <= chunkSize);
 
-            for (var i = 0; i < chunks.Count - 1; i++)
-            {
-                if (chunks[i].Length != chunkSize)
-                {
-                    return false;
-                }
-            }
-
-            return chunks.Count == 0 || (chunks[^1].Length > 0 && chunks[^1].Length <= chunkSize);
+            return flattened.SequenceEqual(items) && allButLastAreFull && lastIsPartial;
         }, iter: FuzzIterations, time: FuzzTimeSeconds);
     }
 
