@@ -11,6 +11,9 @@
 	an additional signal. Confirmed locally: these three IDs accounted for
 	300 of 349 total InspectCode findings on a clean main.
 
+	UnusedAutoPropertyAccessor.Global is a false positive on BenchmarkDotNet
+	[Params] properties, which the runner sets by reflection.
+
 	Everything else stays at its default severity — those are genuine
 	InspectCode-only findings (dead code, redundant casts, possible multiple
 	enumeration, etc.) not covered by any other analyzer in the pipeline, and
@@ -21,5 +24,6 @@
 	<s:String x:Key="/Default/CodeInspection/Highlighting/InspectionSeverities/=RS0016/@EntryIndexedValue">DO_NOT_SHOW</s:String>
 	<s:String x:Key="/Default/CodeInspection/Highlighting/InspectionSeverities/=RS0036/@EntryIndexedValue">DO_NOT_SHOW</s:String>
 	<s:String x:Key="/Default/CodeInspection/Highlighting/InspectionSeverities/=RS0037/@EntryIndexedValue">DO_NOT_SHOW</s:String>
+	<s:String x:Key="/Default/CodeInspection/Highlighting/InspectionSeverities/=UnusedAutoPropertyAccessor_002EGlobal/@EntryIndexedValue">DO_NOT_SHOW</s:String>
 
 </wpf:ResourceDictionary>
