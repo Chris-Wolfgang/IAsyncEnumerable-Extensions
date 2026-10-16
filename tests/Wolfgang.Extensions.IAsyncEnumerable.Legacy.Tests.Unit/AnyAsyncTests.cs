@@ -95,7 +95,7 @@ public sealed class AnyAsyncTests
 
         await Assert.ThrowsAsync<ArgumentNullException>
         (
-            () => source.AnyAsync((Func<int, bool>)null!).AsTask()
+            () => source.AnyAsync(null!).AsTask()
         );
     }
 

@@ -81,7 +81,7 @@ public sealed class NoneAsyncTests
 
         await Assert.ThrowsAsync<ArgumentNullException>
         (
-            () => source.NoneAsync((Func<int, bool>)null!)
+            () => source.NoneAsync(null!)
         );
     }
 
