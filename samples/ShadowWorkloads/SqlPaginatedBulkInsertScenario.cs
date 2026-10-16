@@ -29,7 +29,7 @@ public class SqlPaginatedBulkInsertScenario
         await foreach (var batch in PagedRows(RowCount).ChunkAsync(BulkInsertBatchSize).ConfigureAwait(false))
         {
             // Stand-in for `await bulkInsert.InsertBatchAsync(batch)`.
-            batchCount += batch.Count > 0 ? 1 : 0;
+            batchCount += batch.Count > 0 && batch.First().IsComplete ? 1 : 0;
         }
 
         return batchCount;
@@ -56,5 +56,8 @@ public class SqlPaginatedBulkInsertScenario
 
 
 
-    private readonly record struct Row(int Id, string Name, decimal Amount);
+    private readonly record struct Row(int Id, string Name, decimal Amount)
+    {
+        public bool IsComplete => Id >= 0 && Name.Length > 0 && Amount >= 0m;
+    }
 }
