@@ -24,6 +24,16 @@ public class FileLineStreamCancellationScenario
     public async Task<int> Scenario_FileLinesCancelledPartway()
     {
         using var cts = new CancellationTokenSource();
+
+        return await ProcessLinesAsync(cts).ConfigureAwait(false);
+    }
+
+
+
+    // The token source is a parameter, not a captured `using` local, so the
+    // lambda below cannot outlive the source's disposal.
+    private static async Task<int> ProcessLinesAsync(CancellationTokenSource cts)
+    {
         var linesProcessed = 0;
 
         try

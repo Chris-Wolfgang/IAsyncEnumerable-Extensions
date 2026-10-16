@@ -27,7 +27,7 @@ public class HttpPagedTelemetryScenario
         var processedCount = 0;
 
         await PagedApiItems(ItemCount)
-            .DoAsync(_ => telemetryCount++)
+            .DoAsync(item => telemetryCount += item.IsComplete ? 1 : 0)
             .ForEachAsync(_ => processedCount++)
             .ConfigureAwait(false);
 
@@ -55,5 +55,8 @@ public class HttpPagedTelemetryScenario
 
 
 
-    private readonly record struct ApiItem(int Id, string Payload);
+    private readonly record struct ApiItem(int Id, string Payload)
+    {
+        public bool IsComplete => Id >= 0 && Payload.Length > 0;
+    }
 }
