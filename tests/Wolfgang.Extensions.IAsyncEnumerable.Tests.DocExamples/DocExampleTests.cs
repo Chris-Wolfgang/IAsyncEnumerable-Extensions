@@ -35,7 +35,7 @@ public sealed class DocExampleTests
         (
             errors.Count == 0,
             $"{example} failed to compile:{Environment.NewLine}" +
-            string.Join(Environment.NewLine, errors.Select(error => error.ToString()))
+            string.Join(Environment.NewLine, errors)
         );
     }
 

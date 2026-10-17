@@ -122,21 +122,18 @@ public sealed class ForEachAsyncTests
 
         await Assert.ThrowsAsync<OperationCanceledException>
         (
-            async () =>
-            {
-                await source.ForEachAsync
-                (
-                    x =>
+            () => source.ForEachAsync
+            (
+                x =>
+                {
+                    observed.Add(x);
+                    if (x == 1)
                     {
-                        observed.Add(x);
-                        if (x == 1)
-                        {
-                            tokenSource.Cancel();
-                        }
-                    },
-                    tokenSource.Token
-                );
-            }
+                        tokenSource.Cancel();
+                    }
+                },
+                tokenSource.Token
+            )
         );
 
         // The action cancels on the first item, and the post-action token check
@@ -174,11 +171,7 @@ public sealed class ForEachAsyncTests
         var source = TestSources.Create(1, 2, 3);
         var observed = new List<int>();
 
-        await source.ForEachAsync(async x =>
-        {
-            await Task.Yield();
-            observed.Add(x);
-        });
+        await source.ForEachAsync(x => ObserveAsync(observed, x));
 
         Assert.Equal([1, 2, 3], observed);
     }
@@ -191,11 +184,7 @@ public sealed class ForEachAsyncTests
         var source = TestSources.Create<int>();
         var observed = new List<int>();
 
-        await source.ForEachAsync(async x =>
-        {
-            await Task.Yield();
-            observed.Add(x);
-        });
+        await source.ForEachAsync(x => ObserveAsync(observed, x));
 
         Assert.Empty(observed);
     }
@@ -270,18 +259,14 @@ public sealed class ForEachAsyncTests
         tokenSource.Cancel();
 
         var source = TestSources.Create(1, 2, 3);
-        var invoked = false;
+        var observed = new List<int>();
 
         await Assert.ThrowsAsync<OperationCanceledException>
         (
-            () => source.ForEachAsync(_ =>
-            {
-                invoked = true;
-                return Task.CompletedTask;
-            }, tokenSource.Token)
+            () => source.ForEachAsync(x => ObserveAsync(observed, x), tokenSource.Token)
         );
 
-        Assert.False(invoked);
+        Assert.Empty(observed);
     }
 
 
@@ -296,23 +281,20 @@ public sealed class ForEachAsyncTests
 
         await Assert.ThrowsAsync<OperationCanceledException>
         (
-            async () =>
-            {
-                await source.ForEachAsync
-                (
-                    x =>
+            () => source.ForEachAsync
+            (
+                x =>
+                {
+                    observed.Add(x);
+                    if (x == 1)
                     {
-                        observed.Add(x);
-                        if (x == 1)
-                        {
-                            tokenSource.Cancel();
-                        }
+                        tokenSource.Cancel();
+                    }
 
-                        return Task.CompletedTask;
-                    },
-                    tokenSource.Token
-                );
-            }
+                    return Task.CompletedTask;
+                },
+                tokenSource.Token
+            )
         );
 
         // The action cancels on the first item, and the post-action token check
@@ -345,5 +327,11 @@ public sealed class ForEachAsyncTests
     }
 
 
-
+    // Shared so the "never invoked" tests below do not carry their own lambda body,
+    // which could not execute and would leave the test assembly under 100% coverage.
+    private static async Task ObserveAsync(List<int> sink, int item)
+    {
+        await Task.Yield();
+        sink.Add(item);
+    }
 }

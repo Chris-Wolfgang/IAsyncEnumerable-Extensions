@@ -107,12 +107,9 @@ public sealed class AnyAsyncTests
     [InlineData(new int[0], false)]
     public async Task AnyAsync_predicate_match_cases_return_expected(int[] values, bool expected)
     {
-        if (values is null)
-        {
-            throw new ArgumentNullException(nameof(values));
-        }
-
-        var source = TestSources.Create(values);
+        // One line, so a passing run executes it all; a separate `if`/`throw` block would
+        // leave unexecuted lines in the test assembly. Keeps CA1062 satisfied.
+        var source = TestSources.Create(values ?? throw new ArgumentNullException(nameof(values)));
 
         var result = await source.AnyAsync(n => n % 3 == 0);
 
