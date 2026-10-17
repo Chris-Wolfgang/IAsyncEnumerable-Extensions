@@ -540,4 +540,83 @@ public static class IAsyncEnumerableExtensions
 
         return true;
     }
+
+
+
+    /// <summary>
+    /// Applies an accumulator over an IAsyncEnumerable{T} and yields every intermediate
+    /// result, like <c>Aggregate</c> but emitting the running value at each step.
+    /// </summary>
+    /// <remarks>
+    /// The <paramref name="seed"/> itself is not yielded: the first value produced is
+    /// <c>accumulator(seed, first)</c>, so an empty source yields nothing. Exceptions thrown
+    /// by <paramref name="accumulator"/> propagate to the consuming <c>await foreach</c> and
+    /// terminate the enumeration.
+    /// </remarks>
+    /// <param name="source">The source IAsyncEnumerable{T}.</param>
+    /// <param name="seed">The initial accumulator value.</param>
+    /// <param name="accumulator">A function that combines the running value with the next element.</param>
+    /// <param name="token">A cancellation token to cancel the operation.</param>
+    /// <typeparam name="TSource">The type of elements in the source sequence.</typeparam>
+    /// <typeparam name="TAccumulate">The type of the accumulated value.</typeparam>
+    /// <returns>An IAsyncEnumerable{TAccumulate} of the running values, one per source element.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="source"/> or <paramref name="accumulator"/> is null.</exception>
+    /// <exception cref="OperationCanceledException">
+    /// Thrown when <paramref name="token"/> is canceled. Observed at enumeration
+    /// time, surfaced through the consuming <c>await foreach</c>.
+    /// </exception>
+    /// <example>
+    /// <code>
+    /// // Running sum: 1, 2, 3, 4 produces 1, 3, 6, 10
+    /// await foreach (var total in source.ScanAsync(0, (sum, x) =&gt; sum + x))
+    /// {
+    ///     Console.WriteLine(total);
+    /// }
+    /// </code>
+    /// </example>
+    public static IAsyncEnumerable<TAccumulate> ScanAsync<TSource, TAccumulate>
+    (
+        this IAsyncEnumerable<TSource> source,
+        TAccumulate seed,
+        Func<TAccumulate, TSource, TAccumulate> accumulator,
+        CancellationToken token = default
+    )
+    {
+        if (source is null)
+        {
+            throw new ArgumentNullException(nameof(source));
+        }
+
+        if (accumulator is null)
+        {
+            throw new ArgumentNullException(nameof(accumulator));
+        }
+
+        return ScanCoreAsync(source, seed, accumulator, token);
+    }
+
+
+
+    private static async IAsyncEnumerable<TAccumulate> ScanCoreAsync<TSource, TAccumulate>
+    (
+        IAsyncEnumerable<TSource> source,
+        TAccumulate seed,
+        Func<TAccumulate, TSource, TAccumulate> accumulator,
+        [EnumeratorCancellation] CancellationToken token
+    )
+    {
+        token.ThrowIfCancellationRequested();
+
+        var current = seed;
+        var enumerator = source.GetAsyncEnumerator(token);
+        await using (enumerator.ConfigureAwait(false))
+        {
+            while (await enumerator.MoveNextAsync().ConfigureAwait(false))
+            {
+                current = accumulator(current, enumerator.Current);
+                yield return current;
+                token.ThrowIfCancellationRequested();
+            }
+        }
+    }
 }

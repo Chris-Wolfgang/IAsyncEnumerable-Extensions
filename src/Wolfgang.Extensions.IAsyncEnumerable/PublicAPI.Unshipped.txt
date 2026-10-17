@@ -1,1 +1,2 @@
 #nullable enable
+static Wolfgang.Extensions.IAsyncEnumerable.IAsyncEnumerableExtensions.ScanAsync<TSource, TAccumulate>(this System.Collections.Generic.IAsyncEnumerable<TSource>! source, TAccumulate seed, System.Func<TAccumulate, TSource, TAccumulate>! accumulator, System.Threading.CancellationToken token = default(System.Threading.CancellationToken)) -> System.Collections.Generic.IAsyncEnumerable<TAccumulate>!
