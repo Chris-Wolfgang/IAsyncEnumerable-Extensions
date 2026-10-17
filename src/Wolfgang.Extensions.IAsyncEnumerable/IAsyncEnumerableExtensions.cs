@@ -16,6 +16,13 @@ public static class IAsyncEnumerableExtensions
     /// <summary>
     /// Splits an IAsyncEnumerable{T} into chunks of a specified maximum size.
     /// </summary>
+    /// <remarks>
+    /// Matches <c>Enumerable.Chunk</c> (net6.0+) item for item, including which chunks are
+    /// produced before a source failure, with one intentional difference: the size parameter is
+    /// named <paramref name="maxChunkSize"/>, where <c>Enumerable.Chunk</c> calls it
+    /// <c>size</c>, so the exception's <c>ParamName</c> differs. Renaming
+    /// a shipped parameter would break callers that pass it by name.
+    /// </remarks>
     /// <param name="source">The source IAsyncEnumerable{T} to chunk.</param>
     /// <param name="maxChunkSize">The maximum size of each chunk.</param>
     /// <param name="token">A cancellation token to cancel the operation.</param>
