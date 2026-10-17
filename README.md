@@ -56,7 +56,7 @@ This project is licensed under the **MIT License**. See the [LICENSE](LICENSE) f
 
 ## ✨ Extension methods
 
-All twelve extensions live on `IAsyncEnumerableExtensions` (`namespace Wolfgang.Extensions.IAsyncEnumerable`). See the [API documentation](https://Chris-Wolfgang.github.io/IAsyncEnumerable-Extensions/) for signatures, parameter details, and per-method examples.
+All thirteen extensions live on `IAsyncEnumerableExtensions` (`namespace Wolfgang.Extensions.IAsyncEnumerable`). See the [API documentation](https://Chris-Wolfgang.github.io/IAsyncEnumerable-Extensions/) for signatures, parameter details, and per-method examples.
 
 | Method | Purpose |
 |---|---|
@@ -72,6 +72,7 @@ All twelve extensions live on `IAsyncEnumerableExtensions` (`namespace Wolfgang.
 | `NoneAsync<T>(source, ct)` | `true` if the stream yields zero elements (same shape as `IsEmptyAsync`, different naming). |
 | `NoneAsync<T>(source, predicate, ct)` | `true` if no element satisfies the predicate. Short-circuits on the first match. |
 | `ScanAsync<TSource, TAccumulate>(source, seed, accumulator, ct)` | Running accumulation — yields every intermediate value, like `Aggregate` emitting at each step. The seed is not yielded. |
+| `SlidingWindowAsync<T>(source, windowSize, ct)` | Overlapping windows of `windowSize` consecutive elements as `IReadOnlyList<T>`, advancing one element at a time. |
 
 ### Terminal operators (`Wolfgang.Extensions.IAsyncEnumerable.Legacy`, net462 / netstandard2.0 only)
 

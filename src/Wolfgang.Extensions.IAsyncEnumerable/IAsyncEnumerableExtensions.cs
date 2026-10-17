@@ -769,4 +769,104 @@ public static class IAsyncEnumerableExtensions
             }
         }
     }
+
+
+
+    /// <summary>
+    /// Yields overlapping windows of <paramref name="windowSize"/> consecutive elements from an
+    /// IAsyncEnumerable{T}, advancing one element at a time.
+    /// </summary>
+    /// <remarks>
+    /// The first window is yielded once <paramref name="windowSize"/> elements have arrived; each
+    /// later element yields the next window. A source with fewer than
+    /// <paramref name="windowSize"/> elements yields nothing. Every yielded window is a new,
+    /// independent list, so a consumer may keep it after the enumeration moves on. Unlike
+    /// <c>ChunkAsync</c>, the windows are returned as <see cref="IReadOnlyList{T}"/> because
+    /// positional access (oldest, newest, a fixed offset) is the point of a window; see ADR-0006.
+    /// </remarks>
+    /// <param name="source">The source IAsyncEnumerable{T}.</param>
+    /// <param name="windowSize">The number of elements in each window.</param>
+    /// <param name="token">A cancellation token to cancel the operation.</param>
+    /// <typeparam name="T">The type of elements in the IAsyncEnumerable{T}.</typeparam>
+    /// <returns>An IAsyncEnumerable{IReadOnlyList{T}} of windows, oldest element first.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="source"/> is null.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="windowSize"/> is less than one.</exception>
+    /// <exception cref="OperationCanceledException">
+    /// Thrown when <paramref name="token"/> is canceled. Observed at enumeration
+    /// time, surfaced through the consuming <c>await foreach</c>.
+    /// </exception>
+    /// <example>
+    /// <code>
+    /// // Moving average over the last three readings
+    /// await foreach (var window in source.SlidingWindowAsync(3))
+    /// {
+    ///     Console.WriteLine((window[0] + window[1] + window[2]) / 3.0);
+    /// }
+    /// </code>
+    /// </example>
+    public static IAsyncEnumerable<IReadOnlyList<T>> SlidingWindowAsync<T>
+    (
+        this IAsyncEnumerable<T> source,
+        int windowSize,
+        CancellationToken token = default
+    )
+    {
+        if (source is null)
+        {
+            throw new ArgumentNullException(nameof(source));
+        }
+
+        if (windowSize < 1)
+        {
+            throw new ArgumentOutOfRangeException(nameof(windowSize), "Window size must be greater than zero.");
+        }
+
+        return SlidingWindowCoreAsync(source, windowSize, token);
+    }
+
+
+
+    private static async IAsyncEnumerable<IReadOnlyList<T>> SlidingWindowCoreAsync<T>
+    (
+        IAsyncEnumerable<T> source,
+        int windowSize,
+        [EnumeratorCancellation] CancellationToken token
+    )
+    {
+        token.ThrowIfCancellationRequested();
+
+        // Circular buffer: `next` is where the next element is written, which is also the
+        // oldest element once the buffer is full.
+        var buffer = new T[windowSize];
+        var count = 0;
+        var next = 0;
+
+        var enumerator = source.GetAsyncEnumerator(token);
+        await using (enumerator.ConfigureAwait(false))
+        {
+            while (await enumerator.MoveNextAsync().ConfigureAwait(false))
+            {
+                buffer[next] = enumerator.Current;
+                next = (next + 1) % windowSize;
+
+                if (count < windowSize)
+                {
+                    count++;
+                    if (count < windowSize)
+                    {
+                        continue;
+                    }
+                }
+
+                // Each window escapes to the consumer, so it is a fresh copy in oldest-first
+                // order rather than a view over the shared buffer.
+                var window = new T[windowSize];
+                Array.Copy(buffer, next, window, 0, windowSize - next);
+                Array.Copy(buffer, 0, window, windowSize - next, next);
+
+                yield return window;
+                token.ThrowIfCancellationRequested();
+            }
+        }
+    }
 }

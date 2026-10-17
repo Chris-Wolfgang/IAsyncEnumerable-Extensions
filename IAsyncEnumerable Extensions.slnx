@@ -59,6 +59,7 @@
     <Project Path="examples/Legacy.Example/Legacy.Example.csproj" />
     <Project Path="examples/NoneAsync.Example/NoneAsync.Example.csproj" />
     <Project Path="examples/ScanAsync.Example/ScanAsync.Example.csproj" />
+    <Project Path="examples/SlidingWindowAsync.Example/SlidingWindowAsync.Example.csproj" />
   </Folder>
   <Folder Name="/samples/">
     <Project Path="samples/ShadowWorkloads/ShadowWorkloads.csproj" />
