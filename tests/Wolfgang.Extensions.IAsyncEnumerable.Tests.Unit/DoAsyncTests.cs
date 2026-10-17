@@ -215,11 +215,7 @@ public sealed class DoAsyncTests
         var source = TestSources.Create(1, 2, 3);
         var observed = new List<int>();
 
-        var result = await CollectAsync(source.DoAsync(async x =>
-        {
-            await Task.Yield();
-            observed.Add(x);
-        }));
+        var result = await CollectAsync(source.DoAsync(x => ObserveAsync(observed, x)));
 
         Assert.Equal([1, 2, 3], observed);
         Assert.Equal([1, 2, 3], result);
@@ -233,11 +229,7 @@ public sealed class DoAsyncTests
         var source = TestSources.Create<int>();
         var observed = new List<int>();
 
-        var result = await CollectAsync(source.DoAsync(async x =>
-        {
-            await Task.Yield();
-            observed.Add(x);
-        }));
+        var result = await CollectAsync(source.DoAsync(x => ObserveAsync(observed, x)));
 
         Assert.Empty(observed);
         Assert.Empty(result);
@@ -480,5 +472,14 @@ public sealed class DoAsyncTests
         }
 
         return result;
+    }
+
+
+    // Shared so the "never invoked" tests below do not carry their own lambda body,
+    // which could not execute and would leave the test assembly under 100% coverage.
+    private static async Task ObserveAsync(List<int> sink, int item)
+    {
+        await Task.Yield();
+        sink.Add(item);
     }
 }
