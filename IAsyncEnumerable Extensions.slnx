@@ -51,6 +51,7 @@
   </Folder>
   <Folder Name="/examples/">
     <Project Path="examples/ChunkAsync.Example/ChunkAsync.Example.csproj" />
+    <Project Path="examples/DistinctUntilChangedAsync.Example/DistinctUntilChangedAsync.Example.csproj" />
     <Project Path="examples/DoAsync.Example/DoAsync.Example.csproj" />
     <Project Path="examples/ForEachAsync.Example/ForEachAsync.Example.csproj" />
     <Project Path="examples/IsEmptyAsync.Example/IsEmptyAsync.Example.csproj" />
