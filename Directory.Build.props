@@ -39,6 +39,15 @@
     <GenerateDocumentationFile Condition="'$(GenerateDocumentationFile)' == '' and $(_RelativeProjectDir.StartsWith('src/'))">true</GenerateDocumentationFile>
   </PropertyGroup>
 
+  <!-- Baseline item 18: shipped libraries are marked trim/AOT compatible. Scoped to src/ and
+       to frameworks that can run the trim and AOT analyzers (net8.0 and later): setting
+       IsAotCompatible on net462 / netstandard2.0 is an error (NETSDK1210), and the
+       test, benchmark and sample projects are not shipped. -->
+  <PropertyGroup Condition="$(_RelativeProjectDir.StartsWith('src/')) and $([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net8.0'))">
+    <IsAotCompatible>true</IsAotCompatible>
+    <IsTrimmable>true</IsTrimmable>
+  </PropertyGroup>
+
   <ItemGroup>
     <!-- Include BannedSymbols.txt as AdditionalFiles for BannedApiAnalyzers -->
     <AdditionalFiles Include="$(MSBuildThisFileDirectory)BannedSymbols.txt" />
