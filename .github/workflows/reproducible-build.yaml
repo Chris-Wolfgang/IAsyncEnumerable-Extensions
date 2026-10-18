@@ -58,7 +58,9 @@ jobs:
 
           $hashes = foreach ($proj in $srcProjects) {
             $packageId = $proj.BaseName
-            $assemblies = Get-ChildItem -Path "src/$packageId/bin/Release" -Recurse -Filter "$packageId.dll" |
+            # The .pdb is hashed too: it records the compiled sources and references, so a
+            # .pdb difference is a reproducibility failure even when the .dll matches.
+            $assemblies = Get-ChildItem -Path "src/$packageId/bin/Release" -Recurse -Include "$packageId.dll", "$packageId.pdb" |
               Where-Object { $_.Directory.Name -ne 'ref' }
 
             foreach ($asm in $assemblies) {
@@ -108,8 +110,12 @@ jobs:
 
           echo "Comparing $ubuntu against $windows"
           if diff <(jq -S 'sort_by(.packageId, .tfm, .file)' "$ubuntu") <(jq -S 'sort_by(.packageId, .tfm, .file)' "$windows"); then
-            echo "✅ Byte-identical assemblies across ubuntu-latest and windows-latest."
+            echo "✅ Byte-identical assemblies and symbols across ubuntu-latest and windows-latest."
           else
-            echo "::error::Assembly hashes diverge between ubuntu-latest and windows-latest — build is not reproducible across runners."
+            # If this fails, compare the per-TFM .pdb documents and referenced-assembly records
+            # first: a generated source written with a different newline (Directory.Build.targets)
+            # or a different .NET Framework reference assembly (Directory.Build.props) were the
+            # inputs that differed between Linux and Windows.
+            echo "::error::Assembly or symbol hashes diverge between ubuntu-latest and windows-latest — build is not reproducible across runners."
             exit 1
           fi
