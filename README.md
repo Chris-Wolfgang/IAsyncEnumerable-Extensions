@@ -56,11 +56,13 @@ This project is licensed under the **MIT License**. See the [LICENSE](LICENSE) f
 
 ## ✨ Extension methods
 
-All nine extensions live on `IAsyncEnumerableExtensions` (`namespace Wolfgang.Extensions.IAsyncEnumerable`). See the [API documentation](https://Chris-Wolfgang.github.io/IAsyncEnumerable-Extensions/) for signatures, parameter details, and per-method examples.
+All thirteen extensions live on `IAsyncEnumerableExtensions` (`namespace Wolfgang.Extensions.IAsyncEnumerable`). See the [API documentation](https://Chris-Wolfgang.github.io/IAsyncEnumerable-Extensions/) for signatures, parameter details, and per-method examples.
 
 | Method | Purpose |
 |---|---|
 | `ChunkAsync<T>(source, maxChunkSize, ct)` | Splits the stream into fixed-size `ICollection<T>` batches. |
+| `DistinctUntilChangedAsync<T>(source, comparer?, ct)` | Drops an element that equals the one immediately before it. Only adjacent repeats are removed. |
+| `DistinctUntilChangedByAsync<T, TKey>(source, keySelector, comparer?, ct)` | Same, comparing a key per element (like `DistinctBy`); yields the first element of each run. |
 | `DoAsync<T>(source, Action<T>, ct)` | Side-effect projection — runs a sync action per element; yields the originals unchanged. |
 | `DoAsync<T>(source, Func<T, Task>, ct)` | Side-effect projection — runs an async action per element; yields the originals unchanged. |
 | `ForEachAsync<T>(source, Action<T>, ct)` | Eager iteration with a sync action — terminal. |
@@ -69,6 +71,8 @@ All nine extensions live on `IAsyncEnumerableExtensions` (`namespace Wolfgang.Ex
 | `IsNullOrEmptyAsync<T>(source?, ct)` | `true` if the stream is `null` or yields zero elements. Null-tolerant. |
 | `NoneAsync<T>(source, ct)` | `true` if the stream yields zero elements (same shape as `IsEmptyAsync`, different naming). |
 | `NoneAsync<T>(source, predicate, ct)` | `true` if no element satisfies the predicate. Short-circuits on the first match. |
+| `ScanAsync<TSource, TAccumulate>(source, seed, accumulator, ct)` | Running accumulation — yields every intermediate value, like `Aggregate` emitting at each step. The seed is not yielded. |
+| `SlidingWindowAsync<T>(source, windowSize, ct)` | Overlapping windows of `windowSize` consecutive elements as `IReadOnlyList<T>`, advancing one element at a time. |
 
 ### Terminal operators (`Wolfgang.Extensions.IAsyncEnumerable.Legacy`, net462 / netstandard2.0 only)
 

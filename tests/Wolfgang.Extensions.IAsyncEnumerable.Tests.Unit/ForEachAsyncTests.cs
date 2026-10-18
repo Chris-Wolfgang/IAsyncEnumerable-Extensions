@@ -122,18 +122,7 @@ public sealed class ForEachAsyncTests
 
         await Assert.ThrowsAsync<OperationCanceledException>
         (
-            () => source.ForEachAsync
-            (
-                x =>
-                {
-                    observed.Add(x);
-                    if (x == 1)
-                    {
-                        tokenSource.Cancel();
-                    }
-                },
-                tokenSource.Token
-            )
+            () => source.ForEachAsync(CancelOnFirstItem(tokenSource, observed), tokenSource.Token)
         );
 
         // The action cancels on the first item, and the post-action token check
@@ -281,20 +270,7 @@ public sealed class ForEachAsyncTests
 
         await Assert.ThrowsAsync<OperationCanceledException>
         (
-            () => source.ForEachAsync
-            (
-                x =>
-                {
-                    observed.Add(x);
-                    if (x == 1)
-                    {
-                        tokenSource.Cancel();
-                    }
-
-                    return Task.CompletedTask;
-                },
-                tokenSource.Token
-            )
+            () => source.ForEachAsync(CancelOnFirstItemAsync(tokenSource, observed), tokenSource.Token)
         );
 
         // The action cancels on the first item, and the post-action token check
@@ -333,5 +309,36 @@ public sealed class ForEachAsyncTests
     {
         await Task.Yield();
         sink.Add(item);
+    }
+
+
+    // The token source arrives as a parameter, so the lambdas below capture a parameter and not a
+    // `using` local that the enclosing test disposes (InspectCode AccessToDisposedClosure).
+    private static Action<int> CancelOnFirstItem(CancellationTokenSource tokenSource, List<int> sink)
+    {
+        return x =>
+        {
+            sink.Add(x);
+            if (x == 1)
+            {
+                tokenSource.Cancel();
+            }
+        };
+    }
+
+
+
+    private static Func<int, Task> CancelOnFirstItemAsync(CancellationTokenSource tokenSource, List<int> sink)
+    {
+        return x =>
+        {
+            sink.Add(x);
+            if (x == 1)
+            {
+                tokenSource.Cancel();
+            }
+
+            return Task.CompletedTask;
+        };
     }
 }
