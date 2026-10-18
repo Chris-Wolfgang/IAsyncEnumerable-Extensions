@@ -93,11 +93,11 @@ public sealed class DistinctUntilChangedAsyncTests
 
 
     [Fact]
-    public async Task DistinctUntilChangedAsync_with_key_selector_compares_keys_and_yields_first_of_each_run()
+    public async Task DistinctUntilChangedByAsync_compares_keys_and_yields_first_of_each_run()
     {
         var source = TestSources.Create("1x", "1y", "2z", "1w");
 
-        var result = await CollectAsync(source.DistinctUntilChangedAsync(KeyOf));
+        var result = await CollectAsync(source.DistinctUntilChangedByAsync(KeyOf));
 
         Assert.Equal(["1x", "2z", "1w"], result);
     }
@@ -105,11 +105,11 @@ public sealed class DistinctUntilChangedAsyncTests
 
 
     [Fact]
-    public async Task DistinctUntilChangedAsync_with_key_selector_and_comparer_uses_the_comparer_on_keys()
+    public async Task DistinctUntilChangedByAsync_with_comparer_uses_the_comparer_on_keys()
     {
         var source = TestSources.Create("1Up", "2UP", "3down");
 
-        var result = await CollectAsync(source.DistinctUntilChangedAsync(NameOf, StringComparer.OrdinalIgnoreCase));
+        var result = await CollectAsync(source.DistinctUntilChangedByAsync(NameOf, StringComparer.OrdinalIgnoreCase));
 
         Assert.Equal(["1Up", "3down"], result);
     }
@@ -117,12 +117,12 @@ public sealed class DistinctUntilChangedAsyncTests
 
 
     [Fact]
-    public async Task DistinctUntilChangedAsync_with_key_selector_calls_it_once_per_element()
+    public async Task DistinctUntilChangedByAsync_calls_the_key_selector_once_per_element()
     {
         var source = TestSources.Create(1, 1, 2, 3, 3);
         var counter = new KeyCounter();
 
-        var result = await CollectAsync(source.DistinctUntilChangedAsync(counter.Key));
+        var result = await CollectAsync(source.DistinctUntilChangedByAsync(counter.Key));
 
         Assert.Equal([1, 2, 3], result);
         Assert.Equal(5, counter.Calls);
@@ -143,11 +143,11 @@ public sealed class DistinctUntilChangedAsyncTests
 
 
     [Fact]
-    public void DistinctUntilChangedAsync_with_key_selector_when_source_is_null_throws_ArgumentNullException()
+    public void DistinctUntilChangedByAsync_when_source_is_null_throws_ArgumentNullException()
     {
         IAsyncEnumerable<string> source = null!;
 
-        var actual = Assert.Throws<ArgumentNullException>(() => source.DistinctUntilChangedAsync(KeyOf));
+        var actual = Assert.Throws<ArgumentNullException>(() => source.DistinctUntilChangedByAsync(KeyOf));
 
         Assert.Equal("source", actual.ParamName);
     }
@@ -155,11 +155,11 @@ public sealed class DistinctUntilChangedAsyncTests
 
 
     [Fact]
-    public void DistinctUntilChangedAsync_when_key_selector_is_null_throws_ArgumentNullException()
+    public void DistinctUntilChangedByAsync_when_key_selector_is_null_throws_ArgumentNullException()
     {
         var source = TestSources.Create(1, 2, 3);
 
-        var actual = Assert.Throws<ArgumentNullException>(() => source.DistinctUntilChangedAsync((Func<int, int>)null!));
+        var actual = Assert.Throws<ArgumentNullException>(() => source.DistinctUntilChangedByAsync<int, int>(null!));
 
         Assert.Equal("keySelector", actual.ParamName);
     }
@@ -248,14 +248,14 @@ public sealed class DistinctUntilChangedAsyncTests
 
 
     [Fact]
-    public async Task DistinctUntilChangedAsync_when_key_selector_throws_propagates_exception()
+    public async Task DistinctUntilChangedByAsync_when_key_selector_throws_propagates_exception()
     {
         var source = TestSources.Create(1, 2, 3);
         var thrower = new ThrowingKey(throwOn: 2);
 
         await Assert.ThrowsAsync<InvalidOperationException>
         (
-            () => CollectAsync(source.DistinctUntilChangedAsync(thrower.Key))
+            () => CollectAsync(source.DistinctUntilChangedByAsync(thrower.Key))
         );
     }
 

@@ -112,10 +112,15 @@ public static class IAsyncEnumerableExtensions
     /// </summary>
     /// <remarks>
     /// Only <em>adjacent</em> duplicates are removed: <c>1, 1, 2, 1</c> becomes <c>1, 2, 1</c>.
-    /// The first element is always yielded. Elements are compared with
-    /// <see cref="EqualityComparer{T}.Default"/>. Use <c>Distinct</c> to remove every repeat.
+    /// The first element is always yielded, and when a run is collapsed the first element of the
+    /// run is the one kept. Use <c>Distinct</c> to remove every repeat, or
+    /// <see cref="DistinctUntilChangedByAsync{T, TKey}"/> to compare a key of each element.
     /// </remarks>
     /// <param name="source">The source IAsyncEnumerable{T}.</param>
+    /// <param name="comparer">
+    /// The comparer used to decide whether two adjacent elements are equal, or <see langword="null"/>
+    /// to use <see cref="EqualityComparer{T}.Default"/>.
+    /// </param>
     /// <param name="token">A cancellation token to cancel the operation.</param>
     /// <typeparam name="T">The type of elements in the IAsyncEnumerable{T}.</typeparam>
     /// <returns>An IAsyncEnumerable{T} with runs of equal adjacent elements collapsed to one.</returns>
@@ -136,48 +141,7 @@ public static class IAsyncEnumerableExtensions
     public static IAsyncEnumerable<T> DistinctUntilChangedAsync<T>
     (
         this IAsyncEnumerable<T> source,
-        CancellationToken token = default
-    )
-    {
-        return DistinctUntilChangedAsync(source, comparer: null, token);
-    }
-
-
-
-    /// <summary>
-    /// Suppresses consecutive duplicate elements of an IAsyncEnumerable{T}, using
-    /// <paramref name="comparer"/> to decide whether two adjacent elements are equal.
-    /// </summary>
-    /// <remarks>
-    /// Only <em>adjacent</em> duplicates are removed, and the first element of each run is the
-    /// one yielded. The first element is always yielded.
-    /// </remarks>
-    /// <param name="source">The source IAsyncEnumerable{T}.</param>
-    /// <param name="comparer">
-    /// The comparer used to decide whether two adjacent elements are equal, or <see langword="null"/>
-    /// to use <see cref="EqualityComparer{T}.Default"/>.
-    /// </param>
-    /// <param name="token">A cancellation token to cancel the operation.</param>
-    /// <typeparam name="T">The type of elements in the IAsyncEnumerable{T}.</typeparam>
-    /// <returns>An IAsyncEnumerable{T} with runs of equal adjacent elements collapsed to one.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="source"/> is null.</exception>
-    /// <exception cref="OperationCanceledException">
-    /// Thrown when <paramref name="token"/> is canceled. Observed at enumeration
-    /// time, surfaced through the consuming <c>await foreach</c>.
-    /// </exception>
-    /// <example>
-    /// <code>
-    /// // Any IEqualityComparer&lt;T&gt; decides what counts as a repeat
-    /// await foreach (var item in source.DistinctUntilChangedAsync(EqualityComparer&lt;int&gt;.Default))
-    /// {
-    ///     Console.WriteLine(item);
-    /// }
-    /// </code>
-    /// </example>
-    public static IAsyncEnumerable<T> DistinctUntilChangedAsync<T>
-    (
-        this IAsyncEnumerable<T> source,
-        IEqualityComparer<T>? comparer,
+        IEqualityComparer<T>? comparer = null,
         CancellationToken token = default
     )
     {
@@ -196,53 +160,11 @@ public static class IAsyncEnumerableExtensions
     /// element only when its key differs from the key of the element immediately before it.
     /// </summary>
     /// <remarks>
-    /// Only <em>adjacent</em> elements are compared, by key, using
-    /// <see cref="EqualityComparer{T}.Default"/> for <typeparamref name="TKey"/>. The first element
+    /// The key-selector form of <see cref="DistinctUntilChangedAsync{T}"/>, named like LINQ's
+    /// <c>DistinctBy</c>. Only <em>adjacent</em> elements are compared, by key. The first element
     /// is always yielded, and each yielded element is the first of its run.
     /// <paramref name="keySelector"/> runs once per element; exceptions it throws propagate to the
     /// consuming <c>await foreach</c>.
-    /// </remarks>
-    /// <param name="source">The source IAsyncEnumerable{T}.</param>
-    /// <param name="keySelector">A function that extracts the comparison key from each element.</param>
-    /// <param name="token">A cancellation token to cancel the operation.</param>
-    /// <typeparam name="T">The type of elements in the IAsyncEnumerable{T}.</typeparam>
-    /// <typeparam name="TKey">The type of the comparison key.</typeparam>
-    /// <returns>An IAsyncEnumerable{T} with runs of equal-key adjacent elements collapsed to their first element.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="source"/> or <paramref name="keySelector"/> is null.</exception>
-    /// <exception cref="OperationCanceledException">
-    /// Thrown when <paramref name="token"/> is canceled. Observed at enumeration
-    /// time, surfaced through the consuming <c>await foreach</c>.
-    /// </exception>
-    /// <example>
-    /// <code>
-    /// // Report only when the sign of the reading changes
-    /// await foreach (var item in source.DistinctUntilChangedAsync(x =&gt; Math.Sign(x)))
-    /// {
-    ///     Console.WriteLine($"Sign changed at {item}");
-    /// }
-    /// </code>
-    /// </example>
-    public static IAsyncEnumerable<T> DistinctUntilChangedAsync<T, TKey>
-    (
-        this IAsyncEnumerable<T> source,
-        Func<T, TKey> keySelector,
-        CancellationToken token = default
-    )
-    {
-        return DistinctUntilChangedAsync(source, keySelector, comparer: null, token);
-    }
-
-
-
-    /// <summary>
-    /// Suppresses consecutive elements of an IAsyncEnumerable{T} whose keys are equal according
-    /// to <paramref name="comparer"/>, yielding an element only when its key differs from the key
-    /// of the element immediately before it.
-    /// </summary>
-    /// <remarks>
-    /// Only <em>adjacent</em> elements are compared, by key. The first element is always yielded,
-    /// and each yielded element is the first of its run. <paramref name="keySelector"/> runs once
-    /// per element; exceptions it throws propagate to the consuming <c>await foreach</c>.
     /// </remarks>
     /// <param name="source">The source IAsyncEnumerable{T}.</param>
     /// <param name="keySelector">A function that extracts the comparison key from each element.</param>
@@ -261,18 +183,18 @@ public static class IAsyncEnumerableExtensions
     /// </exception>
     /// <example>
     /// <code>
-    /// // Report a change of status, ignoring case
-    /// await foreach (var item in source.DistinctUntilChangedAsync(x =&gt; x.ToString(), StringComparer.OrdinalIgnoreCase))
+    /// // Report only when the sign of the reading changes
+    /// await foreach (var item in source.DistinctUntilChangedByAsync(x =&gt; Math.Sign(x)))
     /// {
-    ///     Console.WriteLine(item);
+    ///     Console.WriteLine($"Sign changed at {item}");
     /// }
     /// </code>
     /// </example>
-    public static IAsyncEnumerable<T> DistinctUntilChangedAsync<T, TKey>
+    public static IAsyncEnumerable<T> DistinctUntilChangedByAsync<T, TKey>
     (
         this IAsyncEnumerable<T> source,
         Func<T, TKey> keySelector,
-        IEqualityComparer<TKey>? comparer,
+        IEqualityComparer<TKey>? comparer = null,
         CancellationToken token = default
     )
     {

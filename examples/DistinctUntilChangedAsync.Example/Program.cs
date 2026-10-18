@@ -26,10 +26,10 @@ await foreach (var state in Generate("open", "OPEN", "Open", "closed", "closed",
 
 Console.WriteLine();
 
-// Compare by key: report a reading only when its band changes
+// Compare by key (DistinctUntilChangedByAsync): report a reading only when its band changes
 Console.WriteLine("Temperature band changes (band = reading / 10):");
 await foreach (var reading in Generate(21, 24, 29, 31, 33, 28, 27)
-    .DistinctUntilChangedAsync(reading => reading / 10))
+    .DistinctUntilChangedByAsync(reading => reading / 10))
 {
     Console.WriteLine($"  {reading} (band {reading / 10})");
 }

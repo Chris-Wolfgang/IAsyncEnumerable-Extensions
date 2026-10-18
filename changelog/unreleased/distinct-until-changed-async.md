@@ -1,3 +1,3 @@
 type: feature
 
-Add `DistinctUntilChangedAsync`, with element and key-selector overloads, which drops each element that equals the one immediately before it.
+Add `DistinctUntilChangedAsync` and its key-selector form `DistinctUntilChangedByAsync`, which drop each element that equals the one immediately before it.
