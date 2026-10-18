@@ -248,6 +248,80 @@ public sealed class DistinctUntilChangedAsyncTests
 
 
     [Fact]
+    public async Task DistinctUntilChangedAsync_when_canceled_during_a_suppressed_run_throws_and_stops_pulling()
+    {
+        // After the first 1 is yielded, everything else is a run of duplicates that is never
+        // yielded, and the source cancels the token partway through that run. The source ignores
+        // the token, so only the operator can notice.
+        using var tokenSource = new CancellationTokenSource();
+        var pulled = new List<int>();
+
+        await using var enumerator = CancelDuringRun(tokenSource, pulled, 1, 1, 1, 1, 1)
+            .DistinctUntilChangedAsync(token: tokenSource.Token)
+            .GetAsyncEnumerator();
+
+        Assert.True(await enumerator.MoveNextAsync());
+
+        await Assert.ThrowsAsync<OperationCanceledException>
+        (
+            async () => await enumerator.MoveNextAsync()
+        );
+
+        // The element that arrived with the cancellation is the last one read; the tail is not drained.
+        Assert.Equal(3, pulled.Count);
+    }
+
+
+
+    [Fact]
+    public async Task DistinctUntilChangedByAsync_when_canceled_during_a_suppressed_run_throws_and_stops_pulling()
+    {
+        using var tokenSource = new CancellationTokenSource();
+        var pulled = new List<int>();
+
+        await using var enumerator = CancelDuringRun(tokenSource, pulled, 10, 11, 12, 13, 14)
+            .DistinctUntilChangedByAsync(TensDigit, token: tokenSource.Token)
+            .GetAsyncEnumerator();
+
+        Assert.True(await enumerator.MoveNextAsync());
+
+        await Assert.ThrowsAsync<OperationCanceledException>
+        (
+            async () => await enumerator.MoveNextAsync()
+        );
+
+        Assert.Equal(3, pulled.Count);
+    }
+
+
+
+    // Yields the values in order, cancelling the token just before the third one; never observes
+    // the token itself. The token source is a parameter, not a captured local.
+    private static async IAsyncEnumerable<int> CancelDuringRun(CancellationTokenSource tokenSource, List<int> pulled, params int[] values)
+    {
+        for (var i = 0; i < values.Length; i++)
+        {
+            await Task.Yield();
+            if (i == 2)
+            {
+                tokenSource.Cancel();
+            }
+
+            pulled.Add(values[i]);
+            yield return values[i];
+        }
+    }
+
+
+
+    private static int TensDigit(int item)
+    {
+        return item / 10;
+    }
+
+
+
+    [Fact]
     public async Task DistinctUntilChangedByAsync_when_key_selector_throws_propagates_exception()
     {
         var source = TestSources.Create(1, 2, 3);

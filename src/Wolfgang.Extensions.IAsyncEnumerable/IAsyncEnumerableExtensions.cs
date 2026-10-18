@@ -240,6 +240,10 @@ public static class IAsyncEnumerableExtensions
                 var key = keySelector(enumerator.Current);
                 if (comparer.Equals(previousKey, key))
                 {
+                    // A suppressed element is never yielded, so the post-yield check below never
+                    // runs for it. Check here as well, or a long run of duplicates from a source
+                    // that ignores the token would keep being consumed after cancellation.
+                    token.ThrowIfCancellationRequested();
                     continue;
                 }
 
