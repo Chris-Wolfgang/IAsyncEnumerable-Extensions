@@ -73,7 +73,7 @@ public sealed class ScanAsyncTests
     {
         var source = TestSources.Create(1, 2, 3);
 
-        var actual = Assert.Throws<ArgumentNullException>(() => source.ScanAsync<int, int>(0, null!));
+        var actual = Assert.Throws<ArgumentNullException>(() => source.ScanAsync(0, null!));
 
         Assert.Equal("accumulator", actual.ParamName);
     }
