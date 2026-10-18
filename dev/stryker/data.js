@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1791699533942,
+  "lastUpdate": 1792304255301,
   "repoUrl": "https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions",
   "entries": {
     "Mutation score": [
@@ -80,6 +80,33 @@ window.BENCHMARK_DATA = {
           {
             "name": "Mutation score",
             "value": 100,
+            "unit": "%"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Chris Wolfgang",
+            "username": "Chris-Wolfgang",
+            "email": "210299580+Chris-Wolfgang@users.noreply.github.com"
+          },
+          "committer": {
+            "name": "GitHub",
+            "username": "web-flow",
+            "email": "noreply@github.com"
+          },
+          "id": "68a91ba15a0c530cf9b0e6dd48dab4a34cadb81a",
+          "message": "feat: add SlidingWindowAsync (overlapping fixed-size windows) (#500)\n\nYields a window of `windowSize` consecutive elements per source element once the\nfirst window is full; a shorter source yields nothing. A circular buffer holds the\ncurrent window and each yielded window is a fresh oldest-first array, so a kept\nwindow never changes.\n\nReturns IReadOnlyList<T>, unlike ChunkAsync's ICollection<T>: positional access is\nthe point of a window. ADR-0006 (Proposed) records the asymmetry.\n\nShips with unit tests, a runnable example, a README row and a changelog fragment.\n\nCloses #123\n\nCo-authored-by: Claude Opus 5.5 <noreply@anthropic.com>",
+          "timestamp": "2026-10-18T02:00:42Z",
+          "url": "https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/commit/68a91ba15a0c530cf9b0e6dd48dab4a34cadb81a"
+        },
+        "date": 1792304251421,
+        "tool": "customBiggerIsBetter",
+        "benches": [
+          {
+            "name": "Mutation score",
+            "value": 99.11,
             "unit": "%"
           }
         ]
