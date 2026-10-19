@@ -107,6 +107,156 @@ public static class IAsyncEnumerableExtensions
 
 
     /// <summary>
+    /// Suppresses consecutive duplicate elements of an IAsyncEnumerable{T}, yielding an element
+    /// only when it differs from the one immediately before it.
+    /// </summary>
+    /// <remarks>
+    /// Only <em>adjacent</em> duplicates are removed: <c>1, 1, 2, 1</c> becomes <c>1, 2, 1</c>.
+    /// The first element is always yielded, and when a run is collapsed the first element of the
+    /// run is the one kept. Use <c>Distinct</c> to remove every repeat, or
+    /// <see cref="DistinctUntilChangedByAsync{T, TKey}"/> to compare a key of each element.
+    /// </remarks>
+    /// <param name="source">The source IAsyncEnumerable{T}.</param>
+    /// <param name="comparer">
+    /// The comparer used to decide whether two adjacent elements are equal, or <see langword="null"/>
+    /// to use <see cref="EqualityComparer{T}.Default"/>.
+    /// </param>
+    /// <param name="token">A cancellation token to cancel the operation.</param>
+    /// <typeparam name="T">The type of elements in the IAsyncEnumerable{T}.</typeparam>
+    /// <returns>An IAsyncEnumerable{T} with runs of equal adjacent elements collapsed to one.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="source"/> is null.</exception>
+    /// <exception cref="OperationCanceledException">
+    /// Thrown when <paramref name="token"/> is canceled. Observed at enumeration
+    /// time, surfaced through the consuming <c>await foreach</c>.
+    /// </exception>
+    /// <example>
+    /// <code>
+    /// // 1, 1, 2, 2, 2, 3, 1, 1 becomes 1, 2, 3, 1
+    /// await foreach (var item in source.DistinctUntilChangedAsync())
+    /// {
+    ///     Console.WriteLine(item);
+    /// }
+    /// </code>
+    /// </example>
+    public static IAsyncEnumerable<T> DistinctUntilChangedAsync<T>
+    (
+        this IAsyncEnumerable<T> source,
+        IEqualityComparer<T>? comparer = null,
+        CancellationToken token = default
+    )
+    {
+        if (source is null)
+        {
+            throw new ArgumentNullException(nameof(source));
+        }
+
+        return DistinctUntilChangedCoreAsync(source, static item => item, comparer ?? EqualityComparer<T>.Default, token);
+    }
+
+
+
+    /// <summary>
+    /// Suppresses consecutive elements of an IAsyncEnumerable{T} whose keys are equal, yielding an
+    /// element only when its key differs from the key of the element immediately before it.
+    /// </summary>
+    /// <remarks>
+    /// The key-selector form of <see cref="DistinctUntilChangedAsync{T}"/>, named like LINQ's
+    /// <c>DistinctBy</c>. Only <em>adjacent</em> elements are compared, by key. The first element
+    /// is always yielded, and each yielded element is the first of its run.
+    /// <paramref name="keySelector"/> runs once per element; exceptions it throws propagate to the
+    /// consuming <c>await foreach</c>.
+    /// </remarks>
+    /// <param name="source">The source IAsyncEnumerable{T}.</param>
+    /// <param name="keySelector">A function that extracts the comparison key from each element.</param>
+    /// <param name="comparer">
+    /// The comparer used to decide whether two adjacent keys are equal, or <see langword="null"/>
+    /// to use <see cref="EqualityComparer{T}.Default"/> for <typeparamref name="TKey"/>.
+    /// </param>
+    /// <param name="token">A cancellation token to cancel the operation.</param>
+    /// <typeparam name="T">The type of elements in the IAsyncEnumerable{T}.</typeparam>
+    /// <typeparam name="TKey">The type of the comparison key.</typeparam>
+    /// <returns>An IAsyncEnumerable{T} with runs of equal-key adjacent elements collapsed to their first element.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="source"/> or <paramref name="keySelector"/> is null.</exception>
+    /// <exception cref="OperationCanceledException">
+    /// Thrown when <paramref name="token"/> is canceled. Observed at enumeration
+    /// time, surfaced through the consuming <c>await foreach</c>.
+    /// </exception>
+    /// <example>
+    /// <code>
+    /// // Report only when the sign of the reading changes
+    /// await foreach (var item in source.DistinctUntilChangedByAsync(x =&gt; Math.Sign(x)))
+    /// {
+    ///     Console.WriteLine($"Sign changed at {item}");
+    /// }
+    /// </code>
+    /// </example>
+    public static IAsyncEnumerable<T> DistinctUntilChangedByAsync<T, TKey>
+    (
+        this IAsyncEnumerable<T> source,
+        Func<T, TKey> keySelector,
+        IEqualityComparer<TKey>? comparer = null,
+        CancellationToken token = default
+    )
+    {
+        if (source is null)
+        {
+            throw new ArgumentNullException(nameof(source));
+        }
+
+        if (keySelector is null)
+        {
+            throw new ArgumentNullException(nameof(keySelector));
+        }
+
+        return DistinctUntilChangedCoreAsync(source, keySelector, comparer ?? EqualityComparer<TKey>.Default, token);
+    }
+
+
+
+    private static async IAsyncEnumerable<T> DistinctUntilChangedCoreAsync<T, TKey>
+    (
+        IAsyncEnumerable<T> source,
+        Func<T, TKey> keySelector,
+        IEqualityComparer<TKey> comparer,
+        [EnumeratorCancellation] CancellationToken token
+    )
+    {
+        token.ThrowIfCancellationRequested();
+
+        var enumerator = source.GetAsyncEnumerator(token);
+        await using (enumerator.ConfigureAwait(false))
+        {
+            if (!await enumerator.MoveNextAsync().ConfigureAwait(false))
+            {
+                yield break;
+            }
+
+            var previousKey = keySelector(enumerator.Current);
+            yield return enumerator.Current;
+            token.ThrowIfCancellationRequested();
+
+            while (await enumerator.MoveNextAsync().ConfigureAwait(false))
+            {
+                var key = keySelector(enumerator.Current);
+                if (comparer.Equals(previousKey, key))
+                {
+                    // A suppressed element is never yielded, so the post-yield check below never
+                    // runs for it. Check here as well, or a long run of duplicates from a source
+                    // that ignores the token would keep being consumed after cancellation.
+                    token.ThrowIfCancellationRequested();
+                    continue;
+                }
+
+                previousKey = key;
+                yield return enumerator.Current;
+                token.ThrowIfCancellationRequested();
+            }
+        }
+    }
+
+
+
+    /// <summary>
     /// Executes a synchronous side-effect action on each element of an IAsyncEnumerable{T}
     /// without transforming the elements. The original items are yielded unchanged.
     /// </summary>
@@ -539,5 +689,184 @@ public static class IAsyncEnumerableExtensions
         }
 
         return true;
+    }
+
+
+
+    /// <summary>
+    /// Applies an accumulator over an IAsyncEnumerable{T} and yields every intermediate
+    /// result, like <c>Aggregate</c> but emitting the running value at each step.
+    /// </summary>
+    /// <remarks>
+    /// The <paramref name="seed"/> itself is not yielded: the first value produced is
+    /// <c>accumulator(seed, first)</c>, so an empty source yields nothing. Exceptions thrown
+    /// by <paramref name="accumulator"/> propagate to the consuming <c>await foreach</c> and
+    /// terminate the enumeration.
+    /// </remarks>
+    /// <param name="source">The source IAsyncEnumerable{T}.</param>
+    /// <param name="seed">The initial accumulator value.</param>
+    /// <param name="accumulator">A function that combines the running value with the next element.</param>
+    /// <param name="token">A cancellation token to cancel the operation.</param>
+    /// <typeparam name="TSource">The type of elements in the source sequence.</typeparam>
+    /// <typeparam name="TAccumulate">The type of the accumulated value.</typeparam>
+    /// <returns>An IAsyncEnumerable{TAccumulate} of the running values, one per source element.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="source"/> or <paramref name="accumulator"/> is null.</exception>
+    /// <exception cref="OperationCanceledException">
+    /// Thrown when <paramref name="token"/> is canceled. Observed at enumeration
+    /// time, surfaced through the consuming <c>await foreach</c>.
+    /// </exception>
+    /// <example>
+    /// <code>
+    /// // Running sum: 1, 2, 3, 4 produces 1, 3, 6, 10
+    /// await foreach (var total in source.ScanAsync(0, (sum, x) =&gt; sum + x))
+    /// {
+    ///     Console.WriteLine(total);
+    /// }
+    /// </code>
+    /// </example>
+    public static IAsyncEnumerable<TAccumulate> ScanAsync<TSource, TAccumulate>
+    (
+        this IAsyncEnumerable<TSource> source,
+        TAccumulate seed,
+        Func<TAccumulate, TSource, TAccumulate> accumulator,
+        CancellationToken token = default
+    )
+    {
+        if (source is null)
+        {
+            throw new ArgumentNullException(nameof(source));
+        }
+
+        if (accumulator is null)
+        {
+            throw new ArgumentNullException(nameof(accumulator));
+        }
+
+        return ScanCoreAsync(source, seed, accumulator, token);
+    }
+
+
+
+    private static async IAsyncEnumerable<TAccumulate> ScanCoreAsync<TSource, TAccumulate>
+    (
+        IAsyncEnumerable<TSource> source,
+        TAccumulate seed,
+        Func<TAccumulate, TSource, TAccumulate> accumulator,
+        [EnumeratorCancellation] CancellationToken token
+    )
+    {
+        token.ThrowIfCancellationRequested();
+
+        var current = seed;
+        var enumerator = source.GetAsyncEnumerator(token);
+        await using (enumerator.ConfigureAwait(false))
+        {
+            while (await enumerator.MoveNextAsync().ConfigureAwait(false))
+            {
+                current = accumulator(current, enumerator.Current);
+                yield return current;
+                token.ThrowIfCancellationRequested();
+            }
+        }
+    }
+
+
+
+    /// <summary>
+    /// Yields overlapping windows of <paramref name="windowSize"/> consecutive elements from an
+    /// IAsyncEnumerable{T}, advancing one element at a time.
+    /// </summary>
+    /// <remarks>
+    /// The first window is yielded once <paramref name="windowSize"/> elements have arrived; each
+    /// later element yields the next window. A source with fewer than
+    /// <paramref name="windowSize"/> elements yields nothing. Every yielded window is a new,
+    /// independent list, so a consumer may keep it after the enumeration moves on. Unlike
+    /// <c>ChunkAsync</c>, the windows are returned as <see cref="IReadOnlyList{T}"/> because
+    /// positional access (oldest, newest, a fixed offset) is the point of a window; see ADR-0006.
+    /// </remarks>
+    /// <param name="source">The source IAsyncEnumerable{T}.</param>
+    /// <param name="windowSize">The number of elements in each window.</param>
+    /// <param name="token">A cancellation token to cancel the operation.</param>
+    /// <typeparam name="T">The type of elements in the IAsyncEnumerable{T}.</typeparam>
+    /// <returns>An IAsyncEnumerable{IReadOnlyList{T}} of windows, oldest element first.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="source"/> is null.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="windowSize"/> is less than one.</exception>
+    /// <exception cref="OperationCanceledException">
+    /// Thrown when <paramref name="token"/> is canceled. Observed at enumeration
+    /// time, surfaced through the consuming <c>await foreach</c>.
+    /// </exception>
+    /// <example>
+    /// <code>
+    /// // Moving average over the last three readings
+    /// await foreach (var window in source.SlidingWindowAsync(3))
+    /// {
+    ///     Console.WriteLine((window[0] + window[1] + window[2]) / 3.0);
+    /// }
+    /// </code>
+    /// </example>
+    public static IAsyncEnumerable<IReadOnlyList<T>> SlidingWindowAsync<T>
+    (
+        this IAsyncEnumerable<T> source,
+        int windowSize,
+        CancellationToken token = default
+    )
+    {
+        if (source is null)
+        {
+            throw new ArgumentNullException(nameof(source));
+        }
+
+        if (windowSize < 1)
+        {
+            throw new ArgumentOutOfRangeException(nameof(windowSize), "Window size must be greater than zero.");
+        }
+
+        return SlidingWindowCoreAsync(source, windowSize, token);
+    }
+
+
+
+    private static async IAsyncEnumerable<IReadOnlyList<T>> SlidingWindowCoreAsync<T>
+    (
+        IAsyncEnumerable<T> source,
+        int windowSize,
+        [EnumeratorCancellation] CancellationToken token
+    )
+    {
+        token.ThrowIfCancellationRequested();
+
+        // Circular buffer: `next` is where the next element is written, which is also the
+        // oldest element once the buffer is full.
+        var buffer = new T[windowSize];
+        var count = 0;
+        var next = 0;
+
+        var enumerator = source.GetAsyncEnumerator(token);
+        await using (enumerator.ConfigureAwait(false))
+        {
+            while (await enumerator.MoveNextAsync().ConfigureAwait(false))
+            {
+                buffer[next] = enumerator.Current;
+                next = (next + 1) % windowSize;
+
+                if (count < windowSize)
+                {
+                    count++;
+                    if (count < windowSize)
+                    {
+                        continue;
+                    }
+                }
+
+                // Each window escapes to the consumer, so it is a fresh copy in oldest-first
+                // order rather than a view over the shared buffer.
+                var window = new T[windowSize];
+                Array.Copy(buffer, next, window, 0, windowSize - next);
+                Array.Copy(buffer, 0, window, windowSize - next, next);
+
+                yield return window;
+                token.ThrowIfCancellationRequested();
+            }
+        }
     }
 }

@@ -51,12 +51,15 @@
   </Folder>
   <Folder Name="/examples/">
     <Project Path="examples/ChunkAsync.Example/ChunkAsync.Example.csproj" />
+    <Project Path="examples/DistinctUntilChangedAsync.Example/DistinctUntilChangedAsync.Example.csproj" />
     <Project Path="examples/DoAsync.Example/DoAsync.Example.csproj" />
     <Project Path="examples/ForEachAsync.Example/ForEachAsync.Example.csproj" />
     <Project Path="examples/IsEmptyAsync.Example/IsEmptyAsync.Example.csproj" />
     <Project Path="examples/IsNullOrEmptyAsync.Example/IsNullOrEmptyAsync.Example.csproj" />
     <Project Path="examples/Legacy.Example/Legacy.Example.csproj" />
     <Project Path="examples/NoneAsync.Example/NoneAsync.Example.csproj" />
+    <Project Path="examples/ScanAsync.Example/ScanAsync.Example.csproj" />
+    <Project Path="examples/SlidingWindowAsync.Example/SlidingWindowAsync.Example.csproj" />
   </Folder>
   <Folder Name="/samples/">
     <Project Path="samples/ShadowWorkloads/ShadowWorkloads.csproj" />
