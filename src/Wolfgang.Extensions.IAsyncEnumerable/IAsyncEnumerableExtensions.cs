@@ -515,7 +515,10 @@ public static class IAsyncEnumerableExtensions
     /// <returns>
     /// true if the source sequence contains no elements; otherwise, false.
     /// </returns>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="source"/> is null.</exception>
+    /// <exception cref="ArgumentNullException">
+    /// Thrown when <paramref name="source"/> is null. Thrown at the call, before a task is
+    /// returned, as <c>Enumerable.Any</c> does.
+    /// </exception>
     /// <exception cref="OperationCanceledException">
     /// Thrown when <paramref name="token"/> is canceled before or during enumeration.
     /// Delivered through the returned <see cref="Task{TResult}"/>.
@@ -528,7 +531,7 @@ public static class IAsyncEnumerableExtensions
     /// }
     /// </code>
     /// </example>
-    public static async Task<bool> IsEmptyAsync<T>
+    public static Task<bool> IsEmptyAsync<T>
     (
         this IAsyncEnumerable<T> source,
         CancellationToken token = default
@@ -539,6 +542,17 @@ public static class IAsyncEnumerableExtensions
             throw new ArgumentNullException(nameof(source));
         }
 
+        return IsEmptyCoreAsync(source, token);
+    }
+
+
+
+    private static async Task<bool> IsEmptyCoreAsync<T>
+    (
+        IAsyncEnumerable<T> source,
+        CancellationToken token
+    )
+    {
         token.ThrowIfCancellationRequested();
 
         var enumerator = source.GetAsyncEnumerator(token);
@@ -642,7 +656,10 @@ public static class IAsyncEnumerableExtensions
     /// <param name="token">A cancellation token to cancel the operation.</param>
     /// <typeparam name="T">The type of elements in the IAsyncEnumerable{T}.</typeparam>
     /// <returns>true if no elements in the source sequence pass the test in the specified predicate; otherwise, false.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="source"/> or <paramref name="predicate"/> is null.</exception>
+    /// <exception cref="ArgumentNullException">
+    /// Thrown when <paramref name="source"/> or <paramref name="predicate"/> is null. Thrown at
+    /// the call, before a task is returned, as <c>Enumerable.Any</c> does.
+    /// </exception>
     /// <exception cref="OperationCanceledException">
     /// Thrown when <paramref name="token"/> is canceled before or during enumeration.
     /// Delivered through the returned <see cref="Task{TResult}"/>.
@@ -655,7 +672,7 @@ public static class IAsyncEnumerableExtensions
     /// }
     /// </code>
     /// </example>
-    public static async Task<bool> NoneAsync<T>
+    public static Task<bool> NoneAsync<T>
     (
         this IAsyncEnumerable<T> source,
         Func<T, bool> predicate,
@@ -672,6 +689,18 @@ public static class IAsyncEnumerableExtensions
             throw new ArgumentNullException(nameof(predicate));
         }
 
+        return NoneCoreAsync(source, predicate, token);
+    }
+
+
+
+    private static async Task<bool> NoneCoreAsync<T>
+    (
+        IAsyncEnumerable<T> source,
+        Func<T, bool> predicate,
+        CancellationToken token
+    )
+    {
         token.ThrowIfCancellationRequested();
 
         var enumerator = source.GetAsyncEnumerator(token);

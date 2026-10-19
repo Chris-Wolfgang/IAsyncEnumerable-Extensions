@@ -73,4 +73,14 @@ public sealed class IsEmptyAsyncTests
 
 
 
+    [Fact]
+    public void IsEmptyAsync_when_source_is_null_throws_at_the_call_before_returning_a_task()
+    {
+        IAsyncEnumerable<int> source = null!;
+
+        // Eager, like Enumerable.Any: the exception does not wait for the task to be awaited.
+        var actual = Assert.Throws<ArgumentNullException>(() => { _ = source.IsEmptyAsync(); });
+
+        Assert.Equal("source", actual.ParamName);
+    }
 }
