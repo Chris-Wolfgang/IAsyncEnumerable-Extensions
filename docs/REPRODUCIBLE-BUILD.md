@@ -15,20 +15,42 @@ provenance instead of a local file path).
 `reproducible-build.yaml` verifies this weekly (+ on demand): it builds
 every package under `src/` (`Wolfgang.Extensions.IAsyncEnumerable` and
 `Wolfgang.Extensions.IAsyncEnumerable.Legacy`) on both `ubuntu-latest`
-and `windows-latest` and SHA-256-hashes the per-TFM assembly from each.
-The hashes must match exactly.
+and `windows-latest` and SHA-256-hashes each package's per-TFM assembly
+(`.dll`) **and** its symbols (`.pdb`). Every hash must match exactly, or
+the run fails.
 
-**The assembly, not the `.nupkg`, is the unit being compared.** A
-`.nupkg` is a ZIP; ZIP central-directory entries embed per-file
-timestamps, so two byte-identical DLLs still produce different `.nupkg`
-hashes. Hashing the DLL directly is the actual reproducibility claim.
+**The guarantee covers assemblies and symbols, not package files.** A
+`.nupkg`/`.snupkg` is a ZIP, and NuGet stamps each entry with the pack
+time, so two packs of the same commit differ even on one machine. Hashing
+the `.dll` and `.pdb` directly is the actual reproducibility claim.
+
+### What makes it hold across operating systems
+
+Two inputs used to differ between Linux and Windows, so every assembly
+hashed differently per OS even though its IL was identical:
+
+- **Newlines in SDK-generated sources.** The SDK writes
+  `<Project>.AssemblyInfo.cs`, `*.AssemblyAttributes.cs` and
+  `*.GlobalUsings.g.cs` with the build machine's newline. The portable PDB
+  embeds and hashes every source, and the DLL takes its PDB checksum and
+  module version id from it. `Directory.Build.targets` rewrites those files
+  to LF before compilation.
+- **.NET Framework reference assemblies.** For the `net462` builds, Windows
+  compiled against the installed targeting pack and Linux against the NuGet
+  package, which are different builds. `Directory.Build.props` makes every
+  OS use the `Microsoft.NETFramework.ReferenceAssemblies` package.
+
+If the check fails again, compare the per-TFM `.pdb` documents and
+referenced-assembly records first.
 
 ## Verifying a specific release yourself
 
 Every GitHub Release has a `reproducible-build-manifest.json` asset with a
 `packages` array — one entry per shipped package, each listing the
-expected SHA-256 hash of its assembly for each target framework — plus the
-exact toolchain (.NET SDK version) that produced them all.
+expected SHA-256 hash of its assembly (`.dll`) for each target framework —
+plus the exact toolchain (.NET SDK version) that produced them all. The
+manifest lists assemblies only; the `.pdb` is checked by the weekly
+workflow above, not recorded in the release manifest.
 
 1. Install the matching .NET SDK version (see `toolchain.dotnetSdk` in the
    manifest).
