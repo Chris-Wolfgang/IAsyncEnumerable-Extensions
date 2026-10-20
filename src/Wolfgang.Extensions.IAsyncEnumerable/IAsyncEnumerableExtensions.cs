@@ -885,13 +885,11 @@ public static class IAsyncEnumerableExtensions
                 buffer[next] = enumerator.Current;
                 next = (next + 1) % windowSize;
 
+                // Saturates at windowSize, so it cannot overflow however long the source runs.
+                count = Math.Min(count + 1, windowSize);
                 if (count < windowSize)
                 {
-                    count++;
-                    if (count < windowSize)
-                    {
-                        continue;
-                    }
+                    continue;
                 }
 
                 // Each window escapes to the consumer, so it is a fresh copy in oldest-first
