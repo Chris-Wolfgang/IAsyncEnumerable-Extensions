@@ -4,11 +4,15 @@
 
 `IAsyncEnumerableExtensions` has zero call sites that depend on
 `CultureInfo.CurrentCulture` — no `ToString()`, no string formatting, no
-string comparison, no numeric parsing. Every one of the 9 public methods
-(`ChunkAsync`, `DoAsync` × 2, `ForEachAsync` × 2, `IsEmptyAsync`,
-`IsNullOrEmptyAsync`, `NoneAsync` × 2) operates on a generic `T` purely
-structurally: enumerate the source, invoke a caller-supplied delegate,
-batch into arrays, count. None of that touches culture.
+string comparison, no numeric parsing. Every one of the 13 public methods
+(`ChunkAsync`, `DistinctUntilChangedAsync`, `DistinctUntilChangedByAsync`,
+`DoAsync` × 2, `ForEachAsync` × 2, `IsEmptyAsync`, `IsNullOrEmptyAsync`,
+`NoneAsync` × 2, `ScanAsync`, `SlidingWindowAsync`) operates on a generic `T`
+purely structurally: enumerate the source, invoke a caller-supplied delegate
+or comparer, batch into arrays, count. None of that touches culture. The
+`DistinctUntilChanged*` methods compare with the caller's
+`IEqualityComparer` or `EqualityComparer<T>.Default`; a culture-sensitive
+comparison only happens if the caller passes a culture-sensitive comparer.
 
 The same holds for the Legacy package's 6 methods on
 `IAsyncEnumerableLegacyExtensions` (`CountAsync`, `AnyAsync` × 2,
