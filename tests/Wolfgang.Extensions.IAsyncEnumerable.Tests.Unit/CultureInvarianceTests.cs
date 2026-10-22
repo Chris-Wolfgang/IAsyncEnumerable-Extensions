@@ -118,6 +118,82 @@ public sealed class CultureInvarianceTests
 
 
 
+    [Theory]
+    [MemberData(nameof(HostileCultures))]
+    public async Task ScanAsync_under_hostile_culture_matches_invariant_result(CultureInfo culture)
+    {
+        await RunUnderCultureAsync(culture, async () =>
+        {
+            var totals = new List<int>();
+            await foreach (var total in CreateRange(1, 4).ScanAsync(0, static (sum, x) => sum + x))
+            {
+                totals.Add(total);
+            }
+
+            Assert.Equal([1, 3, 6, 10], totals);
+        });
+    }
+
+
+
+    [Theory]
+    [MemberData(nameof(HostileCultures))]
+    public async Task DistinctUntilChangedAsync_with_ordinal_ignore_case_comparer_under_hostile_culture_matches_invariant_result(CultureInfo culture)
+    {
+        // tr-TR is the trap: a culture-sensitive case-insensitive comparison treats "i" and
+        // "I" as different letters there. The caller's comparer is used verbatim, so the
+        // ordinal one gives the same answer in every culture.
+        await RunUnderCultureAsync(culture, async () =>
+        {
+            var yielded = new List<string>();
+            await foreach (var item in TestSources.Create("i", "I", "x").DistinctUntilChangedAsync(StringComparer.OrdinalIgnoreCase))
+            {
+                yielded.Add(item);
+            }
+
+            Assert.Equal(["i", "x"], yielded);
+        });
+    }
+
+
+
+    [Theory]
+    [MemberData(nameof(HostileCultures))]
+    public async Task DistinctUntilChangedByAsync_under_hostile_culture_matches_invariant_result(CultureInfo culture)
+    {
+        await RunUnderCultureAsync(culture, async () =>
+        {
+            var yielded = new List<int>();
+            await foreach (var item in CreateRange(1, 9).DistinctUntilChangedByAsync(static x => x / 3))
+            {
+                yielded.Add(item);
+            }
+
+            Assert.Equal([1, 3, 6, 9], yielded);
+        });
+    }
+
+
+
+    [Theory]
+    [MemberData(nameof(HostileCultures))]
+    public async Task SlidingWindowAsync_under_hostile_culture_matches_invariant_result(CultureInfo culture)
+    {
+        await RunUnderCultureAsync(culture, async () =>
+        {
+            var windows = new List<int[]>();
+            await foreach (var window in CreateRange(1, 5).SlidingWindowAsync(3))
+            {
+                windows.Add([.. window]);
+            }
+
+            Assert.Equal(3, windows.Count);
+            Assert.Equal([3, 4, 5], windows[2]);
+        });
+    }
+
+
+
     private static async Task RunUnderCultureAsync(CultureInfo culture, Func<Task> test)
     {
         var originalCulture = CultureInfo.CurrentCulture;

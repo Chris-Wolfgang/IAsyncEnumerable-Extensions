@@ -137,6 +137,96 @@ public sealed class FuzzProperties
 
 
 
+    /// <summary>
+    /// ScanAsync running fold: the i-th yielded value equals <c>Aggregate</c>
+    /// over the first i + 1 source elements, and there is exactly one value
+    /// per source element (the seed is not yielded).
+    /// </summary>
+    [Fact]
+    public async Task ScanAsync_each_value_equals_aggregate_over_the_prefix()
+    {
+        var gen = Gen.Int[-1000, 1000].List[0, 200]
+            .Select(Gen.Int[-1000, 1000], (items, seed) => (items, seed));
+
+        await gen.SampleAsync(async t =>
+        {
+            var (items, seed) = t;
+
+            var yielded = new List<long>();
+            await foreach (var value in ToAsyncEnumerable(items).ScanAsync((long)seed, static (sum, x) => sum + x))
+            {
+                yielded.Add(value);
+            }
+
+            var expected = Enumerable
+                .Range(1, items.Count)
+                .Select(n => items.Take(n).Aggregate((long)seed, static (sum, x) => sum + x));
+
+            return yielded.SequenceEqual(expected);
+        }, iter: FuzzIterations, time: FuzzTimeSeconds);
+    }
+
+
+
+    /// <summary>
+    /// DistinctUntilChangedAsync: no two adjacent outputs are equal, and the
+    /// output is exactly the input with each run of equal adjacent elements
+    /// collapsed to its first element.
+    /// </summary>
+    [Fact]
+    public async Task DistinctUntilChangedAsync_collapses_every_run_of_equal_adjacent_elements()
+    {
+        // A narrow value range so runs of equal neighbours are common.
+        var gen = Gen.Int[0, 3].List[0, 200];
+
+        await gen.SampleAsync(async items =>
+        {
+            var yielded = new List<int>();
+            await foreach (var item in ToAsyncEnumerable(items).DistinctUntilChangedAsync())
+            {
+                yielded.Add(item);
+            }
+
+            var expected = items.Where((item, i) => i == 0 || item != items[i - 1]);
+            var noAdjacentRepeats = yielded.Zip(yielded.Skip(1), static (a, b) => a != b).All(static different => different);
+
+            return yielded.SequenceEqual(expected) && noAdjacentRepeats;
+        }, iter: FuzzIterations, time: FuzzTimeSeconds);
+    }
+
+
+
+    /// <summary>
+    /// SlidingWindowAsync: yields max(0, n - w + 1) windows, and window i is
+    /// the contiguous slice <c>items[i .. i + w)</c>.
+    /// </summary>
+    [Fact]
+    public async Task SlidingWindowAsync_windows_are_every_contiguous_slice()
+    {
+        var gen = Gen.Int[-1000, 1000].List[0, 200]
+            .Select(Gen.Int[1, 50], (items, windowSize) => (items, windowSize));
+
+        await gen.SampleAsync(async t =>
+        {
+            var (items, windowSize) = t;
+
+            var windows = new List<int[]>();
+            await foreach (var window in ToAsyncEnumerable(items).SlidingWindowAsync(windowSize))
+            {
+                windows.Add([.. window]);
+            }
+
+            var expectedCount = Math.Max(0, items.Count - windowSize + 1);
+            var everyWindowIsItsSlice = windows
+                .Select((window, i) => window.SequenceEqual(items.Skip(i).Take(windowSize)))
+                .All(static matches => matches);
+
+            return windows.Count == expectedCount && everyWindowIsItsSlice;
+        }, iter: FuzzIterations, time: FuzzTimeSeconds);
+    }
+
+
+
     private static async IAsyncEnumerable<int> ToAsyncEnumerable(IReadOnlyList<int> items)
     {
         foreach (var item in items)
