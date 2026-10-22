@@ -510,7 +510,7 @@ plus a fix for a Release-build blocker.
 
 - Dependency bumps and documentation updates.
 
-## [0.2.0] - 2026-03-13
+## [0.2.0] - 2026-03-15
 
 ### Changed
 
