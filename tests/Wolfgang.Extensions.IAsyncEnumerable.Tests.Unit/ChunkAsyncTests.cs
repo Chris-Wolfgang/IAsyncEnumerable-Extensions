@@ -72,7 +72,9 @@ public sealed class ChunkAsyncTests
     {
         IAsyncEnumerable<int> source = null!;
 
-        Assert.Throws<ArgumentNullException>(() => source.ChunkAsync(2));
+        var actual = Assert.Throws<ArgumentNullException>(() => source.ChunkAsync(2));
+
+        Assert.Equal("source", actual.ParamName);
     }
 
     [Fact]
@@ -176,11 +178,14 @@ public sealed class ChunkAsyncTests
     [InlineData(0)]
     [InlineData(-1)]
     [InlineData(-5)]
-    public async Task ChunkAsync_when_chunk_size_is_not_positive_throws_ArgumentOutOfRangeException(int chunkSize)
+    public void ChunkAsync_when_chunk_size_is_not_positive_throws_ArgumentOutOfRangeException(int chunkSize)
     {
         var source = TestSources.Create(1, 2, 3);
 
-        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => CollectChunksAsync(source.ChunkAsync(chunkSize)));
+        // Validation is eager: the call itself throws, before any enumeration.
+        var actual = Assert.Throws<ArgumentOutOfRangeException>(() => source.ChunkAsync(chunkSize));
+
+        Assert.Equal("maxChunkSize", actual.ParamName);
     }
 
     private static async Task<List<ICollection<int>>> CollectChunksAsync(IAsyncEnumerable<ICollection<int>> chunks)
