@@ -37,27 +37,27 @@ public sealed class DoAsyncTests
 
 
     [Fact]
-    public async Task DoAsync_Action_when_source_is_null_throws_ArgumentNullException()
+    public void DoAsync_Action_when_source_is_null_throws_ArgumentNullException()
     {
         IAsyncEnumerable<int> source = null!;
 
-        await Assert.ThrowsAsync<ArgumentNullException>
-        (
-            () => CollectAsync(source.DoAsync(_ => { }))
-        );
+        // Validation is eager: the call itself throws, before any enumeration.
+        var actual = Assert.Throws<ArgumentNullException>(() => source.DoAsync(_ => { }));
+
+        Assert.Equal("source", actual.ParamName);
     }
 
 
 
     [Fact]
-    public async Task DoAsync_Action_when_action_is_null_throws_ArgumentNullException()
+    public void DoAsync_Action_when_action_is_null_throws_ArgumentNullException()
     {
         var source = TestSources.Create(1, 2, 3);
 
-        await Assert.ThrowsAsync<ArgumentNullException>
-        (
-            () => CollectAsync(source.DoAsync((Action<int>)null!))
-        );
+        // Validation is eager: the call itself throws, before any enumeration.
+        var actual = Assert.Throws<ArgumentNullException>(() => source.DoAsync((Action<int>)null!));
+
+        Assert.Equal("action", actual.ParamName);
     }
 
 
@@ -238,27 +238,27 @@ public sealed class DoAsyncTests
 
 
     [Fact]
-    public async Task DoAsync_Func_when_source_is_null_throws_ArgumentNullException()
+    public void DoAsync_Func_when_source_is_null_throws_ArgumentNullException()
     {
         IAsyncEnumerable<int> source = null!;
 
-        await Assert.ThrowsAsync<ArgumentNullException>
-        (
-            () => CollectAsync(source.DoAsync(async _ => await Task.Yield()))
-        );
+        // Validation is eager: the call itself throws, before any enumeration.
+        var actual = Assert.Throws<ArgumentNullException>(() => source.DoAsync(async _ => await Task.Yield()));
+
+        Assert.Equal("source", actual.ParamName);
     }
 
 
 
     [Fact]
-    public async Task DoAsync_Func_when_action_is_null_throws_ArgumentNullException()
+    public void DoAsync_Func_when_action_is_null_throws_ArgumentNullException()
     {
         var source = TestSources.Create(1, 2, 3);
 
-        await Assert.ThrowsAsync<ArgumentNullException>
-        (
-            () => CollectAsync(source.DoAsync((Func<int, Task>)null!))
-        );
+        // Validation is eager: the call itself throws, before any enumeration.
+        var actual = Assert.Throws<ArgumentNullException>(() => source.DoAsync((Func<int, Task>)null!));
+
+        Assert.Equal("action", actual.ParamName);
     }
 
 
