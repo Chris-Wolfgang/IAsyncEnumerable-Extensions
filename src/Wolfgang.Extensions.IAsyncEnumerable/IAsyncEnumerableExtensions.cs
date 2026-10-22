@@ -12,6 +12,13 @@ namespace Wolfgang.Extensions.IAsyncEnumerable;
 // ReSharper disable once InconsistentNaming
 public static class IAsyncEnumerableExtensions
 {
+    // Task.FromResult(true) is cached by the runtime on net8.0+ but allocates a
+    // fresh Task<bool> per call on net462/netstandard2.0 — the null-source fast
+    // path (IsNullOrEmptyAsync) shouldn't allocate anywhere.
+    private static readonly Task<bool> CachedTrueTask = Task.FromResult(true);
+
+
+
 
     /// <summary>
     /// Splits an IAsyncEnumerable{T} into chunks of a specified maximum size.
@@ -28,6 +35,15 @@ public static class IAsyncEnumerableExtensions
     /// time (surfaced through the consuming <c>await foreach</c>), checked at
     /// chunk boundaries rather than per element.
     /// </exception>
+    /// <example>
+    /// <code>
+    /// // Process the stream in batches of up to 100 items
+    /// await foreach (var batch in source.ChunkAsync(100))
+    /// {
+    ///     Console.WriteLine($"Batch of {batch.Count} items");
+    /// }
+    /// </code>
+    /// </example>
     public static IAsyncEnumerable<ICollection<T>> ChunkAsync<T>
     (
         this IAsyncEnumerable<T> source,
@@ -170,7 +186,7 @@ public static class IAsyncEnumerableExtensions
     /// <param name="keySelector">A function that extracts the comparison key from each element.</param>
     /// <param name="comparer">
     /// The comparer used to decide whether two adjacent keys are equal, or <see langword="null"/>
-    /// to use <see cref="EqualityComparer{T}.Default"/> for <typeparamref name="TKey"/>.
+    /// to use <see cref="EqualityComparer{TKey}.Default"/> for <typeparamref name="TKey"/>.
     /// </param>
     /// <param name="token">A cancellation token to cancel the operation.</param>
     /// <typeparam name="T">The type of elements in the IAsyncEnumerable{T}.</typeparam>
@@ -587,13 +603,6 @@ public static class IAsyncEnumerableExtensions
             ? CachedTrueTask
             : IsEmptyAsync(source, token);
     }
-
-
-
-    // Task.FromResult(true) is cached by the runtime on net8.0+ but allocates a
-    // fresh Task<bool> per call on net462/netstandard2.0 — the null-source fast
-    // path shouldn't allocate anywhere.
-    private static readonly Task<bool> CachedTrueTask = Task.FromResult(true);
 
 
 

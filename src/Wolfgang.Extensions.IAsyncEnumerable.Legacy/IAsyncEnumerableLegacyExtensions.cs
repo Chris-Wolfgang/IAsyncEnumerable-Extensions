@@ -25,6 +25,12 @@ public static class IAsyncEnumerableLegacyExtensions
     /// Thrown when <paramref name="token"/> is canceled before or during enumeration.
     /// Delivered through the returned <see cref="ValueTask{TResult}"/>.
     /// </exception>
+    /// <example>
+    /// <code>
+    /// var count = await source.CountAsync();
+    /// Console.WriteLine($"{count} items");
+    /// </code>
+    /// </example>
     public static ValueTask<int> CountAsync<T>
     (
         this IAsyncEnumerable<T> source,
@@ -81,6 +87,14 @@ public static class IAsyncEnumerableLegacyExtensions
     /// Thrown when <paramref name="token"/> is canceled before or during enumeration.
     /// Delivered through the returned <see cref="ValueTask{TResult}"/>.
     /// </exception>
+    /// <example>
+    /// <code>
+    /// if (await source.AnyAsync())
+    /// {
+    ///     Console.WriteLine("The stream has at least one item.");
+    /// }
+    /// </code>
+    /// </example>
     public static ValueTask<bool> AnyAsync<T>
     (
         this IAsyncEnumerable<T> source,
@@ -110,6 +124,14 @@ public static class IAsyncEnumerableLegacyExtensions
     /// Thrown when <paramref name="token"/> is canceled before or during enumeration.
     /// Delivered through the returned <see cref="ValueTask{TResult}"/>.
     /// </exception>
+    /// <example>
+    /// <code>
+    /// if (await source.AnyAsync(x =&gt; x &lt; 0))
+    /// {
+    ///     Console.WriteLine("Found a negative value.");
+    /// }
+    /// </code>
+    /// </example>
     public static ValueTask<bool> AnyAsync<T>
     (
         this IAsyncEnumerable<T> source,
@@ -190,6 +212,13 @@ public static class IAsyncEnumerableLegacyExtensions
     /// Thrown when <paramref name="token"/> is canceled before or during enumeration.
     /// Delivered through the returned <see cref="ValueTask{TResult}"/>.
     /// </exception>
+    /// <example>
+    /// <code>
+    /// // Throws InvalidOperationException when the stream is empty
+    /// var first = await source.FirstAsync();
+    /// Console.WriteLine($"First item: {first}");
+    /// </code>
+    /// </example>
     public static ValueTask<T> FirstAsync<T>
     (
         this IAsyncEnumerable<T> source,
@@ -246,6 +275,13 @@ public static class IAsyncEnumerableLegacyExtensions
     /// Thrown when <paramref name="token"/> is canceled before or during enumeration.
     /// Delivered through the returned <see cref="ValueTask{TResult}"/>.
     /// </exception>
+    /// <example>
+    /// <code>
+    /// // 0 (default(int)) when the stream is empty
+    /// var first = await source.FirstOrDefaultAsync();
+    /// Console.WriteLine($"First item or default: {first}");
+    /// </code>
+    /// </example>
     public static ValueTask<T?> FirstOrDefaultAsync<T>
     (
         this IAsyncEnumerable<T> source,
@@ -293,6 +329,12 @@ public static class IAsyncEnumerableLegacyExtensions
     /// Thrown when <paramref name="token"/> is canceled before or during enumeration.
     /// Delivered through the returned <see cref="ValueTask{TResult}"/>.
     /// </exception>
+    /// <example>
+    /// <code>
+    /// var items = await source.ToListAsync();
+    /// Console.WriteLine($"Materialized {items.Count} items");
+    /// </code>
+    /// </example>
     public static ValueTask<List<T>> ToListAsync<T>
     (
         this IAsyncEnumerable<T> source,

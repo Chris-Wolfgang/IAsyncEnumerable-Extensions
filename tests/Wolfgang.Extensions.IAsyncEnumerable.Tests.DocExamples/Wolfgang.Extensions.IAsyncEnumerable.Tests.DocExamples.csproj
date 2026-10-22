@@ -32,6 +32,7 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\..\src\Wolfgang.Extensions.IAsyncEnumerable\Wolfgang.Extensions.IAsyncEnumerable.csproj" />
+		<ProjectReference Include="..\..\src\Wolfgang.Extensions.IAsyncEnumerable.Legacy\Wolfgang.Extensions.IAsyncEnumerable.Legacy.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
