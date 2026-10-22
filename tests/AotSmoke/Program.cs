@@ -96,6 +96,52 @@ await CheckAsync("NoneAsync(predicate)", async () =>
     Assert(!await Range(1, 5).NoneAsync(x => x == 3), "element 3 satisfies the predicate");
 });
 
+await CheckAsync("DistinctUntilChangedAsync", async () =>
+{
+    var yielded = new List<int>();
+    await foreach (var item in Of(1, 1, 2, 2, 2, 3, 1, 1).DistinctUntilChangedAsync())
+    {
+        yielded.Add(item);
+    }
+
+    Assert(yielded.SequenceEqual([1, 2, 3, 1]), "DistinctUntilChangedAsync yielded wrong sequence");
+});
+
+await CheckAsync("DistinctUntilChangedByAsync", async () =>
+{
+    var yielded = new List<int>();
+    await foreach (var item in Of(1, 3, -2, -4, 5).DistinctUntilChangedByAsync(x => Math.Sign(x)))
+    {
+        yielded.Add(item);
+    }
+
+    Assert(yielded.SequenceEqual([1, -2, 5]), "DistinctUntilChangedByAsync yielded wrong sequence");
+});
+
+await CheckAsync("ScanAsync", async () =>
+{
+    var totals = new List<int>();
+    await foreach (var total in Range(1, 4).ScanAsync(0, (sum, x) => sum + x))
+    {
+        totals.Add(total);
+    }
+
+    Assert(totals.SequenceEqual([1, 3, 6, 10]), "ScanAsync yielded wrong running totals");
+});
+
+await CheckAsync("SlidingWindowAsync", async () =>
+{
+    var windows = new List<int[]>();
+    await foreach (var window in Range(1, 5).SlidingWindowAsync(3))
+    {
+        windows.Add(window.ToArray());
+    }
+
+    Assert(windows.Count == 3, $"expected 3 windows, got {windows.Count}");
+    Assert(windows[0].SequenceEqual([1, 2, 3]), "window 0 mismatch");
+    Assert(windows[2].SequenceEqual([3, 4, 5]), "final window mismatch");
+});
+
 if (failures.Count > 0)
 {
     Console.Error.WriteLine($"AOT smoke FAILED ({failures.Count} check(s)):");
@@ -138,5 +184,14 @@ static async IAsyncEnumerable<int> Range(int start, int count)
     {
         await Task.Yield();
         yield return start + i;
+    }
+}
+
+static async IAsyncEnumerable<int> Of(params int[] values)
+{
+    foreach (var value in values)
+    {
+        await Task.Yield();
+        yield return value;
     }
 }
