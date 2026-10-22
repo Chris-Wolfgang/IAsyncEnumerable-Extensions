@@ -6,7 +6,7 @@ _layout: landing
 
 High-performance, production-grade extension methods for `IAsyncEnumerable<T>` with comprehensive test coverage and strict code quality enforcement.
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/blob/main/LICENSE)
 [![.NET](https://img.shields.io/badge/.NET-Multi--Targeted-purple.svg)](https://dotnet.microsoft.com/)
 [![GitHub](https://img.shields.io/badge/GitHub-Repository-181717?logo=github)](https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions)
 
@@ -41,7 +41,7 @@ await foreach (var chunk in asyncStream.ChunkAsync(maxChunkSize: 100, token: can
 
 ### Current Extension Methods
 
-All 9 methods live on `IAsyncEnumerableExtensions` in the `Wolfgang.Extensions.IAsyncEnumerable` namespace.
+All 13 methods live on `IAsyncEnumerableExtensions` in the `Wolfgang.Extensions.IAsyncEnumerable` namespace.
 
 #### **`ChunkAsync<T>`**
 Splits an `IAsyncEnumerable<T>` into fixed-size chunks for batch processing. The last chunk may be smaller than `maxChunkSize`.
@@ -60,6 +60,36 @@ await foreach (var batch in numbers.ChunkAsync(50))
 {
     Console.WriteLine($"Processing batch of {batch.Count} items");
     // Last batch may be smaller than 50
+}
+```
+
+#### **`DistinctUntilChangedAsync<T>`**
+Drops an element that equals the one immediately before it. Only adjacent repeats are removed: `1, 1, 2, 1` becomes `1, 2, 1`. Pass a comparer, or `null` for `EqualityComparer<T>.Default`.
+
+```csharp
+public static IAsyncEnumerable<T> DistinctUntilChangedAsync<T>(
+    this IAsyncEnumerable<T> source,
+    IEqualityComparer<T>? comparer = null,
+    CancellationToken token = default)
+```
+
+#### **`DistinctUntilChangedByAsync<T, TKey>`**
+Same, comparing a key of each element (like `DistinctBy`); yields the first element of each run.
+
+```csharp
+public static IAsyncEnumerable<T> DistinctUntilChangedByAsync<T, TKey>(
+    this IAsyncEnumerable<T> source,
+    Func<T, TKey> keySelector,
+    IEqualityComparer<TKey>? comparer = null,
+    CancellationToken token = default)
+```
+
+**Example:**
+```csharp
+// Report only when the sign of the reading changes
+await foreach (var reading in readings.DistinctUntilChangedByAsync(x => Math.Sign(x)))
+{
+    Console.WriteLine($"Sign changed at {reading}");
 }
 ```
 
@@ -165,6 +195,45 @@ if (await source.NoneAsync(x => x.IsExpired))
 }
 ```
 
+#### **`ScanAsync<TSource, TAccumulate>`**
+Running accumulation: yields every intermediate value, like `Aggregate` emitting at each step. The seed itself is not yielded, so an empty source yields nothing.
+
+```csharp
+public static IAsyncEnumerable<TAccumulate> ScanAsync<TSource, TAccumulate>(
+    this IAsyncEnumerable<TSource> source,
+    TAccumulate seed,
+    Func<TAccumulate, TSource, TAccumulate> accumulator,
+    CancellationToken token = default)
+```
+
+**Example:**
+```csharp
+// Running sum: 1, 2, 3, 4 produces 1, 3, 6, 10
+await foreach (var total in numbers.ScanAsync(0, (sum, x) => sum + x))
+{
+    Console.WriteLine(total);
+}
+```
+
+#### **`SlidingWindowAsync<T>`**
+Overlapping windows of `windowSize` consecutive elements as `IReadOnlyList<T>`, advancing one element at a time. A source shorter than `windowSize` yields nothing; every window is a new list the consumer may keep.
+
+```csharp
+public static IAsyncEnumerable<IReadOnlyList<T>> SlidingWindowAsync<T>(
+    this IAsyncEnumerable<T> source,
+    int windowSize,
+    CancellationToken token = default)
+```
+
+**Example:**
+```csharp
+// Moving average over the last three readings
+await foreach (var window in readings.SlidingWindowAsync(3))
+{
+    Console.WriteLine((window[0] + window[1] + window[2]) / 3.0);
+}
+```
+
 ### Legacy Terminal Operators (`Wolfgang.Extensions.IAsyncEnumerable.Legacy`)
 
 A companion package for consumers on **net462 / netstandard2.0**, where the BCL's `System.Linq.AsyncEnumerable` is not available. It provides 6 terminal operators on `IAsyncEnumerableLegacyExtensions` (same `Wolfgang.Extensions.IAsyncEnumerable` namespace):
@@ -207,6 +276,7 @@ This project enforces **strict code quality standards** through **8 specialized 
 5. **Microsoft.CodeAnalysis.BannedApiAnalyzers** - Prevents usage of banned synchronous APIs
 6. **Meziantou.Analyzer** - Comprehensive code quality rules
 7. **SonarAnalyzer.CSharp** - Industry-standard code analysis
+8. **Microsoft.CodeAnalysis.PublicApiAnalyzers** - Public API surface change detection
 
 ### Async-First Enforcement
 
@@ -262,7 +332,7 @@ dotnet format
 dotnet format --verify-no-changes
 ```
 
-See [README-FORMATTING.md](README-FORMATTING.md) for detailed formatting guidelines.
+See [README-FORMATTING.md](https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/blob/main/docs/README-FORMATTING.md) for detailed formatting guidelines.
 
 ### Building Documentation
 
@@ -302,7 +372,7 @@ docfx build --serve
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for:
+Contributions are welcome! Please see [CONTRIBUTING.md](https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/blob/main/CONTRIBUTING.md) for:
 - Code quality standards
 - Build and test instructions
 - Pull request guidelines
@@ -312,7 +382,7 @@ Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for:
 
 ## 📄 License
 
-This project is licensed under the **MIT License**. See the [LICENSE](LICENSE) file for details.
+This project is licensed under the **MIT License**. See the [LICENSE](https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/blob/main/LICENSE) file for details.
 
 ---
 
@@ -320,8 +390,8 @@ This project is licensed under the **MIT License**. See the [LICENSE](LICENSE) f
 
 - **GitHub Repository:** [https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions](https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions)
 - **API Documentation:** [Latest](https://chris-wolfgang.github.io/IAsyncEnumerable-Extensions/versions/latest/api/Wolfgang.Extensions.IAsyncEnumerable.html)
-- **Formatting Guide:** [README-FORMATTING.md](README-FORMATTING.md)
-- **Contributing Guide:** [CONTRIBUTING.md](CONTRIBUTING.md)
+- **Formatting Guide:** [README-FORMATTING.md](https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/blob/main/docs/README-FORMATTING.md)
+- **Contributing Guide:** [CONTRIBUTING.md](https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/blob/main/CONTRIBUTING.md)
 
 ---
 

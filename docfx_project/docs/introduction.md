@@ -91,6 +91,48 @@ if (await source.NoneAsync(x => x.IsExpired))
 }
 ```
 
+### DistinctUntilChangedAsync<T> / DistinctUntilChangedByAsync<T, TKey>
+
+Drops an element that equals the one immediately before it (only adjacent repeats), optionally comparing a key of each element:
+
+```csharp
+// 1, 1, 2, 2, 2, 3, 1, 1 becomes 1, 2, 3, 1
+await foreach (var item in source.DistinctUntilChangedAsync())
+{
+    Console.WriteLine(item);
+}
+
+// Report only when the sign of the reading changes
+await foreach (var reading in readings.DistinctUntilChangedByAsync(x => Math.Sign(x)))
+{
+    Console.WriteLine($"Sign changed at {reading}");
+}
+```
+
+### ScanAsync<TSource, TAccumulate>
+
+Running accumulation: yields every intermediate value, like `Aggregate` emitting at each step (the seed is not yielded):
+
+```csharp
+// Running sum: 1, 2, 3, 4 produces 1, 3, 6, 10
+await foreach (var total in source.ScanAsync(0, (sum, x) => sum + x))
+{
+    Console.WriteLine(total);
+}
+```
+
+### SlidingWindowAsync<T>
+
+Overlapping windows of a fixed size, advancing one element at a time, as `IReadOnlyList<T>`:
+
+```csharp
+// Moving average over the last three readings
+await foreach (var window in readings.SlidingWindowAsync(3))
+{
+    Console.WriteLine((window[0] + window[1] + window[2]) / 3.0);
+}
+```
+
 ## Async-First Design
 
 This library is built with an **async-first philosophy**:
