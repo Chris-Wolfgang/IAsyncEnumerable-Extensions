@@ -127,6 +127,92 @@ public sealed class ConcurrencyStressTests
 
 
     [Fact]
+    public async Task ScanAsync_concurrent_consumers_each_get_their_own_running_value()
+    {
+        // The running accumulator must live in each enumeration; a static or cached one
+        // would leak totals between concurrent consumers.
+        var expected = Enumerable
+            .Range(1, 30)
+            .Select(static n => n * (n + 1) / 2)
+            .ToList();
+
+        for (var round = 0; round < StressIterations; round++)
+        {
+            var results = await Task.WhenAll(Enumerable.Range(0, ConcurrentConsumers).Select(async _ =>
+            {
+                var totals = new List<int>();
+                await foreach (var total in Range(1, 30).ScanAsync(0, static (sum, x) => sum + x))
+                {
+                    totals.Add(total);
+                }
+
+                return totals;
+            }));
+
+            Assert.All(results, totals => Assert.Equal(expected, totals));
+        }
+    }
+
+
+
+    [Fact]
+    public async Task DistinctUntilChangedByAsync_concurrent_consumers_do_not_share_the_previous_key()
+    {
+        // 0..59 keyed by x / 2: each pair shares a key, so 0, 2, 4, ... is yielded. A
+        // previous key leaked between concurrent enumerations would drop or duplicate values.
+        var expected = Enumerable
+            .Range(0, 30)
+            .Select(static n => n * 2)
+            .ToList();
+
+        for (var round = 0; round < StressIterations; round++)
+        {
+            var results = await Task.WhenAll(Enumerable.Range(0, ConcurrentConsumers).Select(async _ =>
+            {
+                var yielded = new List<int>();
+                await foreach (var item in Range(0, 60).DistinctUntilChangedByAsync(static x => x / 2))
+                {
+                    yielded.Add(item);
+                }
+
+                return yielded;
+            }));
+
+            Assert.All(results, yielded => Assert.Equal(expected, yielded));
+        }
+    }
+
+
+
+    [Fact]
+    public async Task SlidingWindowAsync_concurrent_consumers_each_get_their_own_buffer()
+    {
+        // The circular buffer is per enumeration; a buffer shared between concurrent
+        // consumers would produce windows that are not contiguous slices of 0..39.
+        for (var round = 0; round < StressIterations; round++)
+        {
+            var results = await Task.WhenAll(Enumerable.Range(0, ConcurrentConsumers).Select(async _ =>
+            {
+                var collected = new List<int[]>();
+                await foreach (var window in Range(0, 40).SlidingWindowAsync(4))
+                {
+                    collected.Add([.. window]);
+                }
+
+                return collected;
+            }));
+
+            foreach (var collected in results)
+            {
+                Assert.Equal(37, collected.Count);  // 40 - 4 + 1
+                Assert.All(collected, window => Assert.Equal(Enumerable.Range(window[0], 4), window));
+            }
+        }
+    }
+
+
+
+    [Fact]
     public async Task Racing_DisposeAsync_across_independent_enumerators_does_not_affect_sibling_consumers()
     {
         for (var round = 0; round < StressIterations; round++)
