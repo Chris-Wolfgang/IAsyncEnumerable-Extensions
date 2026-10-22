@@ -5,11 +5,15 @@
     <File Path="BannedSymbols.txt" />
     <File Path="CHANGELOG.md" />
     <File Path="CODE_OF_CONDUCT.md" />
+    <File Path=".globalconfig" />
     <File Path="CONTRIBUTING.md" />
+    <File Path="coverlet.runsettings" />
     <File Path="Directory.Build.props" />
+    <File Path="Directory.Build.targets" />
     <File Path="LICENSE" />
     <File Path="README.md" />
     <File Path="SECURITY.md" />
+    <File Path="stryker-config.json" />
     <File Path="THIRD-PARTY-NOTICES.md" />
   </Folder>
   <Folder Name="/.root/.github/">
@@ -21,6 +25,7 @@
   <Folder Name="/.root/.github/ISSUE_TEMPLATE/">
     <File Path=".github/ISSUE_TEMPLATE/BUG_REPORT.yaml" />
     <File Path=".github/ISSUE_TEMPLATE/feature_request.yaml" />
+    <File Path=".github/ISSUE_TEMPLATE/maintenance-task.yaml" />
   </Folder>
   <Folder Name="/.root/.github/workflows/">
     <File Path=".github/workflows/semgrep.yaml" />
@@ -38,6 +43,7 @@
     <File Path=".github/workflows/license-audit.yaml" />
     <File Path=".github/workflows/pr-benchmarks.yaml" />
     <File Path=".github/workflows/pr.yaml" />
+    <File Path=".github/workflows/protected-files.yaml" />
     <File Path=".github/workflows/release.yaml" />
     <File Path=".github/workflows/reproducible-build.yaml" />
     <File Path=".github/workflows/scorecard.yaml" />
