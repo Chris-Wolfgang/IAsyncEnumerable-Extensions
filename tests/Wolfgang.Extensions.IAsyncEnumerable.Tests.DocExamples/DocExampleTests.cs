@@ -45,7 +45,7 @@ public sealed class DocExampleTests
     public void Example_compiles_when_code_contains_yield_uses_async_iterator_signature()
     {
         // Exercises BuildWrapperSource's "yield" branch directly — none of
-        // the 8 real XML-doc examples happen to be async iterators, so this
+        // the 12 real XML-doc examples happen to be async iterators, so this
         // branch is otherwise unreachable through the Theory above.
         var example = new DocExample("synthetic.cs", 1, "yield return \"ok\";");
 
@@ -98,8 +98,8 @@ public sealed class DocExampleTests
         // running zero cases and reporting a vacuous pass.
         Assert.True
         (
-            Examples.Count >= 8,
-            $"Expected at least 8 <example> blocks, found {Examples.Count}. " +
+            Examples.Count >= 12,
+            $"Expected at least 12 <example> blocks, found {Examples.Count}. " +
             "If this is a real removal, lower the floor deliberately — don't just delete this test."
         );
     }
