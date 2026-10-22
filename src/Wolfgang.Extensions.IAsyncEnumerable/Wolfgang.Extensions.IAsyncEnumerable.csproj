@@ -2,7 +2,6 @@
 
 	<PropertyGroup>
 		<TargetFrameworks>net462;netstandard2.0;net8.0;net10.0</TargetFrameworks>
-		<LangVersion>14</LangVersion>
 		<Version>0.6.0</Version>
 		<!-- Pin AssemblyVersion to a fixed binding-stability baseline so consumers
 		     do not need to recompile / add binding redirects on every minor/patch
@@ -27,13 +26,6 @@
 		<PackageTags>async;iasyncenumerable;async-enumerable;async-streams;extensions;linq;chunk;batch;foreach;dotnet;netstandard</PackageTags>
 		<PackageIcon>icon_128x128.png</PackageIcon>
 
-	</PropertyGroup>
-
-	<!-- Trim/AOT analyzers exist only on net8.0+; the older TFMs have nothing to
-	     analyse, so the properties are conditioned rather than set globally. -->
-	<PropertyGroup Condition="'$(TargetFramework)' == 'net8.0' OR '$(TargetFramework)' == 'net10.0'">
-		<IsAotCompatible>true</IsAotCompatible>
-		<IsTrimmable>true</IsTrimmable>
 	</PropertyGroup>
 
 	<ItemGroup>
