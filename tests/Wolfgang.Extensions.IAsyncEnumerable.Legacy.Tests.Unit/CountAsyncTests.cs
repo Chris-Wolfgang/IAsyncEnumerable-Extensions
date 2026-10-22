@@ -74,6 +74,24 @@ public sealed class CountAsyncTests
 
 
     [Fact]
+    public async Task CountAsync_with_pre_canceled_token_and_empty_source_throws_OperationCanceledException()
+    {
+        // An empty source never reaches the per-element check, so only the entry
+        // check can observe the canceled token.
+        using var tokenSource = new CancellationTokenSource();
+        tokenSource.Cancel();
+
+        var source = TestSources.Create<int>();
+
+        await Assert.ThrowsAsync<OperationCanceledException>
+        (
+            () => source.CountAsync(tokenSource.Token).AsTask()
+        );
+    }
+
+
+
+    [Fact]
     public async Task CountAsync_when_token_canceled_mid_iteration_throws_OperationCanceledException()
     {
         using var tokenSource = new CancellationTokenSource();
