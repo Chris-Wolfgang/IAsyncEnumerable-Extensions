@@ -5,12 +5,17 @@
 Every method on `IAsyncEnumerableExtensions` either compiles to an `async`
 state machine (`DoAsync`, `ForEachAsync`, `IsEmptyAsync`,
 `IsNullOrEmptyAsync`, `NoneAsync`) or an async-iterator state machine
-(`ChunkAsync`'s `ChunkCoreAsync`, `DoAsync`'s `DoCoreAsync`) — both allocate
-a heap-based state-machine object on `netstandard2.0`/`net462` by design
-(the .NET runtime does not stack-allocate async/iterator state machines on
-those TFMs). `ChunkAsync` additionally allocates a right-sized `T[]` per
-chunk — that allocation is the method's entire purpose, not a hot-path
-regression to eliminate.
+(`ChunkAsync`'s `ChunkCoreAsync`, `DoAsync`'s `DoCoreAsync`, `ScanAsync`'s
+`ScanCoreAsync`, `DistinctUntilChangedAsync`/`DistinctUntilChangedByAsync`'s
+`DistinctUntilChangedCoreAsync`, `SlidingWindowAsync`'s
+`SlidingWindowCoreAsync`) — both allocate a heap-based state-machine object
+on `netstandard2.0`/`net462` by design (the .NET runtime does not
+stack-allocate async/iterator state machines on those TFMs). `ChunkAsync`
+additionally allocates a right-sized `T[]` per chunk, and `SlidingWindowAsync`
+allocates one `T[windowSize]` circular buffer per enumeration plus a fresh
+`T[windowSize]` per yielded window (each window escapes to the consumer, so it
+cannot be a view over the shared buffer) — those allocations are the methods'
+purpose, not hot-path regressions to eliminate.
 
 Given that, an opt-in `[NoAlloc]`/zero-byte-assertion test suite (the shape
 `#242` originally asked for) would either assert something already false
@@ -37,9 +42,11 @@ created).
 ## What's already in place instead
 
 `[MemoryDiagnoser]` is enabled on every `BenchmarkDotNet` benchmark class
-under `benchmarks/` (one per public method — see
-`ChunkAsyncBenchmarks.cs`, `DoAsyncBenchmarks.cs`, `ForEachAsyncBenchmarks.cs`,
-`EmptyCheckAsyncBenchmarks.cs`, `NoneAsyncBenchmarks.cs`). `benchmarks.yaml`
+under `benchmarks/` (one class per operator family — see
+`ChunkAsyncBenchmarks.cs`, `DistinctUntilChangedAsyncBenchmarks.cs`,
+`DoAsyncBenchmarks.cs`, `EmptyCheckAsyncBenchmarks.cs`,
+`ForEachAsyncBenchmarks.cs`, `NoneAsyncBenchmarks.cs`,
+`ScanAsyncBenchmarks.cs`, `SlidingWindowAsyncBenchmarks.cs`). `benchmarks.yaml`
 runs the full suite on every push to `main` and publishes results to the
 `gh-pages` trend chart, so a *regression* in bytes-allocated-per-call is
 visible over time for every method, even without a hard zero-byte gate.
