@@ -4,7 +4,7 @@ A collection of extension methods for `IAsyncEnumerable<T>` in .NET — chunking
 
 [![NuGet](https://img.shields.io/nuget/v/Wolfgang.Extensions.IAsyncEnumerable.svg?logo=nuget&label=NuGet)](https://www.nuget.org/packages/Wolfgang.Extensions.IAsyncEnumerable)
 [![NuGet downloads](https://img.shields.io/nuget/dt/Wolfgang.Extensions.IAsyncEnumerable.svg?logo=nuget&label=downloads)](https://www.nuget.org/packages/Wolfgang.Extensions.IAsyncEnumerable)
-[![PR build](https://img.shields.io/github/actions/workflow/status/Chris-Wolfgang/IAsyncEnumerable-Extensions/pr.yaml?event=pull_request_target&label=PR%20build&logo=github)](https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/actions/workflows/pr.yaml)
+[![PR build](https://img.shields.io/github/actions/workflow/status/Chris-Wolfgang/IAsyncEnumerable-Extensions/pr.yaml?event=pull_request&label=PR%20build&logo=github)](https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/actions/workflows/pr.yaml)
 [![Release](https://img.shields.io/github/actions/workflow/status/Chris-Wolfgang/IAsyncEnumerable-Extensions/release.yaml?label=release&logo=github)](https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/actions/workflows/release.yaml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![.NET](https://img.shields.io/badge/.NET-Multi--Targeted-purple.svg)](https://dotnet.microsoft.com/)
