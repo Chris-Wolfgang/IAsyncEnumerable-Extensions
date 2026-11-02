@@ -112,7 +112,8 @@ public static class DocExampleCompiler
 
         var paths = new HashSet<string>(trustedAssembliesPaths, StringComparer.OrdinalIgnoreCase)
         {
-            typeof(IAsyncEnumerableExtensions).Assembly.Location
+            typeof(IAsyncEnumerableExtensions).Assembly.Location,
+            typeof(IAsyncEnumerableLegacyExtensions).Assembly.Location
         };
 
         return [.. paths.Select(path => (MetadataReference)MetadataReference.CreateFromFile(path))];
