@@ -7,7 +7,6 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<IsPackable>false</IsPackable>
 		<IsTestProject>true</IsTestProject>
-		<Copyright>Copyright 2026 Chris Wolfgang</Copyright>
 	</PropertyGroup>
 
 	<ItemGroup>
