@@ -157,4 +157,4 @@ SDK requirement: the version installed by `.github/workflows/pr.yaml` (currently
 
 - [Microsoft.Bcl.AsyncInterfaces](https://www.nuget.org/packages/Microsoft.Bcl.AsyncInterfaces/) — `IAsyncEnumerable<T>` backport for `net462` / `netstandard2.0`
 - The analyzer-package authors above
-- The .NET team for `IAsyncEnumerable<T>` and the async-stream language support that made this library a one-file project
+- The .NET team for `IAsyncEnumerable<T>` and the async-stream language support this library is built on
