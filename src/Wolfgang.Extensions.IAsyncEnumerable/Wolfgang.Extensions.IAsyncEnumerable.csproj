@@ -23,7 +23,7 @@
 		<EnablePackageValidation>True</EnablePackageValidation>
 		<PackageValidationBaselineVersion>0.6.0</PackageValidationBaselineVersion>
 		<SignAssembly>False</SignAssembly>
-		<PackageTags>async;iasyncenumerable;async-enumerable;async-streams;extensions;linq;chunk;batch;foreach;dotnet;netstandard</PackageTags>
+		<PackageTags>async;iasyncenumerable;async-enumerable;async-streams;extensions;linq;chunk;batch;foreach;scan;distinct-until-changed;sliding-window;dotnet;netstandard</PackageTags>
 		<PackageIcon>icon_128x128.png</PackageIcon>
 
 	</PropertyGroup>
