@@ -84,7 +84,7 @@ public sealed class DistinctUntilChangedAsyncTests
     public async Task DistinctUntilChangedAsync_when_source_has_null_elements_collapses_adjacent_nulls()
     {
         // A leading null exercises the first-element path, which computes a key from it.
-        var source = TestSources.Create<string?>(null, null, "a", null, null, "b");
+        var source = TestSources.Create(null, null, "a", null, null, "b");
 
         var result = await CollectAsync(source.DistinctUntilChangedAsync());
 
@@ -96,7 +96,7 @@ public sealed class DistinctUntilChangedAsyncTests
     [Fact]
     public async Task DistinctUntilChangedByAsync_when_key_selector_returns_null_collapses_adjacent_null_keys()
     {
-        var source = TestSources.Create<string?>(null, null, "ab", "cd", null, "e");
+        var source = TestSources.Create(null, null, "ab", "cd", null, "e");
 
         var result = await CollectAsync(source.DistinctUntilChangedByAsync(static s => s?.Length));
 

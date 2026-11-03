@@ -254,9 +254,10 @@ public sealed class DoAsyncTests
     public void DoAsync_Func_when_action_is_null_throws_ArgumentNullException()
     {
         var source = TestSources.Create(1, 2, 3);
+        Func<int, Task> action = null!;
 
         // Validation is eager: the call itself throws, before any enumeration.
-        var actual = Assert.Throws<ArgumentNullException>(() => source.DoAsync((Func<int, Task>)null!));
+        var actual = Assert.Throws<ArgumentNullException>(() => source.DoAsync(action));
 
         Assert.Equal("action", actual.ParamName);
     }
