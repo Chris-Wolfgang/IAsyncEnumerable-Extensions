@@ -9,11 +9,10 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<IsPackable>false</IsPackable>
 		<IsTestProject>true</IsTestProject>
-		<Copyright>Copyright 2026 Chris Wolfgang</Copyright>
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="CsCheck" Version="4.9.1" />
+		<PackageReference Include="CsCheck" Version="5.0.0" />
 		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
 		<PackageReference Include="coverlet.collector" Version="10.1.0">
 			<PrivateAssets>all</PrivateAssets>

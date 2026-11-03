@@ -7,7 +7,6 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<IsPackable>false</IsPackable>
 		<IsTestProject>true</IsTestProject>
-		<Copyright>Copyright 2026 Chris Wolfgang</Copyright>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -32,6 +31,7 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\..\src\Wolfgang.Extensions.IAsyncEnumerable\Wolfgang.Extensions.IAsyncEnumerable.csproj" />
+		<ProjectReference Include="..\..\src\Wolfgang.Extensions.IAsyncEnumerable.Legacy\Wolfgang.Extensions.IAsyncEnumerable.Legacy.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>

@@ -27,8 +27,6 @@ Install-Package Wolfgang.Extensions.IAsyncEnumerable
 3. Search for "Wolfgang.Extensions.IAsyncEnumerable"
 4. Click "Install"
 
-> **Note:** The NuGet package is coming soon to NuGet.org. Check the [GitHub repository](https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions) for the latest status.
-
 ## Prerequisites
 
 The library supports multiple .NET versions:
@@ -275,6 +273,42 @@ if (await dataStream.NoneAsync(x => x.IsExpired, cancellationToken))
 }
 ```
 
+## DistinctUntilChangedAsync - Drop Adjacent Repeats
+
+```csharp
+// Emit a status only when it changes
+await foreach (var status in statusStream.DistinctUntilChangedAsync())
+{
+    Console.WriteLine($"Status is now {status}");
+}
+
+// Compare a key instead of the whole element
+await foreach (var record in dataStream.DistinctUntilChangedByAsync(x => x.CustomerId))
+{
+    Console.WriteLine($"Next customer: {record.CustomerId}");
+}
+```
+
+## ScanAsync - Running Totals
+
+```csharp
+// Yields the running total after each element; the seed (0) is not yielded
+await foreach (var total in amounts.ScanAsync(0m, (sum, x) => sum + x, cancellationToken))
+{
+    Console.WriteLine($"Running total: {total}");
+}
+```
+
+## SlidingWindowAsync - Overlapping Windows
+
+```csharp
+// Each window is a new IReadOnlyList<T> of the last 5 readings, oldest first
+await foreach (var window in readings.SlidingWindowAsync(5, cancellationToken))
+{
+    Console.WriteLine($"Average of last 5: {window.Average()}");
+}
+```
+
 ## Next Steps
 
 - Read the [Introduction](introduction.md) to learn more about the library's philosophy
@@ -284,5 +318,4 @@ if (await dataStream.NoneAsync(x => x.IsExpired, cancellationToken))
 ## Need Help?
 
 - **Issues**: Report bugs or request features on [GitHub Issues](https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/issues)
-- **Discussions**: Ask questions in [GitHub Discussions](https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/discussions)
 - **Source Code**: View the source on [GitHub](https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions)
