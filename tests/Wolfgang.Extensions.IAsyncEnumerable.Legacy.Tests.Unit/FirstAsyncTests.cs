@@ -26,10 +26,13 @@ public sealed class FirstAsyncTests
     {
         var source = TestSources.Create<int>();
 
-        await Assert.ThrowsAsync<InvalidOperationException>
+        var actual = await Assert.ThrowsAsync<InvalidOperationException>
         (
             () => source.FirstAsync().AsTask()
         );
+
+        // The message is pinned to the BCL's Enumerable.First text on purpose.
+        Assert.Equal("Sequence contains no elements", actual.Message);
     }
 
 
