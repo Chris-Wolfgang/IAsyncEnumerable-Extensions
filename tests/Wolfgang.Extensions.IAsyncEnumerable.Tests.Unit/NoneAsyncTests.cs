@@ -206,4 +206,38 @@ public sealed class NoneAsyncTests
 
 
 
+    [Fact]
+    public void NoneAsync_predicate_when_source_is_null_throws_at_the_call_before_returning_a_task()
+    {
+        IAsyncEnumerable<int> source = null!;
+
+        // Eager, like Enumerable.Any: the exception does not wait for the task to be awaited.
+        var actual = Assert.Throws<ArgumentNullException>(() => { _ = source.NoneAsync(x => x > 0); });
+
+        Assert.Equal("source", actual.ParamName);
+    }
+
+
+
+    [Fact]
+    public void NoneAsync_predicate_when_predicate_is_null_throws_at_the_call_before_returning_a_task()
+    {
+        var source = TestSources.Create(1, 2, 3);
+
+        var actual = Assert.Throws<ArgumentNullException>(() => { _ = source.NoneAsync(null!); });
+
+        Assert.Equal("predicate", actual.ParamName);
+    }
+
+
+
+    [Fact]
+    public void NoneAsync_when_source_is_null_throws_at_the_call_before_returning_a_task()
+    {
+        IAsyncEnumerable<int> source = null!;
+
+        var actual = Assert.Throws<ArgumentNullException>(() => { _ = source.NoneAsync(); });
+
+        Assert.Equal("source", actual.ParamName);
+    }
 }
