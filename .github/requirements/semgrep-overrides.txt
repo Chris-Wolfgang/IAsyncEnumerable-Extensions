@@ -1,0 +1,3 @@
+# Remove once semgrep stops pinning mcp==1.29.0 (GHSA-84m7-p3x7-pcfv, patched in 1.30.0).
+# semgrep imports mcp only for its MCP server, which `semgrep scan` never loads.
+mcp>=1.30.0,<2
