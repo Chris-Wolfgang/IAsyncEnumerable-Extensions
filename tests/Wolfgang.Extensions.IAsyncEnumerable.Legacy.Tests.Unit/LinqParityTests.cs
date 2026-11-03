@@ -127,7 +127,7 @@ public sealed class LinqParityTests
 
 
     [Fact]
-    public void Null_source_is_rejected_eagerly_with_the_same_ParamName_as_Enumerable()
+    public async Task Null_source_is_rejected_eagerly_with_the_same_ParamName_as_Enumerable()
     {
         IAsyncEnumerable<int> asyncSource = null!;
         IEnumerable<int> syncSource = null!;
@@ -142,15 +142,14 @@ public sealed class LinqParityTests
             Record.Exception(() => System.Linq.Enumerable.ToList(syncSource)),
             Record.Exception(() => System.Linq.Enumerable.Any(syncSource, new ScriptedPredicate(1, -1).Test)),
         ];
-        // AsTask() consumes the returned ValueTask (CA2012); an eager throw happens before it runs.
         Exception?[] legacy =
         [
-            ThrownAtCall(() => IAsyncEnumerableLegacyExtensions.AnyAsync(asyncSource).AsTask()),
-            ThrownAtCall(() => IAsyncEnumerableLegacyExtensions.CountAsync(asyncSource).AsTask()),
-            ThrownAtCall(() => IAsyncEnumerableLegacyExtensions.FirstAsync(asyncSource).AsTask()),
-            ThrownAtCall(() => IAsyncEnumerableLegacyExtensions.FirstOrDefaultAsync(asyncSource).AsTask()),
-            ThrownAtCall(() => IAsyncEnumerableLegacyExtensions.ToListAsync(asyncSource).AsTask()),
-            ThrownAtCall(() => IAsyncEnumerableLegacyExtensions.AnyAsync(asyncSource, new ScriptedPredicate(1, -1).Test).AsTask()),
+            await ThrownAtCallAsync(() => IAsyncEnumerableLegacyExtensions.AnyAsync(asyncSource)),
+            await ThrownAtCallAsync(() => IAsyncEnumerableLegacyExtensions.CountAsync(asyncSource)),
+            await ThrownAtCallAsync(() => IAsyncEnumerableLegacyExtensions.FirstAsync(asyncSource)),
+            await ThrownAtCallAsync(() => IAsyncEnumerableLegacyExtensions.FirstOrDefaultAsync(asyncSource)),
+            await ThrownAtCallAsync(() => IAsyncEnumerableLegacyExtensions.ToListAsync(asyncSource)),
+            await ThrownAtCallAsync(() => IAsyncEnumerableLegacyExtensions.AnyAsync(asyncSource, new ScriptedPredicate(1, -1).Test)),
         ];
 
         for (var i = 0; i < linq.Length; i++)
@@ -159,34 +158,37 @@ public sealed class LinqParityTests
         }
 
         // Sanity check on the probe itself: a call that does not throw is reported as such.
-        Assert.Null(ThrownAtCall(() => IAsyncEnumerableLegacyExtensions.CountAsync(new ScriptedSource([1], -1, false).Async()).AsTask()));
+        Assert.Null(await ThrownAtCallAsync(() => IAsyncEnumerableLegacyExtensions.CountAsync(new ScriptedSource([1], -1, false).Async())));
     }
 
 
 
     [Fact]
-    public void Null_predicate_is_rejected_eagerly_with_the_same_ParamName_as_Enumerable()
+    public async Task Null_predicate_is_rejected_eagerly_with_the_same_ParamName_as_Enumerable()
     {
         var linq = Record.Exception(() => System.Linq.Enumerable.Any(new ScriptedSource([1], -1, false).Sync(), null!));
-        var legacy = ThrownAtCall(() => IAsyncEnumerableLegacyExtensions.AnyAsync(new ScriptedSource([1], -1, false).Async(), null!).AsTask());
+        var legacy = await ThrownAtCallAsync(() => IAsyncEnumerableLegacyExtensions.AnyAsync(new ScriptedSource([1], -1, false).Async(), null!));
 
         Assert.Equal(DescribeArgument(linq), DescribeArgument(legacy));
     }
 
 
 
-    // Returns the exception the call throws before returning its task, or null if it returns one.
-    private static Exception? ThrownAtCall<T>(Func<Task<T>> call)
+    // Returns the exception the call throws before returning its ValueTask, or null if it returns
+    // one. A returned ValueTask is awaited exactly once, so it is consumed correctly (CA2012).
+    private static async Task<Exception?> ThrownAtCallAsync<T>(Func<ValueTask<T>> call)
     {
+        ValueTask<T> pending;
         try
         {
-            _ = call();
+            pending = call();
         }
         catch (ArgumentException exception)
         {
             return exception;
         }
 
+        _ = await pending;
         return null;
     }
 
