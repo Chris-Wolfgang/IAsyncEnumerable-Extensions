@@ -20,6 +20,8 @@ internal sealed class ScriptedSource(int[] items, int throwAt, bool disposeThrow
 
     public static readonly string DisposeFailure = "dispose failed";
 
+    private readonly int _throwAt = throwAt;
+
     public int Pulled { get; private set; }
 
     public bool Disposed { get; private set; }
@@ -67,7 +69,7 @@ internal sealed class ScriptedSource(int[] items, int throwAt, bool disposeThrow
 
     private void ThrowIfScripted(int index)
     {
-        if (index == throwAt)
+        if (index == _throwAt)
         {
             throw new InvalidOperationException(SourceFailure);
         }
