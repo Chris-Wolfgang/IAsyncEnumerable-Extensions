@@ -34,7 +34,7 @@ public class DistinctUntilChangedAsyncBenchmarks
     public async Task<int> DistinctUntilChangedAsync()
     {
         var count = 0;
-        await foreach (var item in CreateSource().DistinctUntilChangedAsync(token: CancellationToken.None))
+        await foreach (var _ in CreateSource().DistinctUntilChangedAsync(token: CancellationToken.None))
         {
             count++;
         }
@@ -46,7 +46,7 @@ public class DistinctUntilChangedAsyncBenchmarks
     public async Task<int> DistinctUntilChangedByAsync()
     {
         var count = 0;
-        await foreach (var item in CreateSource().DistinctUntilChangedByAsync(static x => x / 8, token: CancellationToken.None))
+        await foreach (var _ in CreateSource().DistinctUntilChangedByAsync(static x => x / 8, token: CancellationToken.None))
         {
             count++;
         }
