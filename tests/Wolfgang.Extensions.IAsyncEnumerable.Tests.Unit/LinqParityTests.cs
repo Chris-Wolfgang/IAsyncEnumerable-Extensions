@@ -187,7 +187,7 @@ public sealed class LinqParityTests
 
 
     // Returns the exception the call throws before returning its task, or null if it returns one.
-    private static Exception? ThrownAtCall(Func<Task> call)
+    private static Exception? ThrownAtCall<T>(Func<Task<T>> call)
     {
         try
         {
