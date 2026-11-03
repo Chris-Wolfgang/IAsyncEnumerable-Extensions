@@ -785,7 +785,7 @@ jobs:
             -targetdir:"CoverageReport" \
             -reporttypes:"Html;TextSummary;MarkdownSummaryGithub;CsvSummary"
 
-      - name: Enforce coverage thresholds (${{ env.CODECOV_MINIMUM }}% production, ${{ env.CODECOV_TEST_MINIMUM }}% tests)
+      - name: Enforce coverage thresholds
         if: steps.check-coverage.outputs.has-coverage == 'true'
         run: |
           if [ ! -f CoverageReport/Summary.txt ]; then
@@ -1262,7 +1262,7 @@ jobs:
           }
           Write-Host "Every test assembly that collected coverage is present in the report."
 
-      - name: Enforce coverage thresholds (${{ env.CODECOV_MINIMUM }}% production, ${{ env.CODECOV_TEST_MINIMUM }}% tests)
+      - name: Enforce coverage thresholds
         if: steps.check-coverage.outputs.has-coverage == 'true'
         shell: pwsh
         run: |
@@ -1671,7 +1671,7 @@ jobs:
             echo "ℹ️  No coverage files found - skipping report generation"
           fi
 
-      - name: Enforce coverage thresholds (${{ env.CODECOV_MINIMUM }}% production, ${{ env.CODECOV_TEST_MINIMUM }}% tests)
+      - name: Enforce coverage thresholds
         run: |
           # If no cobertura files were produced (no tests, all test projects
           # skipped, etc.), the preceding step explicitly skipped report
