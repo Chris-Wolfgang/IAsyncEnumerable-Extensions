@@ -13,7 +13,6 @@
     <File Path="LICENSE" />
     <File Path="README.md" />
     <File Path="SECURITY.md" />
-    <File Path="stryker-config.json" />
     <File Path="THIRD-PARTY-NOTICES.md" />
   </Folder>
   <Folder Name="/.root/.github/">
@@ -75,6 +74,7 @@
     <Project Path="src/Wolfgang.Extensions.IAsyncEnumerable.Legacy/Wolfgang.Extensions.IAsyncEnumerable.Legacy.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <File Path="tests/Wolfgang.Extensions.IAsyncEnumerable.Tests.Unit/stryker-config.json" />
     <Project Path="tests/AotSmoke/AotSmoke.csproj" />
     <Project Path="tests/Wolfgang.Extensions.IAsyncEnumerable.Tests.Fuzz/Wolfgang.Extensions.IAsyncEnumerable.Tests.Fuzz.csproj" />
     <Project Path="tests/Wolfgang.Extensions.IAsyncEnumerable.Tests.DocExamples/Wolfgang.Extensions.IAsyncEnumerable.Tests.DocExamples.csproj" />
