@@ -79,7 +79,7 @@
     </PackageReference>
 
     <!-- Meziantou - Comprehensive code quality -->
-    <PackageReference Include="Meziantou.Analyzer" Version="3.0.333">
+    <PackageReference Include="Meziantou.Analyzer" Version="3.0.339">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
@@ -121,7 +121,11 @@
          Change these three lines when forking the template for another owner. -->
     <Authors>Chris Wolfgang</Authors>
     <Company>Chris Wolfgang</Company>
-    <Copyright>Copyright (c) $([System.DateTime]::UtcNow.Year) Chris Wolfgang</Copyright>
+    <!-- A literal year range, never $([System.DateTime]::UtcNow.Year): that puts the BUILD year in
+         AssemblyCopyrightAttribute, so a rebuild after 1 January no longer matches the
+         released binary and the build is no longer reproducible. The first year matches
+         LICENSE; bump the second in the first release PR of each year. -->
+    <Copyright>Copyright (c) 2025-2026 Chris Wolfgang</Copyright>
     <RepositoryType>git</RepositoryType>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
