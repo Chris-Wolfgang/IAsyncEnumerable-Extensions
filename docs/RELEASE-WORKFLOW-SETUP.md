@@ -6,7 +6,7 @@ This guide explains how to configure a repository to use the standard `release.y
 
 The release workflow triggers when you **publish a GitHub Release** and implements a comprehensive validation and automatic deployment process that:
 - ✅ Tests all target frameworks per test project on Windows
-- ✅ Enforces 90% code coverage threshold
+- ✅ Enforces the code coverage thresholds (95% production, 100% test assemblies, as in `pr.yaml`)
 - ✅ Validates NuGet package integrity with smoke tests
 - ✅ Automatically publishes to NuGet.org after validation passes
 - ✅ Eliminates duplicate build work for faster releases
@@ -80,7 +80,7 @@ The workflow triggers automatically when the release is published.
 
 1. **Job 1: validate-release** (3-10 minutes)
    - Runs all framework tests with coverage
-   - Enforces 90% coverage threshold
+   - Enforces 95% coverage on production assemblies and 100% on test assemblies
    - Uploads coverage report
    - ✅ Auto-passes if tests succeed
 
@@ -122,7 +122,7 @@ The workflow triggers automatically when the release is published.
 3. Test locally: `dotnet test --framework net462`
 4. Push fix, then re-publish the release (or re-run the workflow from the Actions tab)
 
-### Coverage Below 90% Threshold
+### Coverage Below Threshold (95% production / 100% tests)
 
 **Problem:** Workflow fails at coverage validation step.
 
@@ -147,7 +147,7 @@ The workflow triggers automatically when the release is published.
 Before creating a production GitHub Release (e.g., `v1.0.0`):
 
 - [ ] All tests pass on all platforms (pr.yaml workflow)
-- [ ] Code coverage meets 90% threshold
+- [ ] Code coverage meets the thresholds (95% production, 100% tests)
 - [ ] Security scan shows no critical issues
 - [ ] Version numbers updated in `.csproj` files
 - [ ] `CHANGELOG.md` updated with release notes (if applicable)
@@ -180,7 +180,7 @@ Before creating a production GitHub Release (e.g., `v1.0.0`):
 │  • Restore & Build                                          │
 │  • Test all frameworks (net5.0-10.0, net462-481)           │
 │  • Collect coverage                                         │
-│  • Enforce 90% threshold                                    │
+│  • Enforce 95% src / 100% tests coverage                    │
 │  • Upload coverage artifacts                                │
 └─────────────────────────────────────────────────────────────┘
                             │
@@ -207,7 +207,7 @@ Before creating a production GitHub Release (e.g., `v1.0.0`):
 | Issue | Before | After |
 |-------|--------|-------|
 | **Framework Coverage** | Default framework only | All frameworks (net5.0-10.0, net462-481) |
-| **Code Coverage** | Not enforced | 90% threshold enforced |
+| **Code Coverage** | Not enforced | 95% production / 100% tests enforced |
 | **Package Validation** | None | Smoke test installation |
 | **Deployment** | Incomplete publish script | Automatic publishing after validation |
 | **Credentials** | Long-lived API key secret | Trusted Publishing (OIDC), ephemeral push key |
