@@ -49,7 +49,10 @@ def main() -> int:
 
     lines.sort()
 
-    with open(output_path, "w", encoding="utf-8") as f:
+    # newline="\n": text mode would otherwise write CRLF on Windows, and the
+    # diff job would flag every line of the windows leg against the Linux
+    # baseline even though the test outcomes are identical.
+    with open(output_path, "w", encoding="utf-8", newline="\n") as f:
         f.write("\n".join(lines) + ("\n" if lines else ""))
 
     print(f"Wrote {len(lines)} normalized result(s) to {output_path}")
