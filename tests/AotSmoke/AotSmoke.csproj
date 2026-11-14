@@ -8,6 +8,9 @@
 		<PublishAot>true</PublishAot>
 		<PublishTrimmed>true</PublishTrimmed>
 		<IsPackable>false</IsPackable>
+		<!-- An executable smoke harness, not a test project: say so explicitly so the
+		     pr.yaml test stages' "not a test project" guard skips it instead of failing. -->
+		<IsTestProject>false</IsTestProject>
 		<!-- Throwaway AOT smoke harness — not shipped, not held to the
 		     strict warnings-as-errors bar the shipped library is held to.
 		     Directory.Build.props still applies TWAE in Release regardless
