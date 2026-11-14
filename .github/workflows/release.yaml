@@ -9,7 +9,11 @@ permissions:
   contents: read  # Default to read-only; individual jobs declare write where required
 
 env:
-  CODECOV_MINIMUM: 90
+  # Minimum line coverage for PRODUCTION assemblies (anything under src/).
+  # Kept equal to pr.yaml so a release is held to the same bar as every pull request.
+  CODECOV_MINIMUM: 95
+  # Minimum line coverage for TEST assemblies (anything under tests/), as in pr.yaml.
+  CODECOV_TEST_MINIMUM: 100
 
 concurrency:
   # Serialize releases so a duplicate / re-published Release event can't run two
@@ -101,6 +105,7 @@ jobs:
             8.0.x
             9.0.x
             10.0.x
+            11.0.x
 
       - name: Restore dependencies
         run: dotnet restore
@@ -283,7 +288,7 @@ jobs:
           $coverageFiles = Get-ChildItem -Path "TestResults" -Recurse -Filter "coverage.cobertura.xml" -ErrorAction SilentlyContinue
 
           if ($coverageFiles.Count -eq 0) {
-            Write-Error "❌ No coverage files found - coverage data is required to enforce the 90% threshold"
+            Write-Error "❌ No coverage files found - coverage data is required to enforce the coverage thresholds"
             exit 1
           }
 
@@ -302,24 +307,40 @@ jobs:
 
           # Parse coverage and enforce threshold per module (matching pr.yaml)
           $summaryContent = Get-Content CoverageReport/Summary.txt
-          $threshold = if ($env:CODECOV_MINIMUM) { [int]$env:CODECOV_MINIMUM } else { 90 }
+          $threshold     = if ($env:CODECOV_MINIMUM) { [int]$env:CODECOV_MINIMUM } else { 95 }
+          $testThreshold = if ($env:CODECOV_TEST_MINIMUM) { [int]$env:CODECOV_TEST_MINIMUM } else { 100 }
           $failedModules = @()
           $coverageFound = $false
 
+          # Assembly names produced by projects under tests/ (mirrors pr.yaml).
+          # Identify test assemblies by LOCATION, never by name.
+          $testAssemblies = @()
+          if (Test-Path "tests") {
+            Get-ChildItem -Path "tests" -Recurse -File -Include *.csproj,*.vbproj,*.fsproj | ForEach-Object {
+              $m = [regex]::Match((Get-Content $_.FullName -Raw), '<AssemblyName>([^<]+)</AssemblyName>')
+              $testAssemblies += $(if ($m.Success) { $m.Groups[1].Value.Trim() } else { $_.BaseName })
+            }
+          }
+
           foreach ($line in $summaryContent) {
-            # Match lines with module names and percentages (skip Summary line)
+            # Match lines with module names and percentages (skip Summary line).
+            # `^([^ ]+)` keeps indented per-class rows out: only assembly rows are gated.
             if ($line -match '^([^ ]+)\s+.*\s+(\d+(?:\.\d+)?)%$' -and $line -notmatch '^Summary') {
               $coverageFound = $true
               $module = $matches[1]
               $coverage = [decimal]$matches[2]
 
-              Write-Host "Checking module: '$module' - Coverage: ${coverage}%" -ForegroundColor Cyan
+              $isTest  = $testAssemblies -contains $module
+              $applies = if ($isTest) { $testThreshold } else { $threshold }
+              $kind    = if ($isTest) { "test" } else { "src" }
 
-              if ($coverage -lt $threshold) {
-                Write-Host "  ❌ FAIL: Below ${threshold}% threshold" -ForegroundColor Red
-                $failedModules += "$module (${coverage}%)"
+              Write-Host "Checking $kind module: '$module' - Coverage: ${coverage}%" -ForegroundColor Cyan
+
+              if ($coverage -lt $applies) {
+                Write-Host "  ❌ FAIL: Below ${applies}% threshold" -ForegroundColor Red
+                $failedModules += "$module (${coverage}%, needs ${applies}%)"
               } else {
-                Write-Host "  ✅ PASS: Meets ${threshold}% threshold" -ForegroundColor Green
+                Write-Host "  ✅ PASS: Meets ${applies}% threshold" -ForegroundColor Green
               }
             }
           }
@@ -335,13 +356,15 @@ jobs:
             Write-Host "==========================================" -ForegroundColor Red
             Write-Host "❌ COVERAGE GATE FAILED" -ForegroundColor Red
             Write-Host "==========================================" -ForegroundColor Red
-            Write-Host "Modules below ${threshold}% coverage: $($failedModules -join ', ')" -ForegroundColor Red
+            Write-Host "Modules below their threshold: $($failedModules -join ', ')" -ForegroundColor Red
+            Write-Host ""
+            Write-Host "src assemblies must reach ${threshold}%; test assemblies must reach ${testThreshold}%." -ForegroundColor Red
             exit 1
           }
 
           Write-Host ""
           Write-Host "==========================================" -ForegroundColor Green
-          Write-Host "✅ All modules meet ${threshold}% coverage threshold" -ForegroundColor Green
+          Write-Host "✅ All modules meet their coverage threshold (src ${threshold}%, test ${testThreshold}%)" -ForegroundColor Green
           Write-Host "==========================================" -ForegroundColor Green
 
       - name: Upload coverage report
@@ -380,6 +403,7 @@ jobs:
             8.0.x
             9.0.x
             10.0.x
+            11.0.x
 
       - name: Restore and build
         run: |
@@ -696,6 +720,7 @@ jobs:
             8.0.x
             9.0.x
             10.0.x
+            11.0.x
 
       - name: Restore .NET workloads
         # Same gated probe as pr.yaml — only run dotnet workload restore when
@@ -789,6 +814,7 @@ jobs:
             8.0.x
             9.0.x
             10.0.x
+            11.0.x
 
       - name: Download packages
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
