@@ -170,7 +170,7 @@ async Task CheckAsync(string name, Func<Task> check)
     }
 }
 
-void Assert(bool condition, string message)
+static void Assert(bool condition, string message)
 {
     if (!condition)
     {
