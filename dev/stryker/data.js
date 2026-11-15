@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794142048075,
+  "lastUpdate": 1794748989133,
   "repoUrl": "https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions",
   "entries": {
     "Mutation score": [
@@ -138,6 +138,38 @@ window.BENCHMARK_DATA = {
           },
           {
             "name": "Mutation score (tests/Wolfgang.Extensions.IAsyncEnumerable.Legacy.Tests.Unit)",
+            "value": 100,
+            "unit": "%"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Chris Wolfgang",
+            "username": "Chris-Wolfgang",
+            "email": "210299580+Chris-Wolfgang@users.noreply.github.com"
+          },
+          "committer": {
+            "name": "GitHub",
+            "username": "web-flow",
+            "email": "noreply@github.com"
+          },
+          "id": "be80a4f300346ad18c2194a8f20f6587eb265feb",
+          "message": "build: add net11.0 to the package and the unit tests (#584)\n\nnet11.0 on the main package and both unit-test projects (with a net11.0 package slot matching net10.0), global.json on the 11.0 SDK (latestFeature never crosses a major), and a feature changelog fragment. Legacy package stays net462;netstandard2.0.\n\nRefs #570\n\nCo-authored-by: Claude Opus 5.5 <noreply@anthropic.com>",
+          "timestamp": "2026-11-14T21:49:43Z",
+          "url": "https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/commit/be80a4f300346ad18c2194a8f20f6587eb265feb"
+        },
+        "date": 1794748984879,
+        "tool": "customBiggerIsBetter",
+        "benches": [
+          {
+            "name": "Mutation score (tests/Wolfgang.Extensions.IAsyncEnumerable.Legacy.Tests.Unit)",
+            "value": 100,
+            "unit": "%"
+          },
+          {
+            "name": "Mutation score (tests/Wolfgang.Extensions.IAsyncEnumerable.Tests.Unit)",
             "value": 100,
             "unit": "%"
           }
