@@ -50,3 +50,41 @@ jobs:
 
       - name: Run the published AOT binary
         run: ./aot-smoke-publish/AotSmoke
+
+  # Fleet test-matrix standard (claude-sessions standards/test-matrix.md, item 4): the native
+  # binary is per-architecture, so the managed ARM64 stages in pr.yaml do not cover it. Same steps
+  # as the linux-x64 job above; keep them identical apart from the runner and RID. The job name
+  # follows the x64 job's (the required check is "Native AOT publish + run (linux-x64)"), so the
+  # x64 check string is unchanged. The arm64 runner is free on public repositories only.
+  aot-smoke-arm64:
+    name: "Native AOT publish + run (linux-arm64)"
+    runs-on: ubuntu-24.04-arm
+    if: ${{ !github.event.repository.private }}
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
+        with:
+          dotnet-version: |
+            10.0.x
+            11.0.x
+
+      - name: Install Native AOT prerequisites
+        run: sudo apt-get update && sudo apt-get install -y clang zlib1g-dev
+
+      - name: Publish AotSmoke (linux-arm64, AOT + trimmed)
+        run: >
+          dotnet publish tests/AotSmoke/AotSmoke.csproj
+          --configuration Release
+          --runtime linux-arm64
+          --self-contained true
+          --output ./aot-smoke-publish
+
+      - name: Run the published AOT binary
+        run: ./aot-smoke-publish/AotSmoke
