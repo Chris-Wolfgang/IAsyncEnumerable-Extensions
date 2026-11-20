@@ -191,6 +191,35 @@ public sealed class SlidingWindowAsyncTests
 
 
 
+    [Fact]
+    public async Task SlidingWindowAsync_when_window_size_is_int_MaxValue_yields_nothing_for_a_short_source()
+    {
+        // The buffer grows with the source, so a huge window does not allocate
+        // windowSize elements up front.
+        var source = TestSources.Create(1, 2, 3);
+
+        var windows = await CollectAsync(source.SlidingWindowAsync(int.MaxValue));
+
+        Assert.Empty(windows);
+    }
+
+
+
+    [Fact]
+    public async Task SlidingWindowAsync_when_window_outgrows_the_initial_buffer_yields_expected_windows()
+    {
+        var source = TestSources.Create(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
+
+        var windows = await CollectAsync(source.SlidingWindowAsync(10));
+
+        Assert.Equal(3, windows.Count);
+        Assert.Equal([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], windows[0]);
+        Assert.Equal([2, 3, 4, 5, 6, 7, 8, 9, 10, 11], windows[1]);
+        Assert.Equal([3, 4, 5, 6, 7, 8, 9, 10, 11, 12], windows[2]);
+    }
+
+
+
     private static async Task<List<IReadOnlyList<T>>> CollectAsync<T>(IAsyncEnumerable<IReadOnlyList<T>> source)
     {
         var result = new List<IReadOnlyList<T>>();

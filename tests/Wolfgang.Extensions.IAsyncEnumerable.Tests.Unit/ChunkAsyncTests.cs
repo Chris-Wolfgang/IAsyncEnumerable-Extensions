@@ -188,6 +188,50 @@ public sealed class ChunkAsyncTests
         Assert.Equal("maxChunkSize", actual.ParamName);
     }
 
+    [Fact]
+    public async Task ChunkAsync_when_chunk_size_is_int_MaxValue_yields_the_source_as_one_chunk()
+    {
+        // The working array grows with the source, so a huge upper bound does not
+        // allocate maxChunkSize elements up front.
+        var source = TestSources.Create(1, 2, 3);
+
+        var chunks = await CollectChunksAsync(source.ChunkAsync(int.MaxValue));
+
+        Assert.Single(chunks);
+        Assert.Equal([1, 2, 3], chunks[0]);
+    }
+
+    [Fact]
+    public async Task ChunkAsync_when_chunks_outgrow_the_initial_buffer_returns_expected_chunks()
+    {
+        var source = TestSources.Create(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23);
+
+        var chunks = await CollectChunksAsync(source.ChunkAsync(10));
+
+        Assert.Equal(3, chunks.Count);
+        Assert.Equal([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], chunks[0]);
+        Assert.Equal([11, 12, 13, 14, 15, 16, 17, 18, 19, 20], chunks[1]);
+        Assert.Equal([21, 22, 23], chunks[2]);
+    }
+
+    [Fact]
+    public async Task ChunkAsync_when_cancellation_requested_after_final_partial_chunk_completes_normally()
+    {
+        using var tokenSource = new CancellationTokenSource();
+        var source = TestSources.Create(1, 2, 3, 4);
+
+        await using var enumerator = source.ChunkAsync(3, tokenSource.Token).GetAsyncEnumerator();
+
+        Assert.True(await enumerator.MoveNextAsync());
+        Assert.True(await enumerator.MoveNextAsync());
+        Assert.Equal([4], enumerator.Current);
+
+        tokenSource.Cancel();
+
+        // The source ended inside the last chunk, so there is no further chunk boundary to check.
+        Assert.False(await enumerator.MoveNextAsync());
+    }
+
     private static async Task<List<ICollection<int>>> CollectChunksAsync(IAsyncEnumerable<ICollection<int>> chunks)
     {
         var result = new List<ICollection<int>>();

@@ -13,7 +13,8 @@ public class ChunkAsyncBenchmarks
     [Params(1024, 4096, 16384)]
     public int ItemCount { get; set; }
 
-    [Params(4, 16, 64)]
+    // 1048576 is far larger than every ItemCount: the "size as an upper bound" case.
+    [Params(4, 16, 64, 1048576)]
     public int ChunkSize { get; set; }
 
     [GlobalSetup]

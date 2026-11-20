@@ -90,41 +90,64 @@ public static class IAsyncEnumerableExtensions
                 yield break;
             }
 
-            var array = new T[maxChunkSize];
-            var index = 0;
+            // Like Enumerable.Chunk, the working array starts small and doubles up to
+            // maxChunkSize, so a large size costs memory only for elements that arrive.
+            // Each chunk's array escapes to the consumer, so pooling isn't safe.
+            var arraySize = NextBufferSize(0, maxChunkSize);
+            int index;
 
             do
             {
-                array[index++] = enumerator.Current;
+                var array = new T[arraySize];
+                array[0] = enumerator.Current;
+                index = 1;
 
-                if (index == maxChunkSize)
+                while (index < maxChunkSize && await enumerator.MoveNextAsync().ConfigureAwait(false))
                 {
-                    yield return array;
-                    // Deliberately checked at chunk boundaries only, not per
-                    // element — the token is also passed to GetAsyncEnumerator
-                    // above, so a well-behaved source observes it inside
-                    // MoveNextAsync between elements. A per-element check here
-                    // would buy little beyond the boundary check while adding a
-                    // volatile read to the hot path.
-                    token.ThrowIfCancellationRequested();
-                    array = new T[maxChunkSize];
-                    index = 0;
+                    if (index == array.Length)
+                    {
+                        arraySize = NextBufferSize(array.Length, maxChunkSize);
+                        Array.Resize(ref array, arraySize);
+                    }
+
+                    array[index++] = enumerator.Current;
                 }
 
+                if (index != array.Length)
+                {
+                    Array.Resize(ref array, index);
+                }
+
+                yield return array;
+
+                if (index < maxChunkSize)
+                {
+                    // The source ended inside this chunk.
+                    yield break;
+                }
+
+                // Deliberately checked at chunk boundaries only, not per
+                // element — the token is also passed to GetAsyncEnumerator
+                // above, so a well-behaved source observes it inside
+                // MoveNextAsync between elements. A per-element check here
+                // would buy little beyond the boundary check while adding a
+                // volatile read to the hot path.
+                token.ThrowIfCancellationRequested();
+
             } while (await enumerator.MoveNextAsync().ConfigureAwait(false));
-
-            if (index == 0)
-            {
-                yield break;
-            }
-
-            // Right-sized copy is one allocation + one copy; Array.Resize did
-            // the same work plus an extra bookkeeping step. The final-chunk
-            // array escapes the method, so pooling isn't safe.
-            var tail = new T[index];
-            Array.Copy(array, tail, index);
-            yield return tail;
         }
+    }
+
+
+
+    /// <summary>
+    /// The next length for a buffer that grows toward <paramref name="limit"/>: at least four
+    /// elements, doubling after that, never more than <paramref name="limit"/>
+    /// (the same growth <c>Enumerable.Chunk</c> uses).
+    /// </summary>
+    private static int NextBufferSize(int currentLength, int limit)
+    {
+        return (int)Math.Min((uint)limit, Math.Max(4u, 2u * (uint)currentLength));
     }
 
 
@@ -914,9 +937,11 @@ public static class IAsyncEnumerableExtensions
     {
         token.ThrowIfCancellationRequested();
 
-        // Circular buffer: `next` is where the next element is written, which is also the
-        // oldest element once the buffer is full.
-        var buffer = new T[windowSize];
+        // Until the first window is complete the buffer fills front to back and grows like
+        // ChunkAsync's working array, so a large windowSize costs memory only for elements that
+        // arrive. Once full it is a circular buffer: `next` is where the next element is
+        // written, which is also the oldest element.
+        var buffer = Array.Empty<T>();
         var count = 0;
         var next = 0;
 
@@ -925,14 +950,24 @@ public static class IAsyncEnumerableExtensions
         {
             while (await enumerator.MoveNextAsync().ConfigureAwait(false))
             {
-                buffer[next] = enumerator.Current;
-                next = (next + 1) % windowSize;
-
-                // Saturates at windowSize, so it cannot overflow however long the source runs.
-                count = Math.Min(count + 1, windowSize);
                 if (count < windowSize)
                 {
-                    continue;
+                    if (count == buffer.Length)
+                    {
+                        Array.Resize(ref buffer, NextBufferSize(buffer.Length, windowSize));
+                    }
+
+                    // Stops at windowSize, so it cannot overflow however long the source runs.
+                    buffer[count++] = enumerator.Current;
+                    if (count < windowSize)
+                    {
+                        continue;
+                    }
+                }
+                else
+                {
+                    buffer[next] = enumerator.Current;
+                    next = (next + 1) % windowSize;
                 }
 
                 // Each window escapes to the consumer, so it is a fresh copy in oldest-first
