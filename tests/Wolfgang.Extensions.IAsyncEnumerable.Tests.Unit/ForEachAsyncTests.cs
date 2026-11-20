@@ -341,4 +341,52 @@ public sealed class ForEachAsyncTests
             return Task.CompletedTask;
         };
     }
+
+
+
+    [Fact]
+    public void ForEachAsync_Action_when_source_is_null_throws_at_the_call_before_returning_a_task()
+    {
+        IAsyncEnumerable<int> source = null!;
+
+        var actual = Assert.Throws<ArgumentNullException>(() => { _ = source.ForEachAsync(_ => { }); });
+
+        Assert.Equal("source", actual.ParamName);
+    }
+
+
+
+    [Fact]
+    public void ForEachAsync_Action_when_action_is_null_throws_at_the_call_before_returning_a_task()
+    {
+        var source = TestSources.Create(1, 2, 3);
+
+        var actual = Assert.Throws<ArgumentNullException>(() => { _ = source.ForEachAsync((Action<int>)null!); });
+
+        Assert.Equal("action", actual.ParamName);
+    }
+
+
+
+    [Fact]
+    public void ForEachAsync_Func_when_source_is_null_throws_at_the_call_before_returning_a_task()
+    {
+        IAsyncEnumerable<int> source = null!;
+
+        var actual = Assert.Throws<ArgumentNullException>(() => { _ = source.ForEachAsync(_ => Task.CompletedTask); });
+
+        Assert.Equal("source", actual.ParamName);
+    }
+
+
+
+    [Fact]
+    public void ForEachAsync_Func_when_action_is_null_throws_at_the_call_before_returning_a_task()
+    {
+        var source = TestSources.Create(1, 2, 3);
+
+        var actual = Assert.Throws<ArgumentNullException>(() => { _ = source.ForEachAsync((Func<int, Task>)null!); });
+
+        Assert.Equal("action", actual.ParamName);
+    }
 }

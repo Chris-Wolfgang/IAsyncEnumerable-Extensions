@@ -436,7 +436,10 @@ public static class IAsyncEnumerableExtensions
     /// <param name="token">A cancellation token to cancel the operation.</param>
     /// <typeparam name="T">The type of elements in the IAsyncEnumerable{T}.</typeparam>
     /// <returns>A task that completes when every element has been processed.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="source"/> or <paramref name="action"/> is null.</exception>
+    /// <exception cref="ArgumentNullException">
+    /// Thrown when <paramref name="source"/> or <paramref name="action"/> is null. Thrown at the call,
+    /// before a task is returned.
+    /// </exception>
     /// <exception cref="OperationCanceledException">
     /// Thrown when <paramref name="token"/> is canceled before or during enumeration.
     /// Delivered through the returned <see cref="Task"/>.
@@ -446,13 +449,15 @@ public static class IAsyncEnumerableExtensions
     /// await source.ForEachAsync(x =&gt; Console.WriteLine($"Processing: {x}"));
     /// </code>
     /// </example>
-    public static async Task ForEachAsync<T>
+    public static Task ForEachAsync<T>
     (
         this IAsyncEnumerable<T> source,
         Action<T> action,
         CancellationToken token = default
     )
     {
+        // Validate eagerly, before the async state machine is created, so the
+        // ArgumentNullException surfaces at the call rather than at await time.
         if (source is null)
         {
             throw new ArgumentNullException(nameof(source));
@@ -463,6 +468,64 @@ public static class IAsyncEnumerableExtensions
             throw new ArgumentNullException(nameof(action));
         }
 
+        return ForEachActionCoreAsync(source, action, token);
+    }
+
+
+
+    /// <summary>
+    /// Executes an asynchronous action on each element of an IAsyncEnumerable{T},
+    /// consuming the sequence. This is a terminal operation.
+    /// </summary>
+    /// <param name="source">The source IAsyncEnumerable{T}.</param>
+    /// <param name="action">The asynchronous action to execute on each element.</param>
+    /// <param name="token">A cancellation token to cancel the operation.</param>
+    /// <typeparam name="T">The type of elements in the IAsyncEnumerable{T}.</typeparam>
+    /// <returns>A task that completes when every element has been processed.</returns>
+    /// <exception cref="ArgumentNullException">
+    /// Thrown when <paramref name="source"/> or <paramref name="action"/> is null. Thrown at the call,
+    /// before a task is returned.
+    /// </exception>
+    /// <exception cref="OperationCanceledException">
+    /// Thrown when <paramref name="token"/> is canceled before or during enumeration.
+    /// Delivered through the returned <see cref="Task"/>.
+    /// </exception>
+    /// <example>
+    /// <code>
+    /// await source.ForEachAsync(async x =&gt; await logger.LogAsync($"Processing: {x}"));
+    /// </code>
+    /// </example>
+    public static Task ForEachAsync<T>
+    (
+        this IAsyncEnumerable<T> source,
+        Func<T, Task> action,
+        CancellationToken token = default
+    )
+    {
+        // Validate eagerly, before the async state machine is created, so the
+        // ArgumentNullException surfaces at the call rather than at await time.
+        if (source is null)
+        {
+            throw new ArgumentNullException(nameof(source));
+        }
+
+        if (action is null)
+        {
+            throw new ArgumentNullException(nameof(action));
+        }
+
+        return ForEachFuncCoreAsync(source, action, token);
+    }
+
+
+
+    private static async Task ForEachActionCoreAsync<T>
+    (
+        IAsyncEnumerable<T> source,
+        Action<T> action,
+        CancellationToken token
+    )
+    {
         token.ThrowIfCancellationRequested();
 
         var enumerator = source.GetAsyncEnumerator(token);
@@ -478,42 +541,13 @@ public static class IAsyncEnumerableExtensions
 
 
 
-    /// <summary>
-    /// Executes an asynchronous action on each element of an IAsyncEnumerable{T},
-    /// consuming the sequence. This is a terminal operation.
-    /// </summary>
-    /// <param name="source">The source IAsyncEnumerable{T}.</param>
-    /// <param name="action">The asynchronous action to execute on each element.</param>
-    /// <param name="token">A cancellation token to cancel the operation.</param>
-    /// <typeparam name="T">The type of elements in the IAsyncEnumerable{T}.</typeparam>
-    /// <returns>A task that completes when every element has been processed.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="source"/> or <paramref name="action"/> is null.</exception>
-    /// <exception cref="OperationCanceledException">
-    /// Thrown when <paramref name="token"/> is canceled before or during enumeration.
-    /// Delivered through the returned <see cref="Task"/>.
-    /// </exception>
-    /// <example>
-    /// <code>
-    /// await source.ForEachAsync(async x =&gt; await logger.LogAsync($"Processing: {x}"));
-    /// </code>
-    /// </example>
-    public static async Task ForEachAsync<T>
+    private static async Task ForEachFuncCoreAsync<T>
     (
-        this IAsyncEnumerable<T> source,
+        IAsyncEnumerable<T> source,
         Func<T, Task> action,
-        CancellationToken token = default
+        CancellationToken token
     )
     {
-        if (source is null)
-        {
-            throw new ArgumentNullException(nameof(source));
-        }
-
-        if (action is null)
-        {
-            throw new ArgumentNullException(nameof(action));
-        }
-
         token.ThrowIfCancellationRequested();
 
         var enumerator = source.GetAsyncEnumerator(token);
