@@ -35,6 +35,7 @@ The library supports multiple .NET versions:
 - **.NET Standard 2.0** compatible projects
 - **.NET 8.0** or later
 - **.NET 10.0** or later
+- **.NET 11.0** or later
 
 ## Basic Usage
 

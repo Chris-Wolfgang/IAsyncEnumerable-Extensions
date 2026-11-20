@@ -5,14 +5,14 @@
 This is a .NET library project that provides extension methods for `IAsyncEnumerable<T>`. The library is designed to make working with async sequences easier and more efficient, with features like chunking, batching, and other utility methods.
 
 **Repository Type**: .NET Library Project  
-**Target Frameworks**: .NET Framework 4.6.2, .NET Standard 2.0, .NET 8.0, .NET 10.0 (main package); .NET Framework 4.6.2, .NET Standard 2.0 only (Legacy package)  
+**Target Frameworks**: .NET Framework 4.6.2, .NET Standard 2.0, .NET 8.0, .NET 10.0, .NET 11.0 (main package); .NET Framework 4.6.2, .NET Standard 2.0 only (Legacy package)  
 **Primary Language**: C#  
 **Packages**: Wolfgang.Extensions.IAsyncEnumerable (main) and Wolfgang.Extensions.IAsyncEnumerable.Legacy (terminal operators for TFMs without System.Linq.AsyncEnumerable), both under `src/`  
 
 ## Build and Validation Instructions
 
 ### Prerequisites
-- .NET 10.0.x SDK (always install if not present)
+- .NET 11.0.x SDK (always install if not present; pinned by `global.json`)
 - ReportGenerator tool (installed via `dotnet tool install -g dotnet-reportgenerator-globaltool`)
 - DevSkim CLI (installed via `dotnet tool install --global Microsoft.CST.DevSkim.CLI`)
 
@@ -103,7 +103,7 @@ root/
 ### Continuous Integration Pipeline (`.github/workflows/pr.yaml`)
 The workflow runs on pull requests to `main` branch and includes:
 
-1. **Environment**: Multi-stage pipeline (Linux, Windows, macOS) with .NET SDKs 3.1.x through 10.0.x
+1. **Environment**: Multi-stage pipeline (Linux, Windows, macOS) with .NET SDKs 3.1.x through 11.0.x
 2. **Build Steps**: Checkout → Setup .NET → Restore → Build → Test → Coverage → Security
 3. **Artifacts**: Coverage reports and DevSkim results uploaded
 4. **Branch Protection**: Configured to require this workflow to pass before merging
@@ -168,7 +168,7 @@ This information has been validated against the project structure and GitHub wor
 4. **Testing**: Ensure test projects follow `*Test*.csproj` naming convention
 5. **Coverage**: Keep production coverage at or above 95% and test-assembly coverage at 100% to pass CI
 6. **Security**: Review DevSkim findings and address security concerns
-7. **Multi-targeting**: The library targets .NET Framework 4.6.2, .NET Standard 2.0, .NET 8.0, and .NET 10.0
+7. **Multi-targeting**: The library targets .NET Framework 4.6.2, .NET Standard 2.0, .NET 8.0, .NET 10.0, and .NET 11.0
 
 ### Validation Steps
 Before submitting changes:
