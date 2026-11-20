@@ -16,7 +16,7 @@ dependency graph changes.
 
 | Package | Version | License |
 |---------|---------|---------|
-| [Microsoft.Bcl.AsyncInterfaces](https://www.nuget.org/packages/Microsoft.Bcl.AsyncInterfaces/) | 10.0.13 | [MIT](https://licenses.nuget.org/MIT) |
+| [Microsoft.Bcl.AsyncInterfaces](https://www.nuget.org/packages/Microsoft.Bcl.AsyncInterfaces/) | 11.0.0 | [MIT](https://licenses.nuget.org/MIT) |
 
 > Microsoft.Bcl.AsyncInterfaces provides the `IAsyncEnumerable<T>` /
 > `IAsyncDisposable` interfaces for netstandard2.0/net462; it is not pulled
@@ -26,7 +26,7 @@ dependency graph changes.
 
 | Package | Version | License |
 |---------|---------|---------|
-| [Microsoft.Bcl.AsyncInterfaces](https://www.nuget.org/packages/Microsoft.Bcl.AsyncInterfaces/) | 10.0.13 | [MIT](https://licenses.nuget.org/MIT) |
+| [Microsoft.Bcl.AsyncInterfaces](https://www.nuget.org/packages/Microsoft.Bcl.AsyncInterfaces/) | 11.0.0 | [MIT](https://licenses.nuget.org/MIT) |
 
 > Same dependency, same reason — this package targets only
 > net462/netstandard2.0, so it always needs it.
