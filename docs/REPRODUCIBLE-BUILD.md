@@ -1,30 +1,27 @@
-# Reproducible builds
+# Verifying a release of IAsyncEnumerable-Extensions
+
+Anyone can check that a published release of IAsyncEnumerable-Extensions was built from the tagged source, without
+trusting this repository's CI. It covers both packages built from `src/`: `Wolfgang.Extensions.IAsyncEnumerable` and
+`Wolfgang.Extensions.IAsyncEnumerable.Legacy`. This page is for a consumer who has never seen the repository.
 
 ## What "reproducible" means here
 
-**Deterministic** means the same commit, built twice on the *same*
-machine/toolchain, produces byte-identical output — the .NET SDK does this
-by default for Release builds. **Reproducible** is the stronger claim this
-document is about: the same commit, built on a *different* machine/OS,
-still produces a byte-identical assembly. That requires
-`ContinuousIntegrationBuild` (strips machine-specific paths/timestamps,
-enabled here whenever `CI=true`, which GitHub Actions sets automatically)
-and [SourceLink](https://github.com/dotnet/sourcelink) (embeds commit
-provenance instead of a local file path).
+The same tag, built with the SDK recorded in the release's `BUILD-MANIFEST.txt`, **on Linux**, gives:
 
-`reproducible-build.yaml` verifies this weekly (+ on demand): it builds
-every package under `src/` (`Wolfgang.Extensions.IAsyncEnumerable` and
-`Wolfgang.Extensions.IAsyncEnumerable.Legacy`) on both `ubuntu-latest`
-and `windows-latest` and SHA-256-hashes each package's per-TFM assembly
-(`.dll`) **and** its symbols (`.pdb`). Every hash must match exactly, or
-the run fails.
+- byte-identical `.dll` and `.pdb` files for every target framework, and
+- `.nupkg` / `.snupkg` packages whose **entries** match the published packages entry by entry.
 
-**The guarantee covers assemblies and symbols, not package files.** A
-`.nupkg`/`.snupkg` is a ZIP, and NuGet stamps each entry with the pack
-time, so two packs of the same commit differ even on one machine. Hashing
-the `.dll` and `.pdb` directly is the actual reproducibility claim.
+What is expected to differ, and is never compared:
 
-### What makes it hold across operating systems
+- **the package file itself** (`.nupkg` / `.snupkg` as a zip): NuGet stamps every zip entry with the pack time, so
+  two packs of the same commit never give the same zip bytes, even on one machine. Compare the entries.
+- **a build on another operating system**: cross-OS identity is reported by the
+  [Reproducible Build workflow](https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/actions/workflows/reproducible-build.yaml), not promised.
+
+Every pull request is checked the same way: the workflow packs the commit twice on Ubuntu and fails unless both
+packs are identical by the rules above.
+
+## What makes it hold across operating systems
 
 Two inputs used to differ between Linux and Windows, so every assembly
 hashed differently per OS even though its IL was identical:
@@ -43,43 +40,83 @@ hashed differently per OS even though its IL was identical:
 If the check fails again, compare the per-TFM `.pdb` documents and
 referenced-assembly records first.
 
-## Verifying a specific release yourself
+## What a release publishes
 
-Every GitHub Release has a `reproducible-build-manifest.json` asset with a
-`packages` array — one entry per shipped package, each listing the
-expected SHA-256 hash of its assembly (`.dll`) for each target framework —
-plus the exact toolchain (.NET SDK version) that produced them all. The
-manifest lists assemblies only; the `.pdb` is checked by the weekly
-workflow above, not recorded in the release manifest.
+Each GitHub Release carries, next to the packages:
 
-1. Install the matching .NET SDK version (see `toolchain.dotnetSdk` in the
-   manifest).
-2. Clone this repo and check out the release tag:
+| Asset | Contents |
+|---|---|
+| `SHA256SUMS.txt` | `<sha256>  <tfm>/<file>` for every `.dll`/`.pdb`, and `<sha256>  <package-file>` for every `.nupkg`/`.snupkg` |
+| `BUILD-MANIFEST.txt` | exact SDK version (`dotnet --version`), runner image and version, commit SHA, tag, and the `CI` / `ContinuousIntegrationBuild` / `Deterministic` values |
+| `reproducible-build-manifest.json` | the older JSON form: per package, the SHA-256 of each per-TFM `.dll` and the SDK version (kept for releases and tools that read it; `SHA256SUMS.txt` supersedes it) |
+
+Both are subjects of the release's build-provenance attestation, so step 5 below covers them as well as the packages.
+
+## Verify a release
+
+You need git, the GitHub CLI (`gh`), Python 3 and a Linux machine (or container).
+
+1. **Clone the tag.**
+
    ```bash
-   git clone https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions.git
+   TAG=v1.2.3   # the release you are checking
+   git clone --branch "$TAG" --depth 1 https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions.git
    cd IAsyncEnumerable-Extensions
-   git checkout <tag>
+   gh release download "$TAG" --repo Chris-Wolfgang/IAsyncEnumerable-Extensions --dir ../release
+   cat ../release/BUILD-MANIFEST.txt
    ```
-3. Build the package you want to verify the same way CI does (substitute
-   the package directory name under `src/` for `<packageId>`):
-   ```bash
-   CI=true dotnet build src/<packageId>/<packageId>.csproj --configuration Release
-   ```
-4. Hash the assembly for the TFM you care about and compare against that
-   package's entry in the manifest:
-   ```bash
-   sha256sum src/<packageId>/bin/Release/<tfm>/<packageId>.dll
-   ```
-5. If the hashes don't match, please open an issue with your OS, .NET SDK
-   version, the package/TFM, and the hash you got — that's exactly the
-   kind of discrepancy this verification exists to catch.
 
-## Third-party attestation
+2. **Install the recorded SDK.** `global.json` pins the major version; install the exact version that
+   `BUILD-MANIFEST.txt` names (for example with `dotnet-install.sh --version <sdk>`), and check that `dotnet --version`
+   prints it from inside the clone.
 
-There is no automated third-party attestation pipeline (e.g. via
-[reproducible-builds.org](https://reproducible-builds.org/)'s conventions
-or [vouchsafe.io](https://vouchsafe.io/)) at this time. If you independently
-verify a release, filing an issue with the result (per step 5 above) is
-the current process — a discrepancy report either surfaces a real problem
-or, if the build turns out not to be reproducible on your platform for a
-legitimate reason, documents that limitation for the next person.
+3. **Pack exactly as the workflow does**, once per packable project under `src/`:
+
+   ```bash
+   export CI=true
+   for proj in $(git ls-files 'src/*.csproj' 'src/**/*.csproj'); do
+     [ "$(dotnet msbuild "$proj" -getProperty:IsPackable | tr -d '[:space:]')" = "true" ] || continue
+     dotnet pack "$proj" -c Release -p:ContinuousIntegrationBuild=true -p:Deterministic=true -o ../rebuilt
+   done
+   ```
+
+4. **Compare.**
+
+   ```bash
+   # Assemblies and symbols, keyed <tfm>/<file> exactly as in SHA256SUMS.txt.
+   for d in $(git ls-files 'src/*.csproj' 'src/**/*.csproj' | xargs -n1 dirname); do
+     [ -d "$d/bin/Release" ] || continue
+     (cd "$d/bin/Release" && find . -mindepth 2 -maxdepth 2 \( -name '*.dll' -o -name '*.pdb' \) \
+       | sed 's|^\./||' | xargs sha256sum)
+   done | sort -u -k2 > ../rebuilt-assemblies.txt
+   grep -vE '\.s?nupkg$' ../release/SHA256SUMS.txt | sort -k2 | diff - ../rebuilt-assemblies.txt \
+     && echo "Assemblies and symbols: identical"
+
+   # Packages, entry by entry.
+   python3 - ../release ../rebuilt <<'PY'
+   import hashlib, pathlib, sys, zipfile
+   def entries(p):
+       with zipfile.ZipFile(p) as z:
+           return {e.filename: hashlib.sha256(z.read(e)).hexdigest() for e in z.infolist() if not e.is_dir()}
+   ok = True
+   for pub in sorted(pathlib.Path(sys.argv[1]).glob("*.*nupkg")):
+       mine = pathlib.Path(sys.argv[2]) / pub.name
+       same = mine.exists() and entries(pub) == entries(mine)
+       ok &= same
+       print(("identical entries: " if same else "DIFFERS: ") + pub.name)
+   sys.exit(0 if ok else 1)
+   PY
+   ```
+
+5. **Check the provenance** of the downloaded assets against this repository:
+
+   ```bash
+   for f in ../release/*; do gh attestation verify "$f" --repo Chris-Wolfgang/IAsyncEnumerable-Extensions; done
+   ```
+
+## Releases cut before the standard
+
+A tag cut before this repository took the reproducible-builds pieces (literal copyright year, LF-normalized generated
+sources, the reference-assemblies pin, `global.json`) has no `SHA256SUMS.txt` or `BUILD-MANIFEST.txt`, and its copyright
+attribute may carry the year it was built in. To rebuild such a tag, pass the original year
+(`-p:Copyright="Copyright (c) <year> <holder>"`) and expect only the Linux-to-Linux comparison to hold.
