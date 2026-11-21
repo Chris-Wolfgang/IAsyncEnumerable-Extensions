@@ -40,7 +40,7 @@ is a new array in oldest-first order, independent of later windows.
   operator should pick by the same test: is positional access the reason to
   call it?
 - `IReadOnlyList<T>` is available on every target framework the package
-  supports (net462, netstandard2.0, net8.0, net10.0), so no dependency is added.
+  supports (net462, netstandard2.0, net8.0, net10.0, net11.0), so no dependency is added.
 - One `windowSize`-length array is allocated per window. A pooled, shared-buffer
   variant would be faster but would break the "a window you keep stays valid"
   guarantee, so it is not offered.

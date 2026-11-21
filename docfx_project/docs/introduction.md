@@ -13,7 +13,7 @@ This library provides:
 - **Production-Ready Extensions**: Battle-tested extension methods for common async enumerable operations
 - **High Performance**: Optimized implementations with minimal allocations
 - **Comprehensive Test Coverage**: Extensive unit tests ensure reliability
-- **Multi-Framework Support**: Works with .NET Framework 4.6.2, .NET Standard 2.0, .NET 8.0, and .NET 10.0
+- **Multi-Framework Support**: Works with .NET Framework 4.6.2, .NET Standard 2.0, .NET 8.0, .NET 10.0, and .NET 11.0
 - **Strict Code Quality**: Enforced through 8 specialized analyzers and async-first patterns
 
 ## Key Features
