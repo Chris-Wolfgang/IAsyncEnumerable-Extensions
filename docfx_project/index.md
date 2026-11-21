@@ -260,6 +260,7 @@ This library supports multiple .NET versions:
 - **.NET Standard 2.0** (`netstandard2.0`)
 - **.NET 8.0** (`net8.0`)
 - **.NET 10.0** (`net10.0`)
+- **.NET 11.0** (`net11.0`)
 
 ---
 
@@ -297,7 +298,7 @@ This library uses **`BannedSymbols.txt`** to prohibit synchronous APIs and enfor
 ## 🛠️ Building from Source
 
 ### Prerequisites
-- [.NET 10.0 SDK](https://dotnet.microsoft.com/download) or later
+- [.NET 11.0 SDK](https://dotnet.microsoft.com/download) or later (the version pinned by `global.json`)
 - Optional: [PowerShell Core](https://github.com/PowerShell/PowerShell) for formatting scripts
 
 ### Build Steps

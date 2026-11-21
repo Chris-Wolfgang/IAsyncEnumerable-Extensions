@@ -111,7 +111,7 @@ await foreach (var batch in source
 
 - **.NET Framework:** 4.6.2
 - **.NET Standard:** 2.0
-- **.NET:** 8.0, 10.0
+- **.NET:** 8.0, 10.0, 11.0
 
 **Wolfgang.Extensions.IAsyncEnumerable.Legacy** targets:
 
@@ -151,7 +151,7 @@ dotnet build --configuration Release
 dotnet test  --configuration Release
 ```
 
-SDK requirement: the version installed by `.github/workflows/pr.yaml` (currently .NET 10 + side-by-side SDKs for the older TFMs). See [`docs/README-FORMATTING.md`](docs/README-FORMATTING.md) for the source-formatting workflow.
+SDK requirement: the version installed by `.github/workflows/pr.yaml` (currently .NET 11, pinned by `global.json`, + side-by-side SDKs for the older TFMs). See [`docs/README-FORMATTING.md`](docs/README-FORMATTING.md) for the source-formatting workflow.
 
 ---
 
