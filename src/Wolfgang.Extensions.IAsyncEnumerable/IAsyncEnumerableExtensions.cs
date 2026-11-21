@@ -68,7 +68,77 @@ public static class IAsyncEnumerableExtensions
             throw new ArgumentOutOfRangeException(nameof(maxChunkSize), "Chunk size must be greater than zero.");
         }
 
-        return ChunkCoreAsync(source, maxChunkSize, token);
+        return ChunkCoreAsync(source, maxChunkSize, NextBufferSize(0, maxChunkSize), token);
+    }
+
+
+
+    /// <summary>
+    /// Splits an IAsyncEnumerable{T} into chunks of a specified maximum size, starting each
+    /// chunk's working array at <paramref name="initialCapacity"/> elements.
+    /// </summary>
+    /// <remarks>
+    /// Produces exactly the same chunks as
+    /// <see cref="ChunkAsync{T}(IAsyncEnumerable{T}, int, CancellationToken)"/>; only the memory
+    /// pattern differs. The working array starts at <paramref name="initialCapacity"/> elements
+    /// instead of four and doubles up to <paramref name="maxChunkSize"/> from there, like the
+    /// capacity passed to <c>new List&lt;T&gt;(int)</c>. Pass the chunk length you expect so a
+    /// large <paramref name="maxChunkSize"/> allocates once instead of growing; passing
+    /// <paramref name="maxChunkSize"/> itself pre-sizes every chunk. Each chunk is still trimmed
+    /// to the number of elements it holds, and nothing is allocated before the first element
+    /// arrives.
+    /// </remarks>
+    /// <param name="source">The source IAsyncEnumerable{T} to chunk.</param>
+    /// <param name="maxChunkSize">The maximum size of each chunk.</param>
+    /// <param name="initialCapacity">
+    /// The starting length of the working array, from one to <paramref name="maxChunkSize"/>.
+    /// </param>
+    /// <param name="token">A cancellation token to cancel the operation.</param>
+    /// <typeparam name="T">The type of elements in the IAsyncEnumerable{T}.</typeparam>
+    /// <returns>An IAsyncEnumerable{ICollection{T}} representing the chunks.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="source"/> is null.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">
+    /// Thrown when <paramref name="maxChunkSize"/> is less than one, or when
+    /// <paramref name="initialCapacity"/> is less than one or greater than <paramref name="maxChunkSize"/>.
+    /// </exception>
+    /// <exception cref="OperationCanceledException">
+    /// Thrown when <paramref name="token"/> is canceled. Observed at enumeration
+    /// time (surfaced through the consuming <c>await foreach</c>), checked at
+    /// chunk boundaries rather than per element.
+    /// </exception>
+    /// <example>
+    /// <code>
+    /// // Batches of up to 100,000 items that are usually about 5,000 long
+    /// await foreach (var batch in source.ChunkAsync(100_000, 5_000))
+    /// {
+    ///     Console.WriteLine($"Batch of {batch.Count} items");
+    /// }
+    /// </code>
+    /// </example>
+    public static IAsyncEnumerable<ICollection<T>> ChunkAsync<T>
+    (
+        this IAsyncEnumerable<T> source,
+        int maxChunkSize,
+        int initialCapacity,
+        CancellationToken token = default
+    )
+    {
+        if (source is null)
+        {
+            throw new ArgumentNullException(nameof(source));
+        }
+
+        if (maxChunkSize < 1)
+        {
+            throw new ArgumentOutOfRangeException(nameof(maxChunkSize), "Chunk size must be greater than zero.");
+        }
+
+        if (initialCapacity < 1 || initialCapacity > maxChunkSize)
+        {
+            throw new ArgumentOutOfRangeException(nameof(initialCapacity), "Initial capacity must be between one and the maximum chunk size.");
+        }
+
+        return ChunkCoreAsync(source, maxChunkSize, initialCapacity, token);
     }
 
 
@@ -77,6 +147,7 @@ public static class IAsyncEnumerableExtensions
     (
         IAsyncEnumerable<T> source,
         int maxChunkSize,
+        int initialCapacity,
         [EnumeratorCancellation] CancellationToken token
     )
     {
@@ -90,10 +161,11 @@ public static class IAsyncEnumerableExtensions
                 yield break;
             }
 
-            // Like Enumerable.Chunk, the working array starts small and doubles up to
-            // maxChunkSize, so a large size costs memory only for elements that arrive.
-            // Each chunk's array escapes to the consumer, so pooling isn't safe.
-            var arraySize = NextBufferSize(0, maxChunkSize);
+            // Like Enumerable.Chunk, the working array starts small (initialCapacity, four by
+            // default) and doubles up to maxChunkSize, so a large size costs memory only for
+            // elements that arrive. Each chunk's array escapes to the consumer, so pooling
+            // isn't safe.
+            var arraySize = initialCapacity;
             int index;
 
             do
@@ -923,7 +995,75 @@ public static class IAsyncEnumerableExtensions
             throw new ArgumentOutOfRangeException(nameof(windowSize), "Window size must be greater than zero.");
         }
 
-        return SlidingWindowCoreAsync(source, windowSize, token);
+        return SlidingWindowCoreAsync(source, windowSize, NextBufferSize(0, windowSize), token);
+    }
+
+
+
+    /// <summary>
+    /// Yields overlapping windows of <paramref name="windowSize"/> consecutive elements from an
+    /// IAsyncEnumerable{T}, advancing one element at a time, starting the internal buffer at
+    /// <paramref name="initialCapacity"/> elements.
+    /// </summary>
+    /// <remarks>
+    /// Produces exactly the same windows as
+    /// <see cref="SlidingWindowAsync{T}(IAsyncEnumerable{T}, int, CancellationToken)"/>; only the
+    /// memory pattern differs. While the first window fills, the buffer starts at
+    /// <paramref name="initialCapacity"/> elements instead of four and doubles up to
+    /// <paramref name="windowSize"/> from there, like the capacity passed to
+    /// <c>new List&lt;T&gt;(int)</c>. Passing <paramref name="windowSize"/> itself allocates the
+    /// buffer once. Nothing is allocated before the first element arrives.
+    /// </remarks>
+    /// <param name="source">The source IAsyncEnumerable{T}.</param>
+    /// <param name="windowSize">The number of elements in each window.</param>
+    /// <param name="initialCapacity">
+    /// The starting length of the internal buffer, from one to <paramref name="windowSize"/>.
+    /// </param>
+    /// <param name="token">A cancellation token to cancel the operation.</param>
+    /// <typeparam name="T">The type of elements in the IAsyncEnumerable{T}.</typeparam>
+    /// <returns>An IAsyncEnumerable{IReadOnlyList{T}} of windows, oldest element first.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="source"/> is null.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">
+    /// Thrown when <paramref name="windowSize"/> is less than one, or when
+    /// <paramref name="initialCapacity"/> is less than one or greater than <paramref name="windowSize"/>.
+    /// </exception>
+    /// <exception cref="OperationCanceledException">
+    /// Thrown when <paramref name="token"/> is canceled. Observed at enumeration
+    /// time, surfaced through the consuming <c>await foreach</c>.
+    /// </exception>
+    /// <example>
+    /// <code>
+    /// // A 1,000-reading window, buffer allocated once up front
+    /// await foreach (var window in source.SlidingWindowAsync(1_000, 1_000))
+    /// {
+    ///     Console.WriteLine(window[window.Count - 1]);
+    /// }
+    /// </code>
+    /// </example>
+    public static IAsyncEnumerable<IReadOnlyList<T>> SlidingWindowAsync<T>
+    (
+        this IAsyncEnumerable<T> source,
+        int windowSize,
+        int initialCapacity,
+        CancellationToken token = default
+    )
+    {
+        if (source is null)
+        {
+            throw new ArgumentNullException(nameof(source));
+        }
+
+        if (windowSize < 1)
+        {
+            throw new ArgumentOutOfRangeException(nameof(windowSize), "Window size must be greater than zero.");
+        }
+
+        if (initialCapacity < 1 || initialCapacity > windowSize)
+        {
+            throw new ArgumentOutOfRangeException(nameof(initialCapacity), "Initial capacity must be between one and the window size.");
+        }
+
+        return SlidingWindowCoreAsync(source, windowSize, initialCapacity, token);
     }
 
 
@@ -932,15 +1072,16 @@ public static class IAsyncEnumerableExtensions
     (
         IAsyncEnumerable<T> source,
         int windowSize,
+        int initialCapacity,
         [EnumeratorCancellation] CancellationToken token
     )
     {
         token.ThrowIfCancellationRequested();
 
         // Until the first window is complete the buffer fills front to back and grows like
-        // ChunkAsync's working array, so a large windowSize costs memory only for elements that
-        // arrive. Once full it is a circular buffer: `next` is where the next element is
-        // written, which is also the oldest element.
+        // ChunkAsync's working array (from initialCapacity, four by default), so a large
+        // windowSize costs memory only for elements that arrive. Once full it is a circular
+        // buffer: `next` is where the next element is written, which is also the oldest element.
         var buffer = Array.Empty<T>();
         var count = 0;
         var next = 0;
@@ -954,7 +1095,11 @@ public static class IAsyncEnumerableExtensions
                 {
                     if (count == buffer.Length)
                     {
-                        Array.Resize(ref buffer, NextBufferSize(buffer.Length, windowSize));
+                        Array.Resize
+                        (
+                            ref buffer,
+                            buffer.Length == 0 ? initialCapacity : NextBufferSize(buffer.Length, windowSize)
+                        );
                     }
 
                     // Stops at windowSize, so it cannot overflow however long the source runs.

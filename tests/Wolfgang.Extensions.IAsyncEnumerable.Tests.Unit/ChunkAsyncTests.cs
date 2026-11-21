@@ -232,6 +232,97 @@ public sealed class ChunkAsyncTests
         Assert.False(await enumerator.MoveNextAsync());
     }
 
+    [Theory]
+    [InlineData(1)]
+    [InlineData(3)]
+    [InlineData(10)]
+    public async Task ChunkAsync_with_initialCapacity_returns_the_same_chunks_as_the_default(int initialCapacity)
+    {
+        var source = TestSources.Create(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23);
+
+        var chunks = await CollectChunksAsync(source.ChunkAsync(10, initialCapacity));
+
+        Assert.Equal(3, chunks.Count);
+        Assert.Equal([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], chunks[0]);
+        Assert.Equal([11, 12, 13, 14, 15, 16, 17, 18, 19, 20], chunks[1]);
+        Assert.Equal([21, 22, 23], chunks[2]);
+    }
+
+    [Fact]
+    public async Task ChunkAsync_with_initialCapacity_trims_a_short_final_chunk()
+    {
+        var source = TestSources.Create(1, 2);
+
+        var chunks = await CollectChunksAsync(source.ChunkAsync(int.MaxValue, 1_000));
+
+        Assert.Single(chunks);
+        Assert.Equal([1, 2], chunks[0]);
+    }
+
+    [Fact]
+    public async Task ChunkAsync_with_initialCapacity_when_source_is_empty_yields_nothing()
+    {
+        var source = TestSources.Create<int>();
+
+        var chunks = await CollectChunksAsync(source.ChunkAsync(10, 10));
+
+        Assert.Empty(chunks);
+    }
+
+    [Fact]
+    public void ChunkAsync_with_initialCapacity_when_source_is_null_throws_ArgumentNullException()
+    {
+        IAsyncEnumerable<int> source = null!;
+
+        var actual = Assert.Throws<ArgumentNullException>(() => source.ChunkAsync(10, 4));
+
+        Assert.Equal("source", actual.ParamName);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    public void ChunkAsync_with_initialCapacity_when_chunk_size_is_not_positive_throws_ArgumentOutOfRangeException(int chunkSize)
+    {
+        var source = TestSources.Create(1, 2, 3);
+
+        var actual = Assert.Throws<ArgumentOutOfRangeException>(() => source.ChunkAsync(chunkSize, 1));
+
+        Assert.Equal("maxChunkSize", actual.ParamName);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    [InlineData(11)]
+    public void ChunkAsync_when_initialCapacity_is_outside_one_to_maxChunkSize_throws_ArgumentOutOfRangeException(int initialCapacity)
+    {
+        var source = TestSources.Create(1, 2, 3);
+
+        // Validation is eager: the call itself throws, before any enumeration.
+        var actual = Assert.Throws<ArgumentOutOfRangeException>(() => source.ChunkAsync(10, initialCapacity));
+
+        Assert.Equal("initialCapacity", actual.ParamName);
+    }
+
+    [Fact]
+    public async Task ChunkAsync_with_initialCapacity_when_canceled_during_enumeration_throws_OperationCanceledException()
+    {
+        using var tokenSource = new CancellationTokenSource();
+        var source = TestSources.Create(1, 2, 3, 4);
+
+        await using var enumerator = source.ChunkAsync(2, 2, tokenSource.Token).GetAsyncEnumerator();
+
+        Assert.True(await enumerator.MoveNextAsync());
+
+        tokenSource.Cancel();
+
+        await Assert.ThrowsAsync<OperationCanceledException>
+        (
+            async () => await enumerator.MoveNextAsync()
+        );
+    }
+
     private static async Task<List<ICollection<int>>> CollectChunksAsync(IAsyncEnumerable<ICollection<int>> chunks)
     {
         var result = new List<ICollection<int>>();
