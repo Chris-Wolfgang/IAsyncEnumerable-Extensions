@@ -11,8 +11,11 @@ state machine (`DoAsync`, `ForEachAsync`, `IsEmptyAsync`,
 `SlidingWindowCoreAsync`) — both allocate a heap-based state-machine object
 on `netstandard2.0`/`net462` by design (the .NET runtime does not
 stack-allocate async/iterator state machines on those TFMs). `ChunkAsync`
-additionally allocates a right-sized `T[]` per chunk, and `SlidingWindowAsync`
-allocates one `T[windowSize]` circular buffer per enumeration plus a fresh
+additionally allocates a `T[]` per chunk that grows like `Enumerable.Chunk`'s (from
+four elements, or from `initialCapacity` on the overload that takes one, doubling,
+capped at `maxChunkSize`; each growth and the final trim is an `Array.Resize`), and
+`SlidingWindowAsync` grows one buffer the same way up to a
+`T[windowSize]` circular buffer per enumeration, plus a fresh
 `T[windowSize]` per yielded window (each window escapes to the consumer, so it
 cannot be a view over the shared buffer) — those allocations are the methods'
 purpose, not hot-path regressions to eliminate.
