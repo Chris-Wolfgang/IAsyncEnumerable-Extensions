@@ -385,7 +385,7 @@ public sealed class ForEachAsyncTests
     {
         var source = TestSources.Create(1, 2, 3);
 
-        var actual = Assert.Throws<ArgumentNullException>(() => { _ = source.ForEachAsync((Func<int, Task>)null!); });
+        var actual = Assert.Throws<ArgumentNullException>(() => { _ = source.ForEachAsync(null!); });
 
         Assert.Equal("action", actual.ParamName);
     }
