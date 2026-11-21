@@ -25,6 +25,11 @@ public static class IAsyncEnumerableLegacyExtensions
     /// Thrown when <paramref name="token"/> is canceled before or during enumeration.
     /// Delivered through the returned <see cref="ValueTask{TResult}"/>.
     /// </exception>
+    /// <exception cref="OverflowException">
+    /// Thrown when <paramref name="source"/> contains more than <see cref="int.MaxValue"/> elements,
+    /// as <see cref="System.Linq.Enumerable"/>'s <c>Count</c> does.
+    /// Delivered through the returned <see cref="ValueTask{TResult}"/>.
+    /// </exception>
     /// <example>
     /// <code>
     /// var count = await source.CountAsync();
@@ -65,7 +70,16 @@ public static class IAsyncEnumerableLegacyExtensions
         {
             while (await enumerator.MoveNextAsync().ConfigureAwait(false))
             {
-                count++;
+                // Checked, like Enumerable.Count and System.Linq.AsyncEnumerable.CountAsync:
+                // more than int.MaxValue elements throws OverflowException instead of
+                // wrapping to a negative count. A 2^31-element source is too slow for the
+                // unit suite, so the checked-removal mutant is excluded here.
+                // Stryker disable once Checked : covered by the comment above, not testable cheaply
+                checked
+                {
+                    count++;
+                }
+
                 token.ThrowIfCancellationRequested();
             }
         }
