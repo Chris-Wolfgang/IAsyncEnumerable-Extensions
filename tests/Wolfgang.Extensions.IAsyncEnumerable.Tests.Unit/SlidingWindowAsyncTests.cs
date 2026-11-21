@@ -191,6 +191,127 @@ public sealed class SlidingWindowAsyncTests
 
 
 
+    [Fact]
+    public async Task SlidingWindowAsync_when_window_size_is_int_MaxValue_yields_nothing_for_a_short_source()
+    {
+        // The buffer grows with the source, so a huge window does not allocate
+        // windowSize elements up front.
+        var source = TestSources.Create(1, 2, 3);
+
+        var windows = await CollectAsync(source.SlidingWindowAsync(int.MaxValue));
+
+        Assert.Empty(windows);
+    }
+
+
+
+    [Fact]
+    public async Task SlidingWindowAsync_when_window_outgrows_the_initial_buffer_yields_expected_windows()
+    {
+        var source = TestSources.Create(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
+
+        var windows = await CollectAsync(source.SlidingWindowAsync(10));
+
+        Assert.Equal(3, windows.Count);
+        Assert.Equal([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], windows[0]);
+        Assert.Equal([2, 3, 4, 5, 6, 7, 8, 9, 10, 11], windows[1]);
+        Assert.Equal([3, 4, 5, 6, 7, 8, 9, 10, 11, 12], windows[2]);
+    }
+
+
+
+    [Theory]
+    [InlineData(1)]
+    [InlineData(5)]
+    [InlineData(10)]
+    public async Task SlidingWindowAsync_with_initialCapacity_yields_the_same_windows_as_the_default(int initialCapacity)
+    {
+        var source = TestSources.Create(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
+
+        var windows = await CollectAsync(source.SlidingWindowAsync(10, initialCapacity));
+
+        Assert.Equal(3, windows.Count);
+        Assert.Equal([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], windows[0]);
+        Assert.Equal([2, 3, 4, 5, 6, 7, 8, 9, 10, 11], windows[1]);
+        Assert.Equal([3, 4, 5, 6, 7, 8, 9, 10, 11, 12], windows[2]);
+    }
+
+
+
+    [Fact]
+    public async Task SlidingWindowAsync_with_initialCapacity_when_source_is_shorter_than_the_window_yields_nothing()
+    {
+        var source = TestSources.Create(1, 2, 3);
+
+        var windows = await CollectAsync(source.SlidingWindowAsync(int.MaxValue, 1_000));
+
+        Assert.Empty(windows);
+    }
+
+
+
+    [Fact]
+    public void SlidingWindowAsync_with_initialCapacity_when_source_is_null_throws_ArgumentNullException()
+    {
+        IAsyncEnumerable<int> source = null!;
+
+        var actual = Assert.Throws<ArgumentNullException>(() => source.SlidingWindowAsync(3, 3));
+
+        Assert.Equal("source", actual.ParamName);
+    }
+
+
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    public void SlidingWindowAsync_with_initialCapacity_when_window_size_is_less_than_one_throws_ArgumentOutOfRangeException(int windowSize)
+    {
+        var source = TestSources.Create(1, 2, 3);
+
+        var actual = Assert.Throws<ArgumentOutOfRangeException>(() => source.SlidingWindowAsync(windowSize, 1));
+
+        Assert.Equal("windowSize", actual.ParamName);
+    }
+
+
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    [InlineData(4)]
+    public void SlidingWindowAsync_when_initialCapacity_is_outside_one_to_windowSize_throws_ArgumentOutOfRangeException(int initialCapacity)
+    {
+        var source = TestSources.Create(1, 2, 3);
+
+        // Validation is eager: the call itself throws, before any enumeration.
+        var actual = Assert.Throws<ArgumentOutOfRangeException>(() => source.SlidingWindowAsync(3, initialCapacity));
+
+        Assert.Equal("initialCapacity", actual.ParamName);
+    }
+
+
+
+    [Fact]
+    public async Task SlidingWindowAsync_with_initialCapacity_when_canceled_during_enumeration_throws_OperationCanceledException()
+    {
+        using var tokenSource = new CancellationTokenSource();
+        var source = TestSources.Create(1, 2, 3, 4);
+
+        await using var enumerator = source.SlidingWindowAsync(2, 2, tokenSource.Token).GetAsyncEnumerator();
+
+        Assert.True(await enumerator.MoveNextAsync());
+
+        tokenSource.Cancel();
+
+        await Assert.ThrowsAsync<OperationCanceledException>
+        (
+            async () => await enumerator.MoveNextAsync()
+        );
+    }
+
+
+
     private static async Task<List<IReadOnlyList<T>>> CollectAsync<T>(IAsyncEnumerable<IReadOnlyList<T>> source)
     {
         var result = new List<IReadOnlyList<T>>();

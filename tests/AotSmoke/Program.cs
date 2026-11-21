@@ -24,6 +24,19 @@ await CheckAsync("ChunkAsync", async () =>
     Assert(chunks[3].SequenceEqual([10]), "final partial chunk mismatch");
 });
 
+await CheckAsync("ChunkAsync(initialCapacity)", async () =>
+{
+    var chunks = new List<int[]>();
+    await foreach (var chunk in Range(1, 10).ChunkAsync(3, 1))
+    {
+        chunks.Add(chunk.ToArray());
+    }
+
+    Assert(chunks.Count == 4, $"expected 4 chunks, got {chunks.Count}");
+    Assert(chunks[0].SequenceEqual([1, 2, 3]), "chunk 0 mismatch");
+    Assert(chunks[3].SequenceEqual([10]), "final partial chunk mismatch");
+});
+
 await CheckAsync("DoAsync(Action<T>)", async () =>
 {
     var seen = new List<int>();
@@ -133,6 +146,19 @@ await CheckAsync("SlidingWindowAsync", async () =>
 {
     var windows = new List<int[]>();
     await foreach (var window in Range(1, 5).SlidingWindowAsync(3))
+    {
+        windows.Add(window.ToArray());
+    }
+
+    Assert(windows.Count == 3, $"expected 3 windows, got {windows.Count}");
+    Assert(windows[0].SequenceEqual([1, 2, 3]), "window 0 mismatch");
+    Assert(windows[2].SequenceEqual([3, 4, 5]), "final window mismatch");
+});
+
+await CheckAsync("SlidingWindowAsync(initialCapacity)", async () =>
+{
+    var windows = new List<int[]>();
+    await foreach (var window in Range(1, 5).SlidingWindowAsync(3, 1))
     {
         windows.Add(window.ToArray());
     }
