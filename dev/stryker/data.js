@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794748989133,
+  "lastUpdate": 1795356015902,
   "repoUrl": "https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions",
   "entries": {
     "Mutation score": [
@@ -171,6 +171,38 @@ window.BENCHMARK_DATA = {
           {
             "name": "Mutation score (tests/Wolfgang.Extensions.IAsyncEnumerable.Tests.Unit)",
             "value": 100,
+            "unit": "%"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "Chris Wolfgang",
+            "username": "Chris-Wolfgang",
+            "email": "210299580+Chris-Wolfgang@users.noreply.github.com"
+          },
+          "committer": {
+            "name": "GitHub",
+            "username": "web-flow",
+            "email": "noreply@github.com"
+          },
+          "id": "15f319cb4b66f5791c4df08c4e633d64e26f5a4e",
+          "message": "fix: grow ChunkAsync / SlidingWindowAsync buffers instead of pre-sizing (#612)\n\n* fix: grow ChunkAsync / SlidingWindowAsync buffers instead of pre-sizing\n\nChunkAsync allocated a full maxChunkSize array on the first element (and\nagain after every full chunk, even when the source then ended), and\nSlidingWindowAsync allocated T[windowSize] before the first MoveNextAsync.\nA huge size on a short source therefore failed with OutOfMemoryException\nwhere Enumerable.Chunk succeeds. Both now start at four elements and double\nup to the size, as Enumerable.Chunk does.\n\nAdds int.MaxValue and buffer-growth tests, a cancel-after-final-partial-chunk\ntest, a size-far-larger-than-source benchmark case, and corrects\ndocs/ALLOCATION-POLICY.md.\n\nCloses #603\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\n\n* feat: add initialCapacity overloads to ChunkAsync and SlidingWindowAsync\n\nLike new List<T>(int): the working buffer starts at initialCapacity\ninstead of four and grows from there. Same chunks/windows as the\nexisting overloads. initialCapacity must be 1..maxChunkSize/windowSize,\nvalidated eagerly.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\n\n---------\n\nCo-authored-by: Claude Opus 5.5 <noreply@anthropic.com>",
+          "timestamp": "2026-11-21T13:41:25Z",
+          "url": "https://github.com/Chris-Wolfgang/IAsyncEnumerable-Extensions/commit/15f319cb4b66f5791c4df08c4e633d64e26f5a4e"
+        },
+        "date": 1795356010679,
+        "tool": "customBiggerIsBetter",
+        "benches": [
+          {
+            "name": "Mutation score (tests/Wolfgang.Extensions.IAsyncEnumerable.Legacy.Tests.Unit)",
+            "value": 100,
+            "unit": "%"
+          },
+          {
+            "name": "Mutation score (tests/Wolfgang.Extensions.IAsyncEnumerable.Tests.Unit)",
+            "value": 98.03,
             "unit": "%"
           }
         ]
