@@ -2,6 +2,7 @@
 
 | ADR | Title | Status |
 |-----|-------|--------|
+| [0000](0000-record-architecture-decisions.md) | Record architecture decisions | Accepted |
 | [0001](0001-pin-assemblyversion-to-1.0.0.0.md) | Pin AssemblyVersion to a fixed 1.0.0.0 baseline | Accepted |
 | [0002](0002-two-doasync-overloads-instead-of-one.md) | Two `DoAsync` overloads instead of a single merged one | Accepted |
 | [0003](0003-chunkasync-returns-icollection-not-ireadonlylist.md) | `ChunkAsync` returns `ICollection<T>`, not `IReadOnlyList<T>` | Accepted |
