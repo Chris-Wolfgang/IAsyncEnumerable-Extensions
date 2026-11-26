@@ -24,6 +24,41 @@ public static class IAsyncEnumerableExtensions
     /// Splits an IAsyncEnumerable{T} into chunks of a specified maximum size.
     /// </summary>
     /// <remarks>
+    /// Same as <see cref="ChunkAsync{T}(IAsyncEnumerable{T}, int, CancellationToken)"/> with
+    /// <see cref="CancellationToken.None"/>. The token has no default on that overload so that the
+    /// <c>initialCapacity</c> overload, which has the most parameters, is the only <c>ChunkAsync</c>
+    /// overload with an optional parameter (RS0026 / RS0027).
+    /// </remarks>
+    /// <param name="source">The source IAsyncEnumerable{T}.</param>
+    /// <param name="maxChunkSize">The maximum size of each chunk.</param>
+    /// <typeparam name="T">The type of elements in the IAsyncEnumerable{T}.</typeparam>
+    /// <returns>An IAsyncEnumerable{ICollection{T}} representing the chunks.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="source"/> is null.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="maxChunkSize"/> is less than one.</exception>
+    /// <example>
+    /// <code>
+    /// // Process the stream in batches of up to 100 items
+    /// await foreach (var batch in source.ChunkAsync(100))
+    /// {
+    ///     Console.WriteLine($"Batch of {batch.Count} items");
+    /// }
+    /// </code>
+    /// </example>
+    public static IAsyncEnumerable<ICollection<T>> ChunkAsync<T>
+    (
+        this IAsyncEnumerable<T> source,
+        int maxChunkSize
+    )
+    {
+        return ChunkAsync(source, maxChunkSize, CancellationToken.None);
+    }
+
+
+
+    /// <summary>
+    /// Splits an IAsyncEnumerable{T} into chunks of a specified maximum size.
+    /// </summary>
+    /// <remarks>
     /// Matches <c>Enumerable.Chunk</c> (net6.0+) item for item, including which chunks are
     /// produced before a source failure, with one intentional difference: the size parameter is
     /// named <paramref name="maxChunkSize"/>, where <c>Enumerable.Chunk</c> calls it
@@ -55,7 +90,7 @@ public static class IAsyncEnumerableExtensions
     (
         this IAsyncEnumerable<T> source,
         int maxChunkSize,
-        CancellationToken token = default
+        CancellationToken token
     )
     {
         if (source is null)
@@ -951,6 +986,42 @@ public static class IAsyncEnumerableExtensions
     /// IAsyncEnumerable{T}, advancing one element at a time.
     /// </summary>
     /// <remarks>
+    /// Same as <see cref="SlidingWindowAsync{T}(IAsyncEnumerable{T}, int, CancellationToken)"/> with
+    /// <see cref="CancellationToken.None"/>. The token has no default on that overload so that the
+    /// <c>initialCapacity</c> overload, which has the most parameters, is the only <c>SlidingWindowAsync</c>
+    /// overload with an optional parameter (RS0026 / RS0027).
+    /// </remarks>
+    /// <param name="source">The source IAsyncEnumerable{T}.</param>
+    /// <param name="windowSize">The number of elements in each window.</param>
+    /// <typeparam name="T">The type of elements in the IAsyncEnumerable{T}.</typeparam>
+    /// <returns>An IAsyncEnumerable{IReadOnlyList{T}} of windows, oldest element first.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="source"/> is null.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="windowSize"/> is less than one.</exception>
+    /// <example>
+    /// <code>
+    /// // Moving average over the last three readings
+    /// await foreach (var window in source.SlidingWindowAsync(3))
+    /// {
+    ///     Console.WriteLine((window[0] + window[1] + window[2]) / 3.0);
+    /// }
+    /// </code>
+    /// </example>
+    public static IAsyncEnumerable<IReadOnlyList<T>> SlidingWindowAsync<T>
+    (
+        this IAsyncEnumerable<T> source,
+        int windowSize
+    )
+    {
+        return SlidingWindowAsync(source, windowSize, CancellationToken.None);
+    }
+
+
+
+    /// <summary>
+    /// Yields overlapping windows of <paramref name="windowSize"/> consecutive elements from an
+    /// IAsyncEnumerable{T}, advancing one element at a time.
+    /// </summary>
+    /// <remarks>
     /// The first window is yielded once <paramref name="windowSize"/> elements have arrived; each
     /// later element yields the next window. A source with fewer than
     /// <paramref name="windowSize"/> elements yields nothing. Every yielded window is a new,
@@ -982,7 +1053,7 @@ public static class IAsyncEnumerableExtensions
     (
         this IAsyncEnumerable<T> source,
         int windowSize,
-        CancellationToken token = default
+        CancellationToken token
     )
     {
         if (source is null)
