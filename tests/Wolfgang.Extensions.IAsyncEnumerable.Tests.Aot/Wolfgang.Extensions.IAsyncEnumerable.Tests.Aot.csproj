@@ -1,0 +1,54 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<!--
+	  Native AOT test run (standards/aot-smoke.md).
+
+	  Runs the unit tests of Wolfgang.Extensions.IAsyncEnumerable.Tests.Unit, compiled as a
+	  Native AOT executable with xUnit v3. The 2.x project stays as it is for every TFM; this
+	  one exists only to prove the library under trimming + AOT, which a JIT test run cannot.
+
+	  The test sources are linked, not copied: fix a test in Tests.Unit and it is fixed here.
+	  xUnit v3's in-process console runner makes this project its own executable (no
+	  Microsoft.NET.Test.Sdk), and with PublishAot that executable is a native binary.
+	  aot-smoke.yaml finds it through PublishAot=true, publishes it and runs it; a failing
+	  test makes the native run exit non-zero.
+	-->
+	<PropertyGroup>
+		<OutputType>Exe</OutputType>
+		<TargetFramework>net10.0</TargetFramework>
+		<LangVersion>latest</LangVersion>
+		<ImplicitUsings>disable</ImplicitUsings>
+		<!-- Not a dotnet-test project: build-pr.ps1 and the pr.yaml test stages run `dotnet test`
+		     only on IsTestProject / Microsoft.NET.Test.Sdk projects, and skip a project that sets
+		     this to false explicitly. This one is published and executed by the AOT job. -->
+		<IsTestProject>false</IsTestProject>
+		<!-- The Directory.Build.props *.Tests.Aot block sets these too. They are repeated here
+		     so the project is complete while pr.yaml still builds PRs with main's copy of
+		     Directory.Build.props; the AotSmoke removal PR drops the duplicates. -->
+		<PublishAot>true</PublishAot>
+		<PublishTrimmed>true</PublishTrimmed>
+		<IsAotCompatible>true</IsAotCompatible>
+		<TrimmerSingleWarn>false</TrimmerSingleWarn>
+		<IsPackable>false</IsPackable>
+		<!-- CultureInvarianceTests run under tr-TR, de-DE, ar-SA, ja-JP and zh-CN, so ICU is
+		     required: InvariantGlobalization must stay OFF for this project. -->
+		<InvariantGlobalization>false</InvariantGlobalization>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<!-- The AOT (source-generated) edition of xUnit.net v3: discovery, theory data and attribute
+		     configuration are resolved at build time, so no reflection is needed at run time. The plain
+		     `xunit.v3` package is reflection-based and cannot run under Native AOT. -->
+		<PackageReference Include="xunit.v3.aot" Version="4.0.3" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\..\src\Wolfgang.Extensions.IAsyncEnumerable\Wolfgang.Extensions.IAsyncEnumerable.csproj" />
+	</ItemGroup>
+
+	<!-- The unit tests themselves, linked from the 2.x project. -->
+	<ItemGroup>
+		<Compile Include="..\Wolfgang.Extensions.IAsyncEnumerable.Tests.Unit\*.cs" Link="Unit\%(Filename)%(Extension)" />
+	</ItemGroup>
+
+</Project>
