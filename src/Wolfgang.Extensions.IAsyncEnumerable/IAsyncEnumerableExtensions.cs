@@ -1149,51 +1149,60 @@ public static class IAsyncEnumerableExtensions
     {
         token.ThrowIfCancellationRequested();
 
-        // Until the first window is complete the buffer fills front to back and grows like
-        // ChunkAsync's working array (from initialCapacity, four by default), so a large
-        // windowSize costs memory only for elements that arrive. Once full it is a circular
-        // buffer: `next` is where the next element is written, which is also the oldest element.
-        var buffer = Array.Empty<T>();
-        var count = 0;
-        var next = 0;
-
         var enumerator = source.GetAsyncEnumerator(token);
         await using (enumerator.ConfigureAwait(false))
         {
-            while (await enumerator.MoveNextAsync().ConfigureAwait(false))
+            if (!await enumerator.MoveNextAsync().ConfigureAwait(false))
             {
-                if (count < windowSize)
-                {
-                    if (count == buffer.Length)
-                    {
-                        Array.Resize
-                        (
-                            ref buffer,
-                            buffer.Length == 0 ? initialCapacity : NextBufferSize(buffer.Length, windowSize)
-                        );
-                    }
+                yield break;
+            }
 
-                    // Stops at windowSize, so it cannot overflow however long the source runs.
-                    buffer[count++] = enumerator.Current;
-                    if (count < windowSize)
-                    {
-                        continue;
-                    }
-                }
-                else
+            // Until the first window is complete the buffer fills front to back and grows like
+            // ChunkAsync's working array (from initialCapacity, four by default), so a large
+            // windowSize costs memory only for elements that arrive; nothing is allocated before
+            // the first one. initialCapacity and every growth step are capped at windowSize, so
+            // the buffer is exactly windowSize long once it is full.
+            var buffer = new T[initialCapacity];
+            buffer[0] = enumerator.Current;
+            var count = 1;
+
+            while (count < windowSize && await enumerator.MoveNextAsync().ConfigureAwait(false))
+            {
+                if (count == buffer.Length)
                 {
-                    buffer[next] = enumerator.Current;
-                    next = (next + 1) % windowSize;
+                    Array.Resize(ref buffer, NextBufferSize(buffer.Length, windowSize));
                 }
 
-                // Each window escapes to the consumer, so it is a fresh copy in oldest-first
-                // order rather than a view over the shared buffer.
+                // Stops at windowSize, so it cannot overflow however long the source runs.
+                buffer[count++] = enumerator.Current;
+            }
+
+            if (count < windowSize)
+            {
+                // The source ended before the first window was complete.
+                yield break;
+            }
+
+            // Now circular: `next` is where the next element goes, which is also the oldest one.
+            var next = 0;
+
+            while (true)
+            {
+                // Each window escapes to the consumer: a fresh oldest-first copy, not a view.
                 var window = new T[windowSize];
                 Array.Copy(buffer, next, window, 0, windowSize - next);
                 Array.Copy(buffer, 0, window, windowSize - next, next);
 
                 yield return window;
                 token.ThrowIfCancellationRequested();
+
+                if (!await enumerator.MoveNextAsync().ConfigureAwait(false))
+                {
+                    yield break;
+                }
+
+                buffer[next] = enumerator.Current;
+                next = (next + 1) % windowSize;
             }
         }
     }
