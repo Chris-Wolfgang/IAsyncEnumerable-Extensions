@@ -260,6 +260,19 @@ public sealed class ChunkAsyncTests
     }
 
     [Fact]
+    public async Task ChunkAsync_with_initialCapacity_when_maxChunkSize_is_one_yields_single_element_chunks()
+    {
+        var source = TestSources.Create(1, 2, 3);
+
+        var chunks = await CollectChunksAsync(source.ChunkAsync(1, 1));
+
+        Assert.Equal(3, chunks.Count);
+        Assert.Equal([1], chunks[0]);
+        Assert.Equal([2], chunks[1]);
+        Assert.Equal([3], chunks[2]);
+    }
+
+    [Fact]
     public async Task ChunkAsync_with_initialCapacity_when_source_is_empty_yields_nothing()
     {
         var source = TestSources.Create<int>();

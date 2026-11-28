@@ -239,6 +239,33 @@ public sealed class SlidingWindowAsyncTests
 
 
     [Fact]
+    public async Task SlidingWindowAsync_when_windowSize_is_one_and_source_is_empty_yields_nothing()
+    {
+        var source = TestSources.Create<int>();
+
+        var windows = await CollectAsync(source.SlidingWindowAsync(1));
+
+        Assert.Empty(windows);
+    }
+
+
+
+    [Fact]
+    public async Task SlidingWindowAsync_with_initialCapacity_when_windowSize_is_one_yields_each_element_alone()
+    {
+        var source = TestSources.Create(1, 2, 3);
+
+        var windows = await CollectAsync(source.SlidingWindowAsync(1, 1));
+
+        Assert.Equal(3, windows.Count);
+        Assert.Equal([1], windows[0]);
+        Assert.Equal([2], windows[1]);
+        Assert.Equal([3], windows[2]);
+    }
+
+
+
+    [Fact]
     public async Task SlidingWindowAsync_with_initialCapacity_when_source_is_shorter_than_the_window_yields_nothing()
     {
         var source = TestSources.Create(1, 2, 3);
