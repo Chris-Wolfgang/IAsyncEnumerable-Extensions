@@ -53,3 +53,9 @@ dotnet_diagnostic.xUnit2013.severity = none
 # suggestion (not none) and scoped to the linked sources only.
 [Wolfgang.Extensions.IAsyncEnumerable.Tests.Unit/*.cs]
 dotnet_diagnostic.xUnit1051.severity = suggestion
+
+# S2245: pseudorandom generator. DeepBehaviorTests seeds System.Random to build reproducible
+# property-test input; nothing security-relevant. Sonar only raises this hotspot here because
+# Tests.Aot (xunit.v3.aot) is not recognised as a test project. Scoped to that one file.
+[Wolfgang.Extensions.IAsyncEnumerable.Tests.Unit/DeepBehaviorTests.cs]
+dotnet_diagnostic.S2245.severity = none
