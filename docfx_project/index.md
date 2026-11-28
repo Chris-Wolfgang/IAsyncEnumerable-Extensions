@@ -49,7 +49,17 @@ Splits an `IAsyncEnumerable<T>` into fixed-size chunks for batch processing. The
 ```csharp
 public static IAsyncEnumerable<ICollection<T>> ChunkAsync<T>(
     this IAsyncEnumerable<T> source,
+    int maxChunkSize)
+
+public static IAsyncEnumerable<ICollection<T>> ChunkAsync<T>(
+    this IAsyncEnumerable<T> source,
     int maxChunkSize,
+    CancellationToken token)
+
+public static IAsyncEnumerable<ICollection<T>> ChunkAsync<T>(
+    this IAsyncEnumerable<T> source,
+    int maxChunkSize,
+    int initialCapacity,
     CancellationToken token = default)
 ```
 
@@ -221,7 +231,17 @@ Overlapping windows of `windowSize` consecutive elements as `IReadOnlyList<T>`, 
 ```csharp
 public static IAsyncEnumerable<IReadOnlyList<T>> SlidingWindowAsync<T>(
     this IAsyncEnumerable<T> source,
+    int windowSize)
+
+public static IAsyncEnumerable<IReadOnlyList<T>> SlidingWindowAsync<T>(
+    this IAsyncEnumerable<T> source,
     int windowSize,
+    CancellationToken token)
+
+public static IAsyncEnumerable<IReadOnlyList<T>> SlidingWindowAsync<T>(
+    this IAsyncEnumerable<T> source,
+    int windowSize,
+    int initialCapacity,
     CancellationToken token = default)
 ```
 

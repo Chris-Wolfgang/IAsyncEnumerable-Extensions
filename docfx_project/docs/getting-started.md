@@ -106,7 +106,17 @@ public record DataRecord
 ```csharp
 public static IAsyncEnumerable<ICollection<T>> ChunkAsync<T>(
     this IAsyncEnumerable<T> source,
+    int maxChunkSize)
+
+public static IAsyncEnumerable<ICollection<T>> ChunkAsync<T>(
+    this IAsyncEnumerable<T> source,
     int maxChunkSize,
+    CancellationToken token)
+
+public static IAsyncEnumerable<ICollection<T>> ChunkAsync<T>(
+    this IAsyncEnumerable<T> source,
+    int maxChunkSize,
+    int initialCapacity,
     CancellationToken token = default)
 ```
 
@@ -114,7 +124,8 @@ public static IAsyncEnumerable<ICollection<T>> ChunkAsync<T>(
 
 - **source**: The source `IAsyncEnumerable<T>` to chunk
 - **maxChunkSize**: Maximum number of elements in each chunk (must be > 0)
-- **token**: Optional cancellation token to cancel the operation
+- **initialCapacity**: Starting length of the working array, from 1 to `maxChunkSize` (third overload only)
+- **token**: Cancellation token to cancel the operation (optional on the `initialCapacity` overload; leave it out of the two-argument call)
 
 ### Returns
 
