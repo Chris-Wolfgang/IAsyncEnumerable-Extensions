@@ -46,3 +46,10 @@ dotnet_diagnostic.S1144.severity = none
 
 # xUnit2013: Use Assert.Single instead of Assert.Equal for collection size
 dotnet_diagnostic.xUnit2013.severity = none
+
+# xUnit1051: pass TestContext.Current.CancellationToken. The Tests.Unit sources are also compiled
+# into Tests.Aot (xunit.v3.aot), where this v3 analyzer runs on them; the 2.x project they belong
+# to has no TestContext.Current, so the suggestion cannot be applied to shared code. Kept at
+# suggestion (not none) and scoped to the linked sources only.
+[Wolfgang.Extensions.IAsyncEnumerable.Tests.Unit/*.cs]
+dotnet_diagnostic.xUnit1051.severity = suggestion
