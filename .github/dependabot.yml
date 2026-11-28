@@ -11,6 +11,13 @@ updates:
       dotnet-dependencies:
         patterns:
           - "*"
+    # The unit tests' netcoreapp3.1 / net5.0 slots pin xunit.runner.visualstudio [2.4.5]: 2.5+ ships
+    # no netcoreapp3.1 asset, so those slots run zero tests and Stage 1 fails (#628). The net462-net471
+    # slots are already on 2.8.2 (the last 2.x) and the net472+/net6.0+ slots on 3.x, so this blocks
+    # nothing else.
+    ignore:
+      - dependency-name: "xunit.runner.visualstudio"
+        versions: [">= 2.5.0, < 3.0.0"]
 
   # Keep third-party GitHub Actions pinned in workflows up to date.
   - package-ecosystem: "github-actions"
