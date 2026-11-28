@@ -41,7 +41,7 @@ internal sealed class ScriptedSource(int[] items, int throwAt, bool disposeThrow
         }
         finally
         {
-            Dispose();
+            MarkDisposed();
         }
     }
 
@@ -61,7 +61,7 @@ internal sealed class ScriptedSource(int[] items, int throwAt, bool disposeThrow
         }
         finally
         {
-            Dispose();
+            MarkDisposed();
         }
     }
 
@@ -77,7 +77,7 @@ internal sealed class ScriptedSource(int[] items, int throwAt, bool disposeThrow
 
 
 
-    private void Dispose()
+    private void MarkDisposed()
     {
         Disposed = true;
         if (disposeThrows)
