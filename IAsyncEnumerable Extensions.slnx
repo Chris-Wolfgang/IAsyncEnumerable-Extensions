@@ -76,6 +76,7 @@
   <Folder Name="/tests/">
     <File Path="tests/Wolfgang.Extensions.IAsyncEnumerable.Tests.Unit/stryker-config.json" />
     <Project Path="tests/AotSmoke/AotSmoke.csproj" />
+    <Project Path="tests/Wolfgang.Extensions.IAsyncEnumerable.Tests.Aot/Wolfgang.Extensions.IAsyncEnumerable.Tests.Aot.csproj" />
     <Project Path="tests/Wolfgang.Extensions.IAsyncEnumerable.Tests.Fuzz/Wolfgang.Extensions.IAsyncEnumerable.Tests.Fuzz.csproj" />
     <Project Path="tests/Wolfgang.Extensions.IAsyncEnumerable.Tests.DocExamples/Wolfgang.Extensions.IAsyncEnumerable.Tests.DocExamples.csproj" />
     <Project Path="tests/Wolfgang.Extensions.IAsyncEnumerable.Tests.Concurrency/Wolfgang.Extensions.IAsyncEnumerable.Tests.Concurrency.csproj" />
