@@ -44,15 +44,18 @@ public sealed class DeepBehaviorTests
     {
         var disposeFlag = new DisposeFlag();
         var source = new ThrowingAsyncEnumerable(disposeFlag, throwAt: -1, exception: null);  // never throws
+        var lastSeen = -1;
 
         await foreach (var item in source.DoAsync(_ => { }))
         {
+            lastSeen = item;
             if (item >= 3)
             {
                 break;  // early termination triggers the await-foreach disposal path
             }
         }
 
+        Assert.Equal(3, lastSeen);
         Assert.True(disposeFlag.Disposed, "early break in await-foreach must dispose the source enumerator");
     }
 
